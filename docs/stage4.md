@@ -9,7 +9,8 @@ Release files are in `releases/stage4/`. Game mechanics, controls and hit boxes 
   and shaded as one area (an arm, a trouser leg with the pelvis, the singlet with torso, pelvis and thighs),
   and no edges are drawn where a limb grows out of the body, so arms and legs no longer look stuck on.
   Feet and shoes have a real shape in profile (flat sole on the floor, heel, rounded toes, instep), and wide
-  trouser legs end above the ankle instead of reaching under the foot.
+  trouser legs end above the ankle instead of reaching under the foot. The head turns with the neck: a
+  falling or lying fighter looks up and backwards instead of having an upright head on a lying body.
 - **Tiago:** bare, muscular torso with chest and belly lines, curly black hair, wide white capoeira trousers
   with folds, green-and-yellow cord belt (cordão) with knot and tassels, bare feet. Livelier ginga in the
   idle animation; the rear-hand strike now crosses in front of the body; new win pose (fist raised, other
