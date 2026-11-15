@@ -3,9 +3,9 @@
 A one-on-one fighting game for the MEGA65 in the style of the classic arcade versus fighters, written in
 45GS02 assembly (KickAssembler 65CE02 5.25).
 
-**Status:** Stage 3 – a complete match: best of three rounds with timer, crouching, jumping, blocking and knockdowns.
+**Status:** Stage 4 – a complete match with the final artwork for Tiago and Konrad and hit sparks.
 
-![Stage 3 in XEMU](docs/img/stage3_xemu.png)
+![Stage 4 in XEMU](docs/img/stage4_xemu.png)
 
 ## The plan
 - A "world championship": fighters from different countries, each with its own moves, special moves and
@@ -41,6 +41,7 @@ checklist in `docs/stageN.md`; confirmed stages are tagged `stageN-stable`.
 | 1 | Rio arena, Tiago standing and walking, frame streaming from attic RAM, horizontal flip |
 | 2 | Konrad, two players, light/heavy punches and kicks, hits, pushback, energy bars, KO |
 | 3 | crouching, jumping, blocking, sweeps and knockdowns, rounds, timer, names, banners, win poses |
+| 4 | final fighter artwork, facial expressions, hit and block sparks |
 
 ## Documentation
 - [Technical design and roadmap](docs/design.md)

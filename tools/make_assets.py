@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
@@ -53,6 +53,8 @@ L = dict(
     HUD_BANK=15,
     HUD_ROW=1,
     FONT_GFX=0x05E000,        # 16x16 font: 2 NCM glyphs per char
+    FX_GFX=0x05F400,          # hit and block sparks (5 frames of 2x3 NCM glyphs)
+    FX_BANK=11,
 )
 L['ROW_BYTES'] = L['ROW_TOKENS'] * 2
 L['OVL_START'] = L['BG_TOKENS'] * 2
@@ -65,6 +67,7 @@ L['SLOT_C_CHAR'] = L['SLOT_C'] // 64
 L['SLOT_D_CHAR'] = L['SLOT_D'] // 64
 L['HUD_CHAR'] = L['HUD_GFX'] // 64
 L['FONT_CHAR'] = L['FONT_GFX'] // 64
+L['FX_CHAR'] = L['FX_GFX'] // 64
 L['MAP_PAL_BYTES'] = L['ARENA_COLOURS'] * 3
 L['CLEAN_SCR'] = L['ARENA_MAP'] + L['MAP_PAL_BYTES']
 L['CLEAN_COL'] = L['CLEAN_SCR'] + L['BUF_ROWS'] * L['ROW_BYTES']
@@ -185,7 +188,7 @@ def fighters(gen, prev):
             rows_first.append(len(tab))
             rows_len.append(len(an[a]))
             for fr in an[a]:
-                img = fa.render(fr['pose'], m.COSTUME)
+                img = fa.render(fr['pose'], m.COSTUME, fr.get('face', 'normal'))
                 rendered.append(img)
                 data, w, h, xofs, ytop = frame_block(img)
                 if len(data) > L['SLOT_SIZE']:
@@ -267,6 +270,8 @@ def fighters(gen, prev):
     hud += [(0, 0, 0)] * (16 - len(hud))
     for ch, nm in enumerate('rgb'):
         t.append(bl(f'pal_hud_{nm}', [swap(col[ch]) for col in hud]))
+    for ch, nm in enumerate('rgb'):
+        t.append(bl(f'pal_fx_{nm}', [swap(col[ch]) for col in FX_PAL]))
     (gen / 'assets_const.inc').write_text('\n'.join(c) + '\n')
     (gen / 'assets.inc').write_text('\n'.join(t) + '\n')
     # energy bar glyphs: amount 0..16 px filled from the left; rows 0 and 7 border
@@ -346,6 +351,55 @@ def font(gen, prev):
     return len(glyphs)
 
 
+# ------------------------------------------------------------------ effects: hit and block sparks
+FX_PAL = [(0, 0, 0), (120, 24, 20), (255, 255, 255), (255, 246, 170), (255, 214, 60), (255, 140, 30),
+          (170, 220, 255), (70, 140, 240), (230, 246, 255)] + [(0, 0, 0)] * 7
+
+
+def effects(gen, prev):
+    """Frames 0-2: hit spark (bright star, burst, fading rays); 3-4: block spark (blue shield arc).
+    Each 32x24 px = 2 NCM columns x 3 rows, stored like fighter frames (blank, columns, blank)."""
+    import math
+    W, H = 32, 24
+    cx, cy = 16, 12
+    frames = []
+    for k, (r_in, r_out, thick) in enumerate(((2, 7, 3), (3, 11, 3), (7, 12, 1))):
+        img = Image.new('P', (W, H), 0)
+        d = ImageDraw.Draw(img)
+        for i in range(8):
+            a = math.radians(i * 45 + (22 if k == 1 else 0))
+            ln = r_out if i % 2 == 0 else r_out * 0.65
+            p0 = (cx + r_in * math.cos(a), cy + r_in * math.sin(a))
+            p1 = (cx + ln * math.cos(a), cy + ln * math.sin(a))
+            d.line((p0, p1), fill=5, width=thick + 2)
+            d.line((p0, p1), fill=4 if k < 2 else 3, width=thick)
+        if k < 2:
+            d.ellipse((cx - r_out * 0.45, cy - r_out * 0.45, cx + r_out * 0.45, cy + r_out * 0.45), fill=3)
+            d.ellipse((cx - r_out * 0.25, cy - r_out * 0.25, cx + r_out * 0.25, cy + r_out * 0.25), fill=2)
+        frames.append(np.array(img, np.uint8))
+    for k, r in enumerate((7, 10)):
+        img = Image.new('P', (W, H), 0)
+        d = ImageDraw.Draw(img)
+        for rr, col in ((r + 1, 7), (r, 6), (r - 1, 8)):
+            d.arc((cx - rr - 4, cy - rr, cx + rr - 4, cy + rr), -70, 70, fill=col, width=2)
+        if k == 0:
+            d.ellipse((cx + r - 7, cy - 2, cx + r - 3, cy + 2), fill=2)
+        frames.append(np.array(img, np.uint8))
+    blob = b''
+    for f in frames:
+        glyphs = [bytes(64)]
+        for c in range(2):
+            for r in range(3):
+                glyphs.append(ncm_glyph(f[r * 8:r * 8 + 8, c * 16:c * 16 + 16]))
+            glyphs.append(bytes(64))
+        blob += b''.join(glyphs)
+    (gen / 'FX.bin').write_bytes(blob)
+    pal = np.array(FX_PAL, np.uint8)
+    sheet = np.concatenate(frames, axis=1)
+    Image.fromarray(pal[sheet]).resize((sheet.shape[1] * 4, H * 4), Image.NEAREST).save(prev / 'effects.png')
+    return len(frames), len(blob)
+
+
 def compose_preview(prev, mods):
     """Arena with both fighters facing each other, as the game's first screen should look."""
     a = Image.open(prev / 'arena_rio.png').resize((320, 200), Image.NEAREST).convert('RGB')
@@ -373,9 +427,11 @@ def main():
     n, pal = arena(gen, prev)
     tab, mods = fighters(gen, prev)
     nfont = font(gen, prev)
+    nfx, fxsize = effects(gen, prev)
     compose_preview(prev, mods)
     print(f'arena: {n} glyphs ({n * 64} bytes), {L["ARENA_COLOURS"] - 1} colours')
-    print(f'frames: {len(tab)}, widths {sorted(set(t["w"] for t in tab))}; font: {nfont} glyphs')
+    print(f'frames: {len(tab)}, widths {sorted(set(t["w"] for t in tab))}; font: {nfont} glyphs; '
+          f'effects: {nfx} frames, {fxsize} bytes')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-# Memory map (Stage 3)
+# Memory map (Stage 4)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -12,7 +12,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 |---|---|
 | `$0002–$0037` | game zero page (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
-| `$2020–$5CB0` | code, tables, load buffer, palette buffer, HUD and font glyph sources (guard: below `$C000`) |
+| `$2020–$6915` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `$C000`) |
 
 ## Chip RAM, banks 4/5
 
@@ -30,7 +30,8 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 | `$5AC00–$5C7FF` | 7 KB | fighter 2, frame slot D (char `$16B0`+) |
 | `$5DB00–$5DDFF` | 768 B | BASIC's palette 0 until exit |
 | `$5DE00–$5DEFF` | 256 B | BASIC's zero page until exit |
-| `$5E000–$5F3FF` | 80×64 B | 16×16 font, 40 characters (char `$1780`+; room for 128 glyphs up to `$5FFFF`) |
+| `$5E000–$5F3FF` | 80×64 B | 16×16 font, 40 characters (char `$1780`+) |
+| `$5F400–$5FF3F` | 45×64 B | hit and block sparks, 5 frames of 2×3 NCM glyphs (char `$17D0`+) |
 
 Planned (not used yet): effect glyphs, music and samples.
 
@@ -46,8 +47,8 @@ Planned (not used yet): effect glyphs, music and samples.
 
 | Address | Use |
 |---|---|
-| `$8000000–$803FFFF` | fighter package 1, Tiago (file `F-TIAGO`, Stage 3: 55 frames, 162,496 bytes); the first byte is also the attic-RAM test cell |
-| `$8040000–$807FFFF` | fighter package 2, Konrad (file `F-KONRAD`, Stage 3: 55 frames, 172,608 bytes) |
+| `$8000000–$803FFFF` | fighter package 1, Tiago (file `F-TIAGO`, Stage 4: 55 frames, 164,800 bytes); the first byte is also the attic-RAM test cell |
+| `$8040000–$807FFFF` | fighter package 2, Konrad (file `F-KONRAD`, Stage 4: 55 frames, 167,488 bytes) |
 
 ## VIC-IV configuration
 
@@ -70,7 +71,7 @@ Planned (not used yet): effect glyphs, music and samples.
 | Entries | Use |
 |---|---|
 | 0–175 | arena (0 = black, the background colour) |
-| 176–191 | bank 11, spare |
+| 176–191 | bank 11, hit and block sparks |
 | 192–207 | bank 12, fighter 1 |
 | 208–223 | bank 13, fighter 2 |
 | 224–239 | bank 14, planned: mirror-match palette |

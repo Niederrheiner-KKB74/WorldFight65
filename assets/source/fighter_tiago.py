@@ -19,27 +19,29 @@ NAME = 'TIAGO'
 COUNTRY = 'BRAZIL'
 PALETTE = [
     (0, 0, 0),          # 0 transparent
-    (24, 16, 20),       # 1 outline
-    (70, 40, 28),       # 2 skin, darkest
-    (112, 68, 44),      # 3 skin, dark
-    (152, 98, 64),      # 4 skin
-    (192, 134, 92),     # 5 skin, light
-    (32, 24, 28),       # 6 hair, eyes
-    (128, 130, 150),    # 7 trousers, darkest
-    (176, 178, 194),    # 8 trousers, dark
-    (228, 228, 222),    # 9 trousers
-    (255, 255, 255),    # 10 trousers, light
-    (44, 156, 72),      # 11 belt green
-    (244, 206, 40),     # 12 belt yellow
-    (200, 40, 40),      # 13 spare (hit flash)
-    (255, 200, 120),    # 14 spare
-    (255, 255, 255),    # 15 spare
+    (30, 16, 18),       # 1 outline
+    (78, 42, 30),       # 2 skin, darkest
+    (116, 66, 44),      # 3 skin, dark
+    (156, 96, 62),      # 4 skin
+    (196, 136, 92),     # 5 skin, light
+    (28, 20, 24),       # 6 hair
+    (120, 118, 142),    # 7 trousers, darkest
+    (170, 170, 190),    # 8 trousers, dark
+    (226, 224, 216),    # 9 trousers
+    (255, 252, 240),    # 10 trousers, light
+    (40, 150, 68),      # 11 belt green
+    (246, 206, 40),     # 12 belt yellow
+    (255, 158, 84),     # 13 rim light (sunset)
+    (244, 240, 230),    # 14 eye white
+    (120, 32, 32),      # 15 mouth
 ]
 SKIN, PANTS = (4, 3, 5, 2), (9, 8, 10, 7)
 COSTUME = fa.Costume(
-    skin=SKIN, torso=SKIN, pelvis=PANTS, thigh=PANTS, shin=PANTS, foot=SKIN,
-    hair=6, eye=6, belt=11, belt2=12,
-    thigh_w=10, shin_w=9, foot_w=4, upper_w=6, fore_w=5, hand_r=3, neck_w=5, head_r=6,
+    skin=SKIN, torso=SKIN, pelvis=PANTS, thigh=PANTS, shin=PANTS, foot=SKIN, rim=13,
+    hair=(6, 1, 2), hair_style='curly', eye=14, pupil=1, mouth=15,
+    belt=11, belt2=12, bare_torso=True, loose=True,
+    neck_w=5, w_upper=(6, 5, 1.5), w_fore=(5, 4, 1), w_thigh=(11, 10, 1), w_shin=(10, 11, 0), hand_r=3, foot_w=5,
+    head_r=6, chest=8,
 )
 # health = width of the energy bar in pixels; speeds in pixels per frame; hurt box half width and top
 STATS = dict(health=128, walk_fwd=2, walk_back=1, hurt_w=13, hurt_top=-92, crouch_top=-62)
@@ -51,7 +53,7 @@ MOVES = dict(lp=(6, 12, 6, 0, 0), hp=(14, 18, 12, 0, 0), lk=(8, 14, 8, 0, 0), hk
 
 def stance(bob=0.0, sway=0.0, guard=0.0, **kw):
     a = dict(hip=(sway * 0.3, -45 + bob), lean=4 + sway,
-             hand_f=(15 + sway, -77 + bob + guard * 1.5), hand_b=(2 + sway, -54 + bob - guard))
+             hand_f=(15 + sway, -77 + bob + guard * 1.5), hand_b=(7 + sway, -60 + bob - guard))
     a.update(kw)
     return build(**a)
 
@@ -60,7 +62,8 @@ def idle():
     out = []
     for i in range(4):
         t = i / 4 * 2 * math.pi
-        out.append(frame(stance(bob=1.5 + 1.5 * math.sin(t), sway=math.sin(t), guard=1.5 * math.sin(t)), 8))
+        out.append(frame(stance(bob=1.5 + 1.5 * math.sin(t), sway=2.5 * math.sin(t), guard=2.5 * math.sin(t),
+                                ankle_b=(-14 - 3 * math.sin(t), -3)), 8))
     return out
 
 
@@ -85,8 +88,9 @@ def lp():
 def hp():
     # strong strike with the rear hand, stepping in
     return [frame(stance(lean=-6, hand_b=(-12, -70)), 4),
-            frame(stance(lean=14, hip=(3, -44), ankle_f=(20, -3), hand_b=(34, -70), hand_f=(8, -66)), 5, 'hand_b'),
-            frame(stance(lean=10, hip=(2, -44), ankle_f=(18, -3), hand_b=(22, -66)), 5),
+            frame(stance(lean=14, hip=(3, -44), ankle_f=(20, -3), hand_b=(34, -70), hand_f=(8, -66)), 5, 'hand_b',
+                  b_front=True),
+            frame(stance(lean=10, hip=(2, -44), ankle_f=(18, -3), hand_b=(22, -66)), 5, b_front=True),
             frame(stance(lean=6), 4)]
 
 
@@ -106,8 +110,9 @@ def hk():
 
 
 def hit():
-    return [frame(stance(lean=-14, head=(-2, 1), hand_f=(10, -62), hand_b=(-8, -58)), 4),
-            frame(stance(lean=-20, hip=(-2, -44), head=(-3, 2), hand_f=(6, -58), hand_b=(-12, -56)), 4)]
+    return [frame(stance(lean=-14, head=(-2, 1), hand_f=(10, -62), hand_b=(-8, -58)), 4, face='hit'),
+            frame(stance(lean=-20, hip=(-2, -44), head=(-3, 2), hand_f=(6, -58), hand_b=(-12, -56)), 4,
+                  face='hit')]
 
 
 CROUCH = dict(hip=(0, -28), lean=12, hand_f=(16, -56), hand_b=(5, -42))
@@ -176,10 +181,11 @@ LYING = dict(hip=(14, -7), lean=-86, ankle_f=(38, -4), ankle_b=(32, -3), toe_f=(
 
 
 def fall():
-    return [frame(stance(lean=-30, hip=(-2, -40), ankle_f=(12, -10), hand_f=(10, -70), hand_b=(-12, -66)), 6),
+    return [frame(stance(lean=-30, hip=(-2, -40), ankle_f=(12, -10), hand_f=(10, -70), hand_b=(-12, -66)), 6,
+                  face='hit'),
             frame(stance(lean=-66, hip=(4, -22), ankle_f=(26, -14), ankle_b=(20, -8), hand_f=(-4, -36),
-                         hand_b=(-14, -30)), 8),
-            frame(stance(**LYING), 8)]
+                         hand_b=(-14, -30)), 8, face='hit'),
+            frame(stance(**LYING), 8, face='hit')]
 
 
 def getup():
@@ -190,9 +196,11 @@ def getup():
 
 
 def win():
-    return [frame(stance(lean=0, hand_f=(10, -98), hand_b=(-6, -96), ankle_f=(10, -3), ankle_b=(-10, -3)), 14),
-            frame(stance(lean=2, hip=(0, -46), hand_f=(14, -100), hand_b=(-2, -98), ankle_f=(10, -3),
-                         ankle_b=(-10, -3)), 14)]
+    # one fist raised high, the other hand on the hip
+    return [frame(stance(lean=-2, hip=(0, -46), hand_f=(10, -96), hand_b=(-8, -50), ankle_f=(10, -3),
+                         ankle_b=(-11, -3)), 16, face='win'),
+            frame(stance(lean=-4, hip=(0, -47), hand_f=(11, -97), hand_b=(-8, -51), ankle_f=(10, -3),
+                         ankle_b=(-11, -3), head=(-1, -1)), 16, face='win')]
 
 
 def anims():
@@ -204,6 +212,6 @@ def anims():
 if __name__ == '__main__':
     a = anims()
     out = Path(sys.argv[1] if len(sys.argv) > 1 else 'tiago.png')
-    frames = [fa.render(f['pose'], COSTUME) for n in a for f in a[n]]
+    frames = [fa.render(f['pose'], COSTUME, f['face']) for n in a for f in a[n]]
     fa.sheet(frames, PALETTE, scale=2, cols=8).save(out)
     print(out)

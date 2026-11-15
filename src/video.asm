@@ -104,6 +104,12 @@ palette_init:
     sta PAL_GREEN+HUD_BANK*16,x
     lda pal_hud_b,x
     sta PAL_BLUE+HUD_BANK*16,x
+    lda pal_fx_r,x
+    sta PAL_RED+FX_BANK*16,x
+    lda pal_fx_g,x
+    sta PAL_GREEN+FX_BANK*16,x
+    lda pal_fx_b,x
+    sta PAL_BLUE+FX_BANK*16,x
     dex
     bpl !-
     rts

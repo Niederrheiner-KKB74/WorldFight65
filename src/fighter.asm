@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// Fighters (Stage 3): walking, crouching, jumping, blocking, standing, crouching
+// Fighters (Stage 3, sparks Stage 4): walking, crouching, jumping, blocking, standing, crouching
 // and jumping attacks, hits, knockdown, getting up, KO, win pose.
 // Everything is indexed by the fighter number (X = 0/1); what makes Tiago or
 // Konrad different is data from tools/make_assets.py (frame, animation, box,
@@ -781,6 +781,8 @@ land_hit:
     beq !+
     lda #ST_CBLOCK
 !:  jsr set_state
+    lda #1                      // block spark
+    jsr fx_spawn
     lda #BLOCKSTOP
     sta hitstop
     ldx sh_save
@@ -813,6 +815,8 @@ land_hit:
 !:  lda #ST_HIT
     jsr set_state
 !done:
+    lda #0                      // hit spark
+    jsr fx_spawn
     ldx sh_save
     lda #HITSTOP
     sta hitstop

@@ -1,5 +1,5 @@
 // ============================================================================
-// WorldFight65 - Stage 3: rounds, crouching, jumping, blocking, knockdowns
+// WorldFight65 - Stage 4: final artwork, hit and block sparks
 //   H320/V200. The Rio beach arena is a static full-colour (FCM) picture; the
 //   fighters are RRB objects of NCM glyphs, streamed frame by frame from attic
 //   RAM. Player 1: joystick port 1 (Tiago), player 2: port 2 (Konrad).
@@ -87,6 +87,9 @@ start:
     RunDma(job_blank)                  // the blank NCM glyph that ends every row
     RunDma(job_hud)                    // energy bar glyphs
     RunDma(job_font)                   // 16x16 font
+    RunDma(job_fx)                     // hit and block sparks
+    lda #0
+    sta fx_on
     jsr wait_vblank
     jsr video_init
     jsr palette_init
@@ -110,8 +113,10 @@ main_loop:
 #endif
     jsr game_update
     jsr fighters_update
+    jsr fx_update
 !:  jsr buffer_clear
     jsr fighters_draw
+    jsr fx_draw
     jsr hud_draw
     jmp main_loop
 
@@ -288,6 +293,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "pixie.asm"
 #import "fighter.asm"
 #import "game.asm"
+#import "fx.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"
 
@@ -296,5 +302,7 @@ hud_gfx: .import binary "../build/gen/HUD.bin"
 job_hud: DmaJob(DMA_CMD_COPY, hud_gfx, HUD_GFX, 17 * 64)
 font_gfx: .import binary "../build/gen/FONT.bin"
 job_font: DmaJob(DMA_CMD_COPY, font_gfx, FONT_GFX, 80 * 64)
+fx_gfx: .import binary "../build/gen/FX.bin"
+job_fx: DmaJob(DMA_CMD_COPY, fx_gfx, FX_GFX, 5 * FX_GLYPHS * 64)
 
 .errorif * > $c000, "program must end below $C000"

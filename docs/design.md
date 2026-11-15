@@ -1,6 +1,6 @@
 # WorldFight65 – Technical Design
 
-Status: Stage 3. This document is the plan. Everything below that has not been built and tested on hardware is
+Status: Stage 4. This document is the plan. Everything below that has not been built and tested on hardware is
 marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 
 ## 1. Game summary
@@ -135,10 +135,21 @@ attic RAM DMA time)**
   the others.
 - Hit and block sounds, voice-like shouts for special moves as samples played by audio DMA.
 
-## 8. Artwork (planned)
+## 8. Artwork
 - Claude draws both fighters, the arenas, the title and the character screens with Python scripts in
   `assets/source/` (as in ShooterMega65), with check scripts for size, palette and frame limits.
 - The fighters are original characters (no likeness of existing games).
+- **Fighter renderer (Stage 4, `tools/fighter_art.py`):** a pose is a set of joint positions; the renderer
+  draws tapered limbs with muscle bulges, a torso with chest and belly lines (bare torso) or a singlet with
+  side-seam stripes, wide trousers with folds, a cord belt with knot and tassels, shoes with sole and laces,
+  a head in profile with nose, ear, eye, brow and mouth, curly hair or a crew cut with a beard, and three
+  facial expressions (normal, hit: eyes shut and mouth open, win). Light falls from the front and the top,
+  a warm rim of sunset light lies on the back edge of the skin, and a dark outline surrounds the figure.
+  A far arm that strikes across the body (rear-hand punch) is drawn in front of the torso.
+- Palette per fighter: 16 colours (transparent, outline, 4 skin tones, hair, 4 clothing tones, 2 accent
+  colours, rim light, eye white, mouth).
+- **Sparks (Stage 4):** a three-frame hit spark (yellow-white star burst) and a two-frame block spark (blue
+  shield arc) at the centre of the hit box, palette bank 11; they keep playing during the hitstop.
 
 ## 9. Loading and memory
 See `docs/memory_map.md`. Everything is loaded from the D81 at start: arenas, fighter frames, music and
@@ -155,7 +166,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 1 | video set-up, the Rio arena (FCM), Tiago (placeholder art) standing and walking with joystick 2, frame streaming from attic RAM, horizontal flip test, exit to BASIC |
 | 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, hitstop, pushback, push boxes, energy bars, KO and next round |
 | 3 | jumping, crouching, blocking, attack heights, knockdown and getting up; rounds, timer, KO, win poses, font, names |
-| 4 | first real artwork for both fighters and the first arena |
+| 4 | final artwork for both fighters (new renderer), facial expressions, new win poses, hit and block sparks |
 | 5 | special moves and projectiles, input buffer; sound effects |
 | 6 | title, fighter selection with package loading, versus screen, music, winner screen |
 | 7 | CPU opponent |
