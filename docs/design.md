@@ -4,7 +4,9 @@ Status: Stage 0. This document is the plan. Everything below that has not been b
 marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 
 ## 1. Game summary
-- One-on-one fighting game, two fighters, static arena backgrounds (no scrolling).
+- One-on-one fighting game, static arena backgrounds (no scrolling). Two fighters are on screen; they are
+  chosen from a roster of loadable fighters (§3.2), starting with **Tiago** (Brazil, capoeira) and
+  **Konrad** (Germany, wrestling).
 - Mode 1: two players, joysticks in port 1 and port 2. Mode 2 (later): one player against the CPU.
 - Best of three rounds, 99-second round timer (counted in game seconds), KO or time-over decides a round.
 - Each fighter: walking, jumping (up, forward, back), crouching, blocking (hold away from the opponent),
@@ -52,6 +54,26 @@ empty glyphs. A fighter with about 40 frames needs 60–120 KB. All frames there
 when the frame changes, the new frame is copied by DMA into the slot that is not being shown, and the
 slot is switched with the next screen buffer flip. At most two 4 KB copies per frame. **(to verify:
 attic RAM DMA time)**
+
+### 3.2 Loadable fighters (planned)
+- The engine contains **no fighter-specific code**. Everything that makes a fighter is data in a
+  **fighter package**, one file per fighter on the disk (`F-TIAGO`, `F-KONRAD`, …):
+  header (name, flag/country, health, walk and jump speeds, two palettes), frame directory and trimmed
+  frame glyphs, animation tables, move tables (normals and specials with their input motion), boxes,
+  sound-effect ids and the id of the fighter's home arena.
+- Special moves are built from a fixed set of **move types** that the engine implements once:
+  strike, multi-hit, lunge/dash attack, rising attack, jump attack, projectile, command throw. A new
+  fighter combines and parameterises these; a new move type is an engine change and gets its own stage.
+- At fighter selection the two chosen packages are loaded from disk into two attic-RAM slots
+  (loader from ShooterMega65). A mirror match loads one package and uses its second palette.
+- **Size budget per package: 64 KB on disk** (frames compressed), checked by the build. Estimate for the
+  D81 (about 790 KB): program ~40 KB, music and samples ~60 KB, arenas ~40–60 KB each (compressed),
+  fighters 64 KB each. Seven fighters and their arenas do not fit on one D81; the plan is therefore:
+  disk 1 = game with Tiago, Konrad and their arenas; further fighters on disk 1 as long as space
+  allows, then an add-on disk. **(to decide when the sizes are measured, at the latest in Stage 6)**
+- Roster: Tiago and Konrad are built first (Stages 1–8). The other proposed fighters (Moussa/Senegal,
+  Kanya/Thailand, Élodie/France, El Cóndor/Mexico, Batu/Mongolia) follow as packages, one per stage, after
+  Stage 8. Each fighter brings a home arena, so the world championship travels from country to country.
 
 ## 4. Game logic (planned)
 - Fixed 50 updates per second, one per video frame.
@@ -113,14 +135,17 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 3 | jumping, crouching, blocking, hitstun, knockdown; rounds, timer, KO, win poses |
 | 4 | first real artwork for both fighters and the first arena |
 | 5 | special moves and projectiles, input buffer; sound effects |
-| 6 | title, fighter selection, versus screen, music, winner screen |
+| 6 | title, fighter selection with package loading, versus screen, music, winner screen |
 | 7 | CPU opponent |
 | 8 | second arena, balancing, polish |
+| 9+ | one further fighter per stage as a loadable package, with its home arena |
 
 ## 12. Decisions log
 - **Versus fighter, not a scrolling beat 'em up** (owner, 2026-11-14): static backgrounds keep the engine
   simple; the effort goes into animation and fighting mechanics.
-- **Exactly two fighters** (owner, 2026-11-14), also in the final game.
+- ~~Exactly two fighters~~ (owner, 2026-11-14) → **two fighters on screen, chosen from a roster of
+  loadable fighter packages** (owner, 2026-11-15); first fighters: Tiago (Brazil, capoeira) and Konrad
+  (Germany, wrestling).
 - **Two players first, CPU opponent later** (owner, 2026-11-14), hence the virtual joystick (§5).
 - **Artwork by Claude** (owner, 2026-11-14), drawn with scripts as in ShooterMega65.
 - **Toolchain and working rules from ShooterMega65** (2026-11-14).
@@ -129,10 +154,10 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   whose RRB handling is proven in ShooterMega65.
 - **Horizontal flip instead of mirrored frames** (Stage 0 plan, to verify).
 - **Frames in attic RAM, streamed by DMA** (Stage 0 plan).
-
 - **Two-button control scheme** (owner, 2026-11-15), see §5.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 
 ## 13. Open questions for the owner
-1. The two fighters (Claude proposed candidates on 2026-11-15) and the first arena.
+1. The first arena (proposal: Tiago's home arena, a beach promenade in Rio, or Konrad's, a wrestling hall).
+2. One D81 with an add-on disk, or a different medium, once the roster no longer fits (§3.2).

@@ -6,7 +6,9 @@ A one-on-one fighting game for the MEGA65 in the style of the classic arcade ver
 **Status:** Stage 0 (toolchain and disk test). Nothing playable yet.
 
 ## The plan
-- Two fighters, each with its own moves and special moves, on static, detailed arena backgrounds.
+- A "world championship": fighters from different countries, each with its own moves, special moves and
+  home arena. Tiago (Brazil, capoeira) and Konrad (Germany, wrestling) come first; more fighters follow as
+  loadable packages.
 - Two players with two joysticks first; a CPU opponent later.
 - Best of three rounds, energy bars, round timer, KO and time-over.
 - Large fighters (about 64×96 pixels) drawn as RRB objects, artwork and music by Claude.
