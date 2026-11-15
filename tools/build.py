@@ -25,7 +25,7 @@ import d81            # noqa: E402
 KICKASS_SHA256 = '5d8544280dae2d018c79151d8c7b877eca1fb994096e54ca380b26d0cd79f847'
 PRG_NAME = 'WORLDFIGHT'
 DISK_NAME = 'WORLDFIGHT65.D81'
-DATA_FILES = ['A-RIO-GFX', 'A-RIO-MAP', 'F-TIAGO']   # SEQ files, loaded by src/main.asm
+DATA_FILES = ['A-RIO-GFX', 'A-RIO-MAP', 'F-TIAGO', 'F-KONRAD']   # SEQ files, loaded by src/main.asm
 
 
 def find_kickass(arg):

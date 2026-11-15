@@ -30,6 +30,8 @@ system_save:
     RunDma(job_zp_save)          // zero page $02-$ff to chip RAM (SAVED_ZP)
     lda CIA1_DDRA
     sta saved_ddra
+    lda CIA1_DDRB
+    sta saved_ddrb
     .for (var i = 0; i < vic_restore.size(); i++) {
         lda vic_restore.get(i)
         sta saved_vic + i
@@ -108,9 +110,11 @@ vic_to_basic:
     sta VIC_D05D
     lda saved_ddra
     sta CIA1_DDRA
+    lda saved_ddrb
+    sta CIA1_DDRB
     rts
 
-// Read one key from the hardware queue and handle it: X or RUN/STOP = exit, F = turn the fighter round.
+// Read one key from the hardware queue and handle it: X or RUN/STOP = exit, P = POT X debug display.
 read_keys:
     lda KEYQUEUE
     beq !none+
@@ -120,10 +124,14 @@ read_keys:
     and #$df                     // fold lower case
     cmp #$58                     // X
     beq !exit+
-    cmp #$46                     // F: turn round (Stage 1 test)
+    cmp #$50                     // P: POT X debug display in the border on/off
     bne !+
-    lda #1
-    sta turn_req
+    lda pot_debug
+    eor #1
+    sta pot_debug
+    bne !+
+    lda #0
+    sta VIC_BORDER
 !:
 !none:
     rts
@@ -154,6 +162,7 @@ saved_sp:   .byte 0
 saved_sph:  .byte 0
 saved_b:    .byte 0
 saved_ddra: .byte 0
+saved_ddrb: .byte 0
 saved_d05d: .byte 0
 saved_vic:  .fill vic_restore.size(), 0
 job_zp_save: DmaJob(DMA_CMD_COPY, $0002, SAVED_ZP + 2, 254)

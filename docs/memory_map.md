@@ -1,4 +1,4 @@
-# Memory map (Stage 1)
+# Memory map (Stage 2)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -12,23 +12,26 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 |---|---|
 | `$0002–$003F` | game zero page (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
-| `$2020–$32xx` | code, tables, load buffer, palette buffer (Stage 1: ends at `$30E8`; guard: below `$C000`) |
+| `$2020–$3E19` | code, tables, load buffer, palette buffer, HUD glyph source (guard: below `$C000`) |
 
 ## Chip RAM, banks 4/5
 
 | Address | Size | Use |
 |---|---|---|
 | `$40000–$4F9FF` | ≤ 62.5 KB | arena FCM glyphs (file `A-RIO-GFX`), char `$1000`+, max. 1,000 glyphs (Rio: 593) |
-| `$50000–$517FF` | 6 KB | fighter 1, frame slot A (char `$1400`+) |
-| `$51800–$52FFF` | 6 KB | fighter 1, frame slot B (char `$1460`+) |
-| `$53000–$5303F` | 64 B | blank NCM glyph that ends every row (char `$14C0`) |
+| `$50000–$51BFF` | 7 KB | fighter 1, frame slot A (char `$1400`+) |
+| `$51C00–$537FF` | 7 KB | fighter 1, frame slot B (char `$1470`+) |
+| `$53800–$5383F` | 64 B | blank NCM glyph that ends every row (char `$14E0`) |
+| `$53840–$53C7F` | 17×64 B | energy bar glyphs (char `$14E1`+) |
 | `$54000–$5503F` | 26×160 | RRB screen buffer A |
 | `$55200–$5623F` | 26×160 | RRB screen buffer B |
+| `$56400–$57FFF` | 7 KB | fighter 2, frame slot C (char `$1590`+) |
 | `$58800–$5AA8F` | 8848 B | arena map (file `A-RIO-MAP`): palette 0–175 (528 B), clean screen rows, clean colour rows |
+| `$5AC00–$5C7FF` | 7 KB | fighter 2, frame slot D (char `$16B0`+) |
 | `$5DB00–$5DDFF` | 768 B | BASIC's palette 0 until exit |
 | `$5DE00–$5DEFF` | 256 B | BASIC's zero page until exit |
 
-Planned (not used yet): fighter 2 slots, effect/HUD glyphs, music and samples.
+Planned (not used yet): effect glyphs, music and samples.
 
 ## Colour RAM (`$FF80000`)
 
@@ -42,7 +45,8 @@ Planned (not used yet): fighter 2 slots, effect/HUD glyphs, music and samples.
 
 | Address | Use |
 |---|---|
-| `$8000000–$8007FFF` | Tiago's frames (file `F-TIAGO`, Stage 1: 10 frames, 26,624 bytes); the first byte is also the attic-RAM test cell |
+| `$8000000–$801FFFF` | fighter package 1, Tiago (file `F-TIAGO`, Stage 2: 26 frames, 81,408 bytes); the first byte is also the attic-RAM test cell |
+| `$8020000–$803FFFF` | fighter package 2, Konrad (file `F-KONRAD`, Stage 2: 26 frames, 91,264 bytes) |
 
 ## VIC-IV configuration
 
@@ -67,12 +71,14 @@ Planned (not used yet): fighter 2 slots, effect/HUD glyphs, music and samples.
 | 0–175 | arena (0 = black, the background colour) |
 | 176–191 | bank 11, spare |
 | 192–207 | bank 12, fighter 1 |
-| 208–255 | banks 13–15, planned: fighter 2, mirror-match palette, effects/HUD |
+| 208–223 | bank 13, fighter 2 |
+| 224–239 | bank 14, planned: mirror-match palette |
+| 240–255 | bank 15, HUD (energy bars) |
 
 ## RRB row (80 tokens, 160 bytes)
 
 | Tokens | Content |
 |---|---|
 | 0–41 | background: 2 blank + 40 arena FCM chars (colour `$00,$00`) |
-| 42–78 | overlay: fragments (GOTOX + glyph columns), the rest null GOTOX tokens to x 320 (`$90,$00`) |
+| 42–78 | overlay: fragments (GOTOX + glyph columns; row 1: the two energy bars), the rest null GOTOX tokens to x 320 (`$90,$00`) |
 | 79 | blank NCM glyph, ends the row at x 336 |

@@ -115,6 +115,58 @@ px_noflip:
 
 // emit row px_i of the current frame into display row px_row
 emit_fragment:
+    jsr frag_begin
+    bcc !+
+    rts
+!:
+    // glyph = base + i (with a Y offset the hardware shows the bottom lines of glyph i-1 above it)
+    clc
+    lda px_base
+    adc px_i
+    sta px_gl
+    lda px_bhi
+    adc #0
+    sta px_gl+1
+
+    ldx px_w
+!col:
+    lda px_gl
+    sta ((scr_ptr)),z
+    lda px_c0                   // NCM glyph, flipped or not
+    sta ((col_ptr)),z
+    inz
+    lda px_gl+1
+    sta ((scr_ptr)),z
+    lda px_pal
+    sta ((col_ptr)),z
+    inz
+    dex
+    beq !end+
+    lda px_flip
+    bne !back+
+    clc                         // next column: + h + 1 glyphs
+    lda px_gl
+    adc px_step
+    sta px_gl
+    bcc !col-
+    inc px_gl+1
+    bne !col-
+!back:
+    sec                         // flipped: previous column
+    lda px_gl
+    sbc px_step
+    sta px_gl
+    bcs !col-
+    dec px_gl+1
+    bne !col-
+!end:
+    ldz #0
+    rts
+
+// Start a fragment of px_need bytes in display row px_row of the back buffer: set scr_ptr / col_ptr,
+// write the GOTOX token (x = px_gx, Y-offset bits px_yb) and return with Z = 2, carry clear.
+// Carry set (nothing written, overflow counted) if the row has no room left.
+frag_begin:
     ldx px_row
     lda rowfill,x
     clc
@@ -122,6 +174,7 @@ emit_fragment:
     cmp #OVL_END+1
     bcc !fits+
     inc overflow
+    sec
     rts
 !fits:
     pha                         // new fill level
@@ -156,16 +209,6 @@ emit_fragment:
     sta col_ptr+3
     pla
     sta rowfill,x
-
-    // glyph = base + i (with a Y offset the hardware shows the bottom lines of glyph i-1 above it)
-    clc
-    lda px_base
-    adc px_i
-    sta px_gl
-    lda px_bhi
-    adc #0
-    sta px_gl+1
-
     ldz #0
     lda px_gx                   // GOTOX token
     sta ((scr_ptr)),z
@@ -179,38 +222,7 @@ emit_fragment:
     lda #$00
     sta ((col_ptr)),z
     inz
-    ldx px_w
-!col:
-    lda px_gl
-    sta ((scr_ptr)),z
-    lda px_c0                   // NCM glyph, flipped or not
-    sta ((col_ptr)),z
-    inz
-    lda px_gl+1
-    sta ((scr_ptr)),z
-    lda px_pal
-    sta ((col_ptr)),z
-    inz
-    dex
-    beq !end+
-    lda px_flip
-    bne !back+
-    clc                         // next column: + h + 1 glyphs
-    lda px_gl
-    adc px_step
-    sta px_gl
-    bcc !col-
-    inc px_gl+1
-    bne !col-
-!back:
-    sec                         // flipped: previous column
-    lda px_gl
-    sbc px_step
-    sta px_gl
-    bcs !col-
-    dec px_gl+1
-    bne !col-
-!end:
+    clc
     rts
 
 ybits_tab:  .fill 8, $10 + (i << 5)

@@ -3,9 +3,9 @@
 A one-on-one fighting game for the MEGA65 in the style of the classic arcade versus fighters, written in
 45GS02 assembly (KickAssembler 65CE02 5.25).
 
-**Status:** Stage 1 – the Rio arena and Tiago walking (not playable yet).
+**Status:** Stage 2 – Tiago against Konrad, two players, punches and kicks, energy bars.
 
-![Stage 1 in XEMU](docs/img/stage1_xemu.png)
+![Stage 2 in XEMU](docs/img/stage2_xemu.png)
 
 ## The plan
 - A "world championship": fighters from different countries, each with its own moves, special moves and
@@ -26,7 +26,9 @@ python3 tools/build.py --kickass /path/to/KickAss65CE02-5.25.jar
 The output is `build/WORLDFIGHT.PRG` and `build/WORLDFIGHT65.D81`.
 
 ## Playing
-`LOAD "WORLDFIGHT",8` and `RUN` from `releases/stageN/WORLDFIGHT65.D81`.
+`LOAD "WORLDFIGHT",8` and `RUN` from `releases/stageN/WORLDFIGHT65.D81`. Needs attic RAM (MEGA65 R3 or newer).
+Player 1 (Tiago): joystick port 1; player 2 (Konrad): port 2. Button 1 punches, button 2 (two-button pads)
+kicks; holding forward makes it a heavy attack. X or RUN/STOP returns to BASIC.
 
 ## Stages
 Every stage has a release folder `releases/stageN/` (PRG, D81, README, checksums) and notes with a hardware
@@ -36,6 +38,7 @@ checklist in `docs/stageN.md`; confirmed stages are tagged `stageN-stable`.
 |---|---|
 | 0 | repository, working rules, design, build pipeline, D81 test program |
 | 1 | Rio arena, Tiago standing and walking, frame streaming from attic RAM, horizontal flip |
+| 2 | Konrad, two players, light/heavy punches and kicks, hits, pushback, energy bars, KO |
 
 ## Documentation
 - [Technical design and roadmap](docs/design.md)

@@ -3,7 +3,7 @@
 
 Arena: at most 1000 FCM glyphs, pixel values only 0..ARENA_COLOURS-1 (no $FF), clean screen of the right
 size with every row ending in the blank NCM glyph. Fighter: every frame block fits a slot, starts with a
-blank glyph and has a blank glyph after every column, colour indices 0..15.
+blank glyph and has a blank glyph after every column, colour indices 0..15; both fighter packages (F-TIAGO, F-KONRAD).
 """
 import re
 import sys
@@ -53,7 +53,8 @@ def main():
                 errors.append(f'arena map row {r} token {t}: char ${ch:x} outside the arena glyphs')
                 break
     inc = (GEN / 'assets.inc').read_text()
-    f = (GEN / 'F-TIAGO.bin').read_bytes()
+    files = [(GEN / 'F-TIAGO.bin').read_bytes(), (GEN / 'F-KONRAD.bin').read_bytes()]
+    pkg = c['ATTIC_F2'] - c['ATTIC_F1']
     lo, hi, bk = table(inc, 'frame_ofs_lo'), table(inc, 'frame_ofs_hi'), table(inc, 'frame_ofs_bk')
     blo, bhi = table(inc, 'frame_bytes_lo'), table(inc, 'frame_bytes_hi')
     ws, hs = table(inc, 'frame_w'), table(inc, 'frame_h')
@@ -65,15 +66,16 @@ def main():
             errors.append(f'frame {i}: size {size} does not match {w}x{h}')
         if size > c['SLOT_SIZE']:
             errors.append(f'frame {i}: {size} bytes do not fit a slot')
-        blk = f[ofs:ofs + size]
+        f = files[ofs // pkg]
+        blk = f[ofs % pkg:ofs % pkg + size]
         if len(blk) != size:
             errors.append(f'frame {i}: outside the file')
             continue
         for k in [0] + [(1 + col * (h + 1) + h) for col in range(w)]:
             if blk[k * 64:(k + 1) * 64] != bytes(64):
                 errors.append(f'frame {i}: glyph {k} must be blank')
-        if (w * 16) > 96 or h * 8 > 104:
-            errors.append(f'frame {i}: larger than 96x104')
+        if (w * 16) > 112 or h * 8 > 104:
+            errors.append(f'frame {i}: larger than 112x104')
     if errors:
         print('\n'.join('check_assets: ' + e for e in errors))
         sys.exit(1)

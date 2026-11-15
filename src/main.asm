@@ -1,9 +1,10 @@
 // ============================================================================
-// WorldFight65 - Stage 1: arena and one fighter
-//   H320/V200. The Rio beach arena is a static full-colour (FCM) picture; Tiago
-//   is an RRB object of NCM glyphs, streamed frame by frame from attic RAM.
-//   Joystick port 2: walk left/right, fire = turn round (test). Keys: F = turn
-//   round, X or RUN/STOP = back to BASIC.
+// WorldFight65 - Stage 2: Tiago against Konrad
+//   H320/V200. The Rio beach arena is a static full-colour (FCM) picture; the
+//   fighters are RRB objects of NCM glyphs, streamed frame by frame from attic
+//   RAM. Player 1: joystick port 1 (Tiago), player 2: port 2 (Konrad).
+//   Button 1 = punch, button 2 (POT X line) = kick, forward + button = heavy.
+//   Keys: X or RUN/STOP = back to BASIC, P = show the POT X readings in the border.
 // Build: python3 tools/build.py   (KickAssembler 65CE02 5.25, see README)
 // ============================================================================
 .cpu _45gs02
@@ -63,7 +64,9 @@ start:
     bcs !fail+
     LoadFile(name_amap, name_amap_end - name_amap, ARENA_MAP, 35)
     bcs !fail+
-    LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, 255)
+    LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $200)
+    bcs !fail+
+    LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $200)
     bcc !+
 !fail:
     rts                                // failed: message printed, back to BASIC
@@ -74,62 +77,110 @@ start:
     sta VIC_KEY
     jsr system_save                    // everything needed to return to BASIC (also sets B = 0)
     lda #0
-    sta CIA1_DDRA                      // port A as input: joystick 2 (restored on exit)
+    sta CIA1_DDRA                      // port A as input: joystick 2, no keyboard row selected
+    sta CIA1_DDRB                      // port B as input: joystick 1 (both restored on exit)
     cld
     sta overflow
+    sta pot_debug
     RunDma(job_blank)                  // the blank NCM glyph that ends every row
+    RunDma(job_hud)                    // energy bar glyphs
     jsr wait_vblank
     jsr video_init
     jsr palette_init
-    jsr fighter_init
+    jsr fighters_init
 
 main_loop:
     jsr wait_vblank
     jsr flip                           // show the buffer just built
-    lda build_slot                     // the shown buffer now uses the slot it was built with
+    lda build_slot                     // the shown buffer now uses the slots it was built with
     sta front_slot
+    lda build_slot+1
+    sta front_slot+1
     jsr read_keys
 #if AUTOTEST
-    jsr autotest_joy                   // test build: scripted joystick (build.py --define AUTOTEST)
+    jsr autotest_joy                   // test build: scripted joysticks (build.py --define AUTOTEST)
 #else
-    lda CIA1_PRA                       // joystick port 2, active high
+    jsr read_joysticks
+#endif
+    jsr fighters_update
+    jsr buffer_clear
+    jsr fighters_draw
+    jsr hud_draw
+    jmp main_loop
+
+// Virtual joysticks: bits 0-4 from the CIA (active high), bit 5 = button 2 from the POT X line
+// (C64GS / two-button adapters: pressed pulls POT X to a low reading).
+// Player 1 = port 1 (CIA1 port B, POT $D620), player 2 = port 2 (CIA1 port A, POT $D622).
+read_joysticks:
+    lda CIA1_PRB
     eor #$ff
     and #$1f
     sta f_joy
-#endif
-    jsr fighter_update
-    jsr buffer_clear
-    jsr fighter_draw
-    jmp main_loop
+    lda $d620
+    cmp #$80
+    bcs !+
+    lda f_joy
+    ora #JOY_B2
+    sta f_joy
+!:  lda CIA1_PRA
+    eor #$ff
+    and #$1f
+    sta f_joy+1
+    lda $d622
+    cmp #$80
+    bcs !+
+    lda f_joy+1
+    ora #JOY_B2
+    sta f_joy+1
+!:  lda pot_debug                      // key P: border colour = POT X of port 2 (pressing button 2 changes it)
+    beq !+
+    lda $d622
+    lsr
+    lsr
+    lsr
+    lsr
+    sta VIC_BORDER
+!:  rts
+pot_debug: .byte 0
 
 #if AUTOTEST
-// Emulator test without a joystick: walk right for 100 frames, turn round (fire), walk back (right)
-// for 40 frames, then stand still facing left.
+// Emulator test without joysticks (frame numbers since the start):
+//   0-49   Tiago walks towards Konrad      60  Tiago: light punch
+//   90     Konrad: heavy kick (knee)       130 Tiago: heavy kick (martelo)
+//   from 137 the game freezes during Tiago's kick, so the emulator screenshot shows it.
 autotest_joy:
-    inc at_frame
-    bne !+
-    inc at_frame+1
-!:  lda at_frame+1
-    bne !idle+
+    lda #0
+    sta f_joy
+    sta f_joy+1
     lda at_frame
-    cmp #100
+    cmp #137
+    bcc !+
+    lda #1                             // freeze the fighters (drawing goes on)
+    sta hitstop
+    rts
+!:  inc at_frame
+    lda at_frame
+    cmp #50
     bcs !+
     lda #JOY_RIGHT
-    bne !set+
-!:  cmp #100
-    bne !+
-    lda #JOY_FIRE
-    bne !set+
-!:  cmp #141
-    bcs !idle+
-    lda #JOY_RIGHT
-    bne !set+
-!idle:
-    lda #0
-!set:
     sta f_joy
     rts
-at_frame: .word 0
+!:  cmp #60
+    bne !+
+    lda #JOY_FIRE
+    sta f_joy
+    rts
+!:  cmp #90
+    bne !+
+    lda #JOY_LEFT | JOY_B2              // Konrad faces left: left = forward
+    sta f_joy+1
+    rts
+!:  cmp #130
+    bne !+
+    lda #JOY_RIGHT | JOY_B2
+    sta f_joy
+!:  rts
+at_frame: .byte 0
 #endif
 
 wait_vblank:
@@ -173,6 +224,8 @@ name_amap: .text "A-RIO-MAP,S,R"
 name_amap_end:
 name_f1:   .text "F-TIAGO,S,R"
 name_f1_end:
+name_f2:   .text "F-KONRAD,S,R"
+name_f2_end:
 msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
            .byte 13, 0
 
@@ -184,5 +237,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "../build/gen/assets.inc"
 
 pal_buf: .fill MAP_PAL_BYTES, 0
+hud_gfx: .import binary "../build/gen/HUD.bin"
+job_hud: DmaJob(DMA_CMD_COPY, hud_gfx, HUD_GFX, 17 * 64)
 
 .errorif * > $c000, "program must end below $C000"

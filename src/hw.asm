@@ -53,7 +53,9 @@
 
 // CIA
 .const CIA1_PRA      = $dc00     // joystick port 2 (active low: 0 up 1 down 2 left 3 right 4 fire)
+.const CIA1_PRB      = $dc01     // joystick port 1 (same bits; WorldFight65)
 .const CIA1_DDRA     = $dc02
+.const CIA1_DDRB     = $dc03
 .const CIA1_ICR      = $dc0d
 .const CIA2_ICR      = $dd0d
 
@@ -68,6 +70,7 @@
 .const JOY_LEFT  = %00000100
 .const JOY_RIGHT = %00001000
 .const JOY_FIRE  = %00010000
+.const JOY_B2        = $20       // virtual joystick: button 2 (WorldFight65)
 
 // ----------------------------------------------------------------------------
 // F018A DMA job in enhanced (option-list) form, as used and verified in Vyper.

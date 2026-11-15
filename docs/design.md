@@ -1,6 +1,6 @@
 # WorldFight65 – Technical Design
 
-Status: Stage 1. This document is the plan. Everything below that has not been built and tested on hardware is
+Status: Stage 2. This document is the plan. Everything below that has not been built and tested on hardware is
 marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 
 ## 1. Game summary
@@ -66,7 +66,10 @@ attic RAM DMA time)**
   fighter combines and parameterises these; a new move type is an engine change and gets its own stage.
 - At fighter selection the two chosen packages are loaded from disk into two attic-RAM slots
   (loader from ShooterMega65). A mirror match loads one package and uses its second palette.
-- **Size budget per package: 64 KB on disk** (frames compressed), checked by the build. Estimate for the
+- **Size budget per package: 64 KB on disk** (frames compressed), checked by the build. Stage 2
+  measurement: 26 uncompressed frames are already 81 KB (Tiago) and 91 KB (Konrad); a package may take
+  up to 128 KB of attic RAM, and the files must be **compressed by Stage 6** (empty glyphs and repeated
+  glyphs are the obvious savings) to reach the disk budget. Estimate for the
   D81 (about 790 KB): program ~40 KB, music and samples ~60 KB, arenas ~40–60 KB each (compressed),
   fighters 64 KB each. Seven fighters and their arenas do not fit on one D81; the plan is therefore:
   disk 1 = game with Tiago, Konrad and their arenas; further fighters on disk 1 as long as space
@@ -82,7 +85,10 @@ attic RAM DMA time)**
 - **Moves** are data tables: animation frames with duration, plus startup, active and recovery phases,
   damage, hitstun, blockstun, pushback and whether the move hits high, low or overhead.
 - **Boxes:** each frame has one push box (fighters may not overlap), up to two hurt boxes and during
-  active frames one hit box. The art tools export them with the frames; a debug key shows them on screen.
+  active frames one hit box. Stage 2: one push distance (36 px between the anchors), one hurt box per
+  fighter (half width and height from the fighter's stats), and a hit box of 14×12 px around the striking
+  joint (hand, foot, knee) on active frames, taken from the pose by the art tools. Instead of an on-screen
+  overlay, the preview sheets in `build/preview` are used to check the boxes.
 - **Hit pause:** 4–6 frames in which both fighters freeze, followed by pushback. Corner rule: if the
   defender is at the screen edge, the attacker is pushed back instead.
 - **Arena width** = screen width (320 px), fighters cannot leave it.
@@ -95,13 +101,15 @@ attic RAM DMA time)**
 - An **input buffer** keeps the last 32 frames per player; special moves are recognised from it
   (quarter circle forward + button, charge back then forward + button, and so on).
 - Port 1 shares lines with the keyboard matrix. The keyboard is only scanned while the game is paused.
-- **Two buttons** (owner, 2026-11-15: gamepads with several buttons): button 1 = punch, button 2 = kick.
+- **Two buttons** (owner, 2026-11-15: 8BitDo gamepads with several buttons): button 1 = punch, button 2 = kick.
   The direction held at the moment of the press chooses the strength:
   neutral or back = light, forward = heavy; down / down-back = crouching light, down-forward = crouching heavy;
   in the air: forward held = heavy. Both buttons together close to the opponent = throw (late stage).
   Special moves use motions plus one button. The mapping is a table and may be tuned after hardware tests.
-- Button 2 is read through the joystick port's POT line. **(to verify in Stage 2 with the owner's pads:
-  which POT register, which threshold, and whether port 1 reads cleanly while the keyboard is not scanned)**
+- Button 2 is read through the joystick port's POT X line, as two-button adapters (C64GS convention) wire
+  it: pressed reads a low value. Stage 2 reads `$D620` (port 1) and `$D622` (port 2) and counts values
+  below `$80` as pressed; key P shows port 2's reading in the border colour for diagnosis.
+  **(to verify with the owner's 8BitDo pads, Stage 2 checklist)**
 
 ## 6. HUD and round flow (planned)
 - Energy bars for both players, a two-digit timer, round markers, player names.
@@ -131,7 +139,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 |---|---|
 | 0 | repository, rules, design, build pipeline, D81 test program |
 | 1 | video set-up, the Rio arena (FCM), Tiago (placeholder art) standing and walking with joystick 2, frame streaming from attic RAM, horizontal flip test, exit to BASIC |
-| 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, push boxes, hit-box debug overlay, energy bars |
+| 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, hitstop, pushback, push boxes, energy bars, KO and next round |
 | 3 | jumping, crouching, blocking, hitstun, knockdown; rounds, timer, KO, win poses |
 | 4 | first real artwork for both fighters and the first arena |
 | 5 | special moves and projectiles, input buffer; sound effects |
@@ -159,6 +167,11 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Skeleton renderer for the fighters** (Stage 1): poses are joint positions, `tools/fighter_art.py`
   draws limbs, outline and shading; every fighter is a costume plus poses.
 - **Layout constants in one place** (Stage 1): `tools/make_assets.py` writes `build/gen/layout.inc`.
+- **Stage 2 move set:** button 1 = light punch, forward + button 1 = heavy punch, button 2 = light kick,
+  forward + button 2 = heavy kick. Tiago: open-hand jab, rear-hand strike, ponteira, martelo.
+  Konrad: jab, forearm smash, stomp kick, knee strike. Health 128 (= bar width in pixels).
+- **Fighter tables are still built into the program** in Stage 2 (both fighters are known at build time);
+  moving the headers into the packages follows with the fighter selection in Stage 6.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

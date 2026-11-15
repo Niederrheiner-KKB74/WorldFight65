@@ -25,8 +25,9 @@ load_device:
     rts
 
 // Load the file whose name is at A/X (lo/hi), length Y, to ld_dst (low 16 bits, bank 0-15,
-// megabyte: 0 chip RAM / $80 attic RAM; must not cross a 64 KB boundary), at most ld_maxhi * 256
-// bytes. Carry set on error (a message has been printed).
+// megabyte: 0 chip RAM / $80 attic RAM), at most ld_maxpg * 256 bytes (16 bit). The destination may
+// cross 64 KB boundaries within its megabyte (WorldFight65 extension).
+// Carry set on error (a message has been printed).
 load_seq_to:
     sta ld_name
     stx ld_name+1
@@ -35,6 +36,7 @@ load_seq_to:
     sta ld_x
     sta ld_total
     sta ld_total+1
+    sta ld_total+2
     lda ld_dst
     sta job_ldflush+DMA_DST
     lda ld_dst+1
@@ -84,6 +86,7 @@ load_seq_to:
     jsr CLOSE
     lda ld_total
     ora ld_total+1
+    ora ld_total+2
     beq !err2+
     clc
     rts
@@ -133,20 +136,31 @@ ld_flush:
     lda job_ldflush+DMA_DST+1
     adc job_ldflush+DMA_COUNT+1
     sta job_ldflush+DMA_DST+1
-    clc
+    bcc !+
+    inc job_ldflush+DMA_DST+2      // next 64 KB bank
+!:  clc
     lda ld_total
     adc job_ldflush+DMA_COUNT
     sta ld_total
     lda ld_total+1
     adc job_ldflush+DMA_COUNT+1
     sta ld_total+1
-    cmp ld_maxhi                // file too big for the destination
-    bcs !+
+    lda ld_total+2
+    adc #0
+    sta ld_total+2
+    cmp ld_maxpg+1                // pages loaded (total >> 8) >= maximum: file too big
+    bcc !ok+
+    bne !big+
+    lda ld_total+1
+    cmp ld_maxpg
+    bcs !big+
+!ok:
     lda #0
     sta ld_x
     clc
     rts
-!:  sec
+!big:
+    sec
     rts
 
 print:                          // A/X = zero-terminated text
@@ -162,7 +176,7 @@ pr_char:
     bne pr_char
 !:  rts
 
-// Load one file: .word name, .byte name length, .dword destination, .byte max. pages
+// Load one file: name, name length, destination, max. pages (16 bit)
 .macro LoadFile(name, len, dst, maxpages) {
     lda #<(dst & $ffff)
     sta ld_dst
@@ -172,8 +186,10 @@ pr_char:
     sta ld_dst+2
     lda #((dst >> 20) & $ff)
     sta ld_dst+3
-    lda #maxpages
-    sta ld_maxhi
+    lda #<maxpages
+    sta ld_maxpg
+    lda #>maxpages
+    sta ld_maxpg+1
     lda #<name
     ldx #>name
     ldy #len
@@ -186,9 +202,9 @@ ld_name:   .word 0
 ld_len:    .byte 0
 ld_x:      .byte 0
 ld_st:     .byte 0
-ld_total:  .word 0
+ld_total:  .fill 3, 0
 ld_dst:    .fill 4, 0
-ld_maxhi:  .byte 0
+ld_maxpg:  .word 0
 .encoding "petscii_upper"
 msg_load:  .text "WORLDFIGHT65: CANNOT LOAD "
            .byte 0

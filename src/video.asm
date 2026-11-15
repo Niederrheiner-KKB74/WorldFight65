@@ -72,7 +72,7 @@ video_init:
     sta back                    // B is shown first, A is built first
     jmp show_buffer_b
 
-// Arena palette (entries 0..ARENA_COLOURS-1) from the map file, fighter palette into bank FIGHTER_BANK.
+// Arena palette (entries 0..ARENA_COLOURS-1) from the map file; fighter and HUD palettes into their banks.
 palette_init:
     RunDma(job_pal)
     ldx #0
@@ -86,12 +86,24 @@ palette_init:
     cpx #ARENA_COLOURS
     bne !-
     ldx #15
-!:  lda fighter_pal,x
+!:  lda pal_f1_r,x                      // fighter 1 -> bank 12, fighter 2 -> bank 13, HUD -> bank 15
     sta PAL_RED+FIGHTER_BANK*16,x
-    lda fighter_pal+16,x
+    lda pal_f1_g,x
     sta PAL_GREEN+FIGHTER_BANK*16,x
-    lda fighter_pal+32,x
+    lda pal_f1_b,x
     sta PAL_BLUE+FIGHTER_BANK*16,x
+    lda pal_f2_r,x
+    sta PAL_RED+(FIGHTER_BANK+1)*16,x
+    lda pal_f2_g,x
+    sta PAL_GREEN+(FIGHTER_BANK+1)*16,x
+    lda pal_f2_b,x
+    sta PAL_BLUE+(FIGHTER_BANK+1)*16,x
+    lda pal_hud_r,x
+    sta PAL_RED+HUD_BANK*16,x
+    lda pal_hud_g,x
+    sta PAL_GREEN+HUD_BANK*16,x
+    lda pal_hud_b,x
+    sta PAL_BLUE+HUD_BANK*16,x
     dex
     bpl !-
     rts
