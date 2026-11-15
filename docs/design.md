@@ -66,16 +66,20 @@ attic RAM DMA time)**
 - **Arena width** = screen width (320 px), fighters cannot leave it.
 
 ## 5. Input (planned)
-- Each fighter reads a **virtual joystick byte** (up, down, left, right, button 1, button 2, button 3).
+- Each fighter reads a **virtual joystick byte** (up, down, left, right, button 1, button 2).
   For humans it is filled from port 1 / port 2; for the CPU opponent by the AI. The fighter code never
   reads the hardware directly.
 - Directions are converted to "forward/back" relative to the facing direction.
 - An **input buffer** keeps the last 32 frames per player; special moves are recognised from it
   (quarter circle forward + button, charge back then forward + button, and so on).
 - Port 1 shares lines with the keyboard matrix. The keyboard is only scanned while the game is paused.
-- **Buttons:** the basic scheme works with any one-button joystick (button alone = punch, button with
-  down-forward/down-back = kicks, button held = heavy). If the owner has 2- or 3-button pads, buttons 2 and
-  3 are read through the POT lines. **(open question, §13)**
+- **Two buttons** (owner, 2026-11-15: gamepads with several buttons): button 1 = punch, button 2 = kick.
+  The direction held at the moment of the press chooses the strength:
+  neutral or back = light, forward = heavy; down / down-back = crouching light, down-forward = crouching heavy;
+  in the air: forward held = heavy. Both buttons together close to the opponent = throw (late stage).
+  Special moves use motions plus one button. The mapping is a table and may be tuned after hardware tests.
+- Button 2 is read through the joystick port's POT line. **(to verify in Stage 2 with the owner's pads:
+  which POT register, which threshold, and whether port 1 reads cleanly while the keyboard is not scanned)**
 
 ## 6. HUD and round flow (planned)
 - Energy bars for both players, a two-digit timer, round markers, player names.
@@ -126,6 +130,9 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Horizontal flip instead of mirrored frames** (Stage 0 plan, to verify).
 - **Frames in attic RAM, streamed by DMA** (Stage 0 plan).
 
+- **Two-button control scheme** (owner, 2026-11-15), see §5.
+- **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
+  continents and countries.
+
 ## 13. Open questions for the owner
-1. Which controllers do you use: one-button joysticks only, or pads with 2 or 3 buttons?
-2. Names, look and fighting styles of the two fighters, and the first arena (Claude can propose them).
+1. The two fighters (Claude proposed candidates on 2026-11-15) and the first arena.
