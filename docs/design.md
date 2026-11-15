@@ -109,7 +109,7 @@ attic RAM DMA time)**
 - Button 2 is read through the joystick port's POT X line, as two-button adapters (C64GS convention) wire
   it: pressed reads a low value. Stage 2 reads `$D620` (port 1) and `$D622` (port 2) and counts values
   below `$80` as pressed; key P shows port 2's reading in the border colour for diagnosis.
-  **(to verify with the owner's 8BitDo pads, Stage 2 checklist)**
+  **(confirmed on hardware with the owner's 8BitDo pads, Stage 2)**
 
 ## 6. HUD and round flow (planned)
 - Energy bars for both players, a two-digit timer, round markers, player names.

@@ -17,8 +17,9 @@ Release files are in `releases/stage2/`.
 - **Push boxes:** the fighters cannot walk through each other (36 px between their anchors).
 - **Energy bars** at the top (RRB fragments with 17 bar glyphs); player 2's bar is the mirrored version
   and empties towards the centre as well.
-- **KO:** at 0 energy the loser is knocked back and stays down; after 3 seconds a new round starts with
-  full energy (rounds, timer and win poses follow in Stage 3).
+- **KO:** at 0 energy the loser slides back and stays frozen in the last frame of his hit animation
+  (there is no knockdown animation yet); after 3 seconds a new round starts with full energy. Falling to the
+  floor, getting up, rounds, timer and win poses follow in Stage 3.
 - Each fighter package (`F-TIAGO`, `F-KONRAD`) is loaded into its own 128 KB area of attic RAM; the loader
   can now load files larger than 64 KB.
 - Key **P**: shows the POT X reading of joystick port 2 as the border colour (diagnosis for button 2).
@@ -37,7 +38,7 @@ Konrad knee strike; Tiago martelo), frozen during Tiago's kick.
 | XEMU, normal build | ✔ arena, both fighters facing each other, both energy bars full |
 | XEMU, `AUTOTEST` build | ✔ all three attacks hit; energy bars down by 18 (Tiago) and 22 (Konrad = jab 6 + martelo 16); attacker drawn in front |
 | XEMU: KO and next round, pushback at the edge, button 2 via POT | not tested (needs real input) |
-| **Real MEGA65** | **open – please test** |
+| **Real MEGA65** | **✔ confirmed by the owner (2026-11-15) with 8BitDo pads: works as described, including button 2 via POT X. Noted: at a KO the loser does not fall to the floor (no knockdown animation yet, planned for Stage 3).** |
 
 ## Hardware test checklist
 1. Start: arena, Tiago left facing right, Konrad right facing left, two full yellow energy bars at the top.
@@ -51,7 +52,8 @@ Konrad knee strike; Tiago martelo), frozen during Tiago's kick.
 5. Hits: a short freeze, the hit fighter recoils and slides back, the energy bar shrinks from the centre.
    Missed attacks (too far away) do nothing.
 6. Push a fighter into the screen edge with hits: he stops at the edge, the attacker is pushed back.
-7. KO: when a bar is empty, the loser stays down for 3 seconds, then both start again with full bars.
+7. KO: when a bar is empty, the loser slides back and freezes (no fall yet); after 3 seconds both start again
+   with full bars.
 8. Overlapping fighters (during attacks): no holes, no flicker, the attacker in front.
 9. X or RUN/STOP: back to `READY.`, BASIC screen and colours normal, both joysticks still work in BASIC
    (e.g. with a game started afterwards).
