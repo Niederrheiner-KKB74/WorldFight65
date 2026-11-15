@@ -21,7 +21,7 @@ Mount `WORLDFIGHT65.D81`, then `LOAD "WORLDFIGHT",8` and `RUN` (or `DLOAD "WORLD
 | Check | Result |
 |---|---|
 | Assembly (KickAss65CE02 5.25), PRG < `$C000`, D81 read-back | ✔ |
-| Emulator smoke test | not done (no XEMU in the build environment) |
+| XEMU smoke test (xmega65 built from source, git 40dfef0 of 2026-01-29, owner's ROM, headless, D81 autoload) | ✔ The message appears on a cleared screen in upper and lower case |
 | **Real MEGA65** | **open – please test** |
 
 ## Hardware test checklist
