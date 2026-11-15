@@ -196,11 +196,14 @@ def getup():
 
 
 def win():
-    # one fist raised high, the other hand on the hip
-    return [frame(stance(lean=-2, hip=(0, -46), hand_f=(10, -96), hand_b=(-8, -50), ankle_f=(10, -3),
-                         ankle_b=(-11, -3)), 16, face='win'),
-            frame(stance(lean=-4, hip=(0, -47), hand_f=(11, -97), hand_b=(-8, -51), ankle_f=(10, -3),
-                         ankle_b=(-11, -3), head=(-1, -1)), 16, face='win')]
+    # seen from the front: one fist raised high, the other hand on the hip, cheering
+    def pose(lift, bob):
+        return fa.front(sho_l=(-11, -72 + bob), sho_r=(11, -72 + bob), neck=(0, -78 + bob), head=(0, -87 + bob),
+                        elb_l=(-20, -62 + bob), hand_l=(-10, -50 + bob),
+                        elb_r=(19, -82 + bob - lift), hand_r=(15, -94 + bob - lift),
+                        hip_l=(-6, -46 + bob), hip_r=(6, -46 + bob), knee_l=(-10, -24), knee_r=(10, -24),
+                        ankle_l=(-12, -3), ankle_r=(12, -3))
+    return [frame(pose(0, 0), 16, face='win'), frame(pose(2, -1), 16, face='win')]
 
 
 def anims():

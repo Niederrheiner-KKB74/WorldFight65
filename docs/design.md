@@ -149,6 +149,8 @@ attic RAM DMA time)**
   The head is drawn upright and turned with the neck when it is tilted by more than 25° (falling, lying). Light falls from the front and the top,
   a warm rim of sunset light lies on the back edge of the skin, and a dark outline surrounds the figure.
   A far arm that strikes across the body (rear-hand punch) is drawn in front of the torso.
+  The win poses are drawn **from the front** (`front()` poses, `render_front()`): both arms and legs lit,
+  torso with the costume's front details, a frontal head with two eyes, ears, hair and beard.
 - Palette per fighter: 16 colours (transparent, outline, 4 skin tones, hair, 4 clothing tones, 2 accent
   colours, rim light, eye white, mouth).
 - **Sparks (Stage 4):** a three-frame hit spark (yellow-white star burst) and a two-frame block spark (blue

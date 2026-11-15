@@ -248,8 +248,11 @@ def draw_head(canvas, solid, c, head_pt, neck_pt, face):
 
 def render(pose, c, face='normal'):
     """Return (FRAME_H, FRAME_W) uint8 array of palette indices. face: 'normal', 'hit' or 'win'.
+    Frontal poses (fighter_art.front) are drawn by render_front.
     Parts of the same material are merged and shaded as one area (no seams inside an arm, a trouser leg or
     the singlet), and no edges are drawn where a limb grows out of the body (shoulder, hip, knee)."""
+    if pose.get('_front'):
+        return render_front(pose, c, face)
     canvas = np.zeros((FRAME_H, FRAME_W), np.uint8)
     solid = np.zeros_like(canvas, dtype=bool)
     p = pose
@@ -529,3 +532,186 @@ def frame(pose, ticks, hit=None, face='normal', b_front=False):
     if b_front:
         pose = dict(pose, _b_front=True)
     return dict(pose=pose, ticks=ticks, hit=box_at(pose, hit) if hit else None, face=face)
+
+
+# ------------------------------------------------------------------ frontal view (win poses)
+def front(**joints):
+    """A frontal pose: joints with _l / _r (screen left / right): sho, elb, hand, hip, knee, ankle; neck, head."""
+    p = dict(joints)
+    p['_front'] = True
+    return p
+
+
+def render_front(p, c, face='win'):
+    """The fighter seen from the front (used for the win poses): legs, feet, torso with pelvis and the
+    costume's front details, both arms, a frontal head with two eyes, ears, hair and beard."""
+    canvas = np.zeros((FRAME_H, FRAME_W), np.uint8)
+    solid = np.zeros_like(canvas, dtype=bool)
+    yy, xx = np.indices(canvas.shape)
+
+    def group(fns, zone, rim=True):
+        m = _mask()
+        for fn in fns:
+            fn(m)
+        a = shade_layer(canvas, m, zone, False, c.rim if (rim and zone == c.skin) else None)
+        solid[:] |= a
+        return a
+
+    def paint(fn, colour, only=None):
+        m = _mask()
+        fn(m)
+        a = np.array(m) > 0
+        if only is not None:
+            a &= only
+        canvas[a] = colour
+        return a
+
+    def lerp(a, b, t):
+        return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+
+    # ---- legs and feet
+    for s in ('l', 'r'):
+        hip, knee, ank = p['hip_' + s], p['knee_' + s], p['ankle_' + s]
+        out = -1 if s == 'l' else 1
+        thigh = lambda m, hip=hip, knee=knee: limb(m, hip, knee, c.w_thigh[0], c.w_thigh[1], c.w_thigh[2], 0.35)
+        if c.loose:
+            a2 = lerp(knee, ank, 0.93)
+            shin = lambda m, knee=knee, a2=a2: limb(m, knee, a2, c.w_shin[0], c.w_shin[1], 0, cap_b=False)
+        else:
+            shin = lambda m, knee=knee, ank=ank: limb(m, knee, ank, c.w_shin[0], c.w_shin[1], c.w_shin[2], 0.3,
+                                                      cap_b=False)
+        # foot from the front: a short, wide shape, toes turned slightly outwards
+        foot = lambda m, ank=ank, out=out: poly(m, [(ank[0] - c.foot_w * 0.5, ank[1] - 1.5),
+                                                    (ank[0] + c.foot_w * 0.5, ank[1] - 1.5),
+                                                    (ank[0] + c.foot_w * 0.6 + out, ank[1] + 3),
+                                                    (ank[0] - c.foot_w * 0.6 + out, ank[1] + 3)])
+        if c.short_thigh:
+            group([thigh, shin], c.skin)
+        elif c.thigh == c.shin:
+            group([thigh, shin], c.thigh)
+            for t0, t1, (a, b) in ((0.3, 0.85, (hip, knee)), (0.15, 0.75, (knee, ank))):   # folds
+                q0, q1 = lerp(a, b, t0), lerp(a, b, t1)
+                paint(lambda m: line(m, (q0[0] + out * 2, q0[1]), (q1[0] + out * 2, q1[1])), c.thigh[1], solid)
+        f = group([foot], c.foot)
+        if c.shoes:
+            x, y = _pt(ank)
+            canvas[int(y), int(x) - 1:int(x) + 2] = c.eye            # laces
+    # ---- torso with pelvis (and the singlet part of the thighs)
+    sl, sr, hl, hr = p['sho_l'], p['sho_r'], p['hip_l'], p['hip_r']
+    ch = c.chest
+
+    def torso(m):
+        poly(m, [(sl[0] - 1, sl[1] - 1), (sr[0] + 1, sr[1] - 1), (sr[0] + 1, sr[1] + 6),
+                 (hr[0] + 2, (sr[1] + hr[1]) / 2 + 2), (hr[0] + 2, hr[1]), (hl[0] - 2, hl[1]),
+                 (hl[0] - 2, (sl[1] + hl[1]) / 2 + 2), (sl[0] - 1, sl[1] + 6)])
+
+    def pelvis(m):
+        poly(m, [(hl[0] - 3, hl[1] - 3), (hr[0] + 3, hr[1] - 3), (hr[0] + 3, hr[1] + 5), (0, hr[1] + 7),
+                 (hl[0] - 3, hl[1] + 5)])
+
+    def neck(m):
+        limb(m, p['neck'], (p['neck'][0], sl[1] + 1), c.neck_w + 1, c.neck_w + 2)
+
+    group([neck], c.skin)
+    if c.torso == c.pelvis:
+        fns = [torso, pelvis]
+        if c.short_thigh:
+            fns += [lambda m, s=s: limb(m, p['hip_' + s], lerp(p['hip_' + s], p['knee_' + s], 0.55),
+                                        c.w_thigh[0], c.w_thigh[1] + 1) for s in ('l', 'r')]
+        t = group(fns, c.torso)
+    else:
+        t = group([torso], c.torso)
+        group([pelvis], c.pelvis)
+    mx = (sl[0] + sr[0]) / 2
+    top, bot = sl[1], hl[1]
+    if c.bare_torso:                              # chest, belly
+        for s in (-1, 1):
+            paint(lambda m: ImageDraw.Draw(m).line([_pt((mx + s * 1, top + 9)), _pt((mx + s * ch * 0.7, top + 10)),
+                                                    _pt((mx + s * ch * 0.95, top + 7))], fill=255), c.torso[1], t)
+        paint(lambda m: line(m, (mx, top + 6), (mx, bot - 3)), c.torso[1], t)
+        for yy0 in (top + 15, top + 20):
+            paint(lambda m: line(m, (mx - 3, yy0), (mx + 3, yy0)), c.torso[1], t)
+    if c.neckline:                                # singlet: shoulder straps, skin at the chest
+        paint(lambda m: poly(m, [(sl[0] + 3, top - 1), (sr[0] - 3, top - 1), (sr[0] - 4, top + 6),
+                                 (mx, top + 10), (sl[0] + 4, top + 6)]), c.skin[0], t)
+        paint(lambda m: line(m, (sl[0] + 3, top + 6), (mx, top + 10)), c.skin[1], t)
+        paint(lambda m: line(m, (sr[0] - 3, top + 6), (mx, top + 10)), c.skin[1], t)
+    for k, col in enumerate(c.stripes):           # stripes down both sides and the thighs
+        for s, (sh, hp) in (('l', (sl, hl)), ('r', (sr, hr))):
+            o = (k + 1) * (1 if s == 'l' else -1)
+            paint(lambda m: line(m, (sh[0] + o, sh[1] + 7), (hp[0] + o - (1 if s == 'l' else -1), hp[1] + 4)), col, t)
+            kn = lerp(p['hip_' + s], p['knee_' + s], 0.5)
+            ho = p['hip_' + s]
+            ox = -c.w_thigh[0] / 2 + k + 1 if s == 'l' else c.w_thigh[0] / 2 - k - 1
+            paint(lambda m: line(m, (ho[0] + ox, ho[1] + 4), (kn[0] + ox, kn[1])), col, solid)
+    if c.belt is not None:                        # cord belt with the knot in the middle
+        belt = paint(lambda m: line(m, (hl[0] - 3, hl[1] - 2), (hr[0] + 3, hr[1] - 2), 3), c.belt)
+        canvas[belt & ((xx // 2) % 2 == 0)] = c.belt2
+        k = (mx + 2, hl[1] - 2)
+        paint(lambda m: disc(m, k, 1.5), c.belt2)
+        for dx, ln2 in ((0, 9), (2, 7)):
+            solid |= paint(lambda m: line(m, k, (k[0] + dx, k[1] + ln2)), c.belt)
+            paint(lambda m: disc(m, (k[0] + dx, k[1] + ln2), 1), c.belt2)
+    # ---- arms
+    for s in ('l', 'r'):
+        sho, elb, hand = p['sho_' + s], p['elb_' + s], p['hand_' + s]
+        a = group([lambda m: limb(m, sho, elb, c.w_upper[0] + 1, c.w_upper[1], c.w_upper[2] + 1, 0.5),
+                   lambda m: limb(m, elb, hand, c.w_fore[0], c.w_fore[1], c.w_fore[2], 0.3),
+                   lambda m: disc(m, hand, c.hand_r + 0.5)], c.skin)
+        hx2, hy2 = _pt(hand)
+        canvas[a & (np.abs(yy - hy2) < 0.6) & ((xx - hx2) ** 2 < (c.hand_r + 0.5) ** 2)] = c.skin[1]
+        if c.neckline:                            # the round shoulder above the strap
+            paint(lambda m: disc(m, (sho[0], sho[1] + 1), c.w_upper[0] / 2), c.skin[0], a)
+    # ---- head from the front
+    hx, hy = p['head']
+    r = c.head_r
+
+    def head(m):
+        x0, y0 = _pt((hx - r * 0.82, hy - r * 1.0))
+        x1, y1 = _pt((hx + r * 0.82, hy + r * 0.9))
+        ImageDraw.Draw(m).ellipse((x0, y0, x1, y1), fill=255)
+        poly(m, [(hx - r * 0.75, hy + 0.2 * r), (hx + r * 0.75, hy + 0.2 * r), (hx + r * 0.4, hy + r * 1.1),
+                 (hx - r * 0.4, hy + r * 1.1)])                                  # jaw and chin
+        for s in (-1, 1):
+            disc(m, (hx + s * r * 0.85, hy + 0.15 * r), 1.4)                    # ears
+    hd = group([head], c.skin)
+    cx, cy = _pt((hx, hy))
+    upper = yy < cy - r * 0.35
+    if c.hair_style == 'curly':
+        # thick curls: above the forehead, grown upwards by 2 px and sideways by 1 px
+        hreg = hd & ((yy < cy - r * 0.35) | ((yy < cy + r * 0.15) & (np.abs(xx - cx) > r * 0.62)))
+        pad = np.pad(hreg, 3)
+        grown = hreg | pad[4:-2, 3:-3] | pad[5:-1, 3:-3] | pad[6:, 3:-3] | pad[3:-3, 2:-4] | pad[3:-3, 4:-2]
+        grown &= yy < cy + r * 0.2
+        canvas[grown] = c.hair[0]
+        canvas[grown & (((xx * 3 + yy * 5) % 7) == 0)] = c.hair[2]
+        canvas[grown & (((xx * 3 + yy * 5) % 7) == 3)] = c.hair[1]
+        solid |= grown
+    else:
+        pad = np.pad(hd, 2)
+        topband = hd & ~pad[:-4, 2:-2] & (yy < cy - r * 0.4)
+        canvas[topband] = c.hair[0]
+        canvas[topband & ~np.roll(hd, 1, axis=0)] = c.hair[2]
+        sides = hd & (yy < cy) & (np.abs(xx - cx) > r * 0.6) & ~topband
+        canvas[sides & (((xx * 3 + yy * 5) % 5) == 0)] = c.hair[1]            # shaved sides
+    if c.beard:
+        bm = hd & (yy > cy + r * 0.35) & ~((np.abs(xx - cx) < 1.6) & (yy < cy + r * 0.85))
+        canvas[bm] = c.hair[0]
+        canvas[bm & (((xx * 3 + yy * 5) % 7) == 2)] = c.hair[1]
+    ey = int(round(cy - r * 0.05))
+    for s in (-1, 1):
+        ex = int(round(cx + s * r * 0.38))
+        canvas[ey, ex] = c.eye if face != 'hit' else OUTLINE
+        canvas[ey, ex + (1 if s < 0 else -1)] = c.pupil
+        canvas[ey - 2, ex - 1:ex + 2] = c.hair[1] if c.hair_style != 'curly' else c.hair[0]   # brows
+    canvas[ey + 1:ey + 3, int(round(cx))] = c.skin[1]                               # nose
+    my = int(round(cy + r * 0.62))
+    if face == 'win':
+        canvas[my:my + 2, int(round(cx)) - 1:int(round(cx)) + 2] = c.mouth             # open mouth (cheering)
+    else:
+        canvas[my, int(round(cx)) - 1:int(round(cx)) + 2] = c.mouth
+    # ---- outline
+    pad = np.pad(solid, 1)
+    nb = pad[:-2, 1:-1] | pad[2:, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]
+    canvas[nb & ~solid] = OUTLINE
+    return canvas

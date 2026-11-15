@@ -16,13 +16,13 @@ Release files are in `releases/stage4/`. Game mechanics, controls and hit boxes 
   running from the forehead down to the nape; curls add volume on top only.
 - **Tiago:** bare, muscular torso with chest and belly lines, curly black hair, wide white capoeira trousers
   with folds, green-and-yellow cord belt (cordão) with knot and tassels, bare feet. Livelier ginga in the
-  idle animation; the rear-hand strike now crosses in front of the body; new win pose (fist raised, other
-  hand on the hip).
+  idle animation; the rear-hand strike now crosses in front of the body; new win pose **seen from the
+  front** (fist raised, other hand on the hip, cheering).
 - **Konrad:** broad build (after the owner's first look: flatter back and shoulders closer together in
   profile, so his bent-forward stance no longer looks like a hump or a rucksack; slimmer lower legs; hip joints
   closer together and slimmer thighs, so his seat no longer sticks out), black singlet with black-red-gold side-seam stripes on torso and thighs, bare
   shoulders, red wrestling shoes with laces and sole, a military buzz cut (very short on top, sides shaved with
-  stubble) and a blond beard; new win pose (double biceps).
+  stubble) and a blond beard; new win pose **seen from the front** (double biceps).
 - **Facial expressions:** eyes shut and mouth open when hit or falling, open mouth in the win pose.
 - **Sparks:** yellow-white star burst at the point where a hit lands, blue shield arc on a block
   (palette bank 11); they keep playing while the fighters freeze in the hitstop.
@@ -52,5 +52,6 @@ Emulator test builds as in Stage 3 (`--define AUTOTEST` plus `AUTOTEST_INTRO`, `
 2. All moves from Stage 3 still work the same way (the hit boxes are unchanged).
 3. A hit shows a yellow star burst at the point of impact, a block a blue arc; both disappear after a
    fraction of a second. Also check a hit in the air and a sweep (spark near the floor).
-4. Hit and falling fighters close their eyes; the winner shows his new win pose.
+4. Hit and falling fighters close their eyes; the winner turns to the front for his win pose (Tiago:
+   fist up, Konrad: double biceps).
 5. Everything else as in Stage 3 (rounds, timer, KO, exit to BASIC).

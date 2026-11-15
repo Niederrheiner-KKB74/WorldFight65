@@ -189,11 +189,14 @@ def getup():
 
 
 def win():
-    # double biceps: both fists up next to the head
-    return [frame(stance(lean=2, hip=(0, -44), hand_f=(14, -86), hand_b=(-12, -84), ankle_f=(13, -3),
-                         ankle_b=(-13, -3)), 16, face='win'),
-            frame(stance(lean=2, hip=(0, -43), hand_f=(13, -88), hand_b=(-11, -86), ankle_f=(13, -3),
-                         ankle_b=(-13, -3), head=(0, -1)), 16, face='win')]
+    # seen from the front: double biceps
+    def pose(flex, bob):
+        return fa.front(sho_l=(-14, -71 + bob), sho_r=(14, -71 + bob), neck=(0, -77 + bob), head=(0, -86 + bob),
+                        elb_l=(-27, -71 + bob), hand_l=(-22 + flex, -86 + bob - flex),
+                        elb_r=(27, -71 + bob), hand_r=(22 - flex, -86 + bob - flex),
+                        hip_l=(-7, -44 + bob), hip_r=(7, -44 + bob), knee_l=(-11, -23), knee_r=(11, -23),
+                        ankle_l=(-14, -3), ankle_r=(14, -3))
+    return [frame(pose(0, 0), 16, face='win'), frame(pose(1, -1), 16, face='win')]
 
 
 def anims():
