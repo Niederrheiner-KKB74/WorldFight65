@@ -49,7 +49,7 @@ Emulator test builds: `--define AUTOTEST` (sweep and knockdown) plus optionally 
 | XEMU `AUTOTEST_BLOCK` | ✔ Konrad blocks Tiago's heavy punch, no damage |
 | XEMU `AUTOTEST_KO` | ✔ "K.O.", Konrad down at the edge, Tiago in his win pose |
 | XEMU: rounds 2/3, "WINS", time up, getting up, crouching block of a low attack | not tested (needs real input or longer runs) |
-| **Real MEGA65** | **open – please test** |
+| **Real MEGA65** | **✔ the whole checklist confirmed by the owner (2026-11-15)** |
 
 ## Hardware test checklist
 1. Start: "ROUND 1", then "FIGHT!"; timer 99 between the bars, names TIAGO and KONRAD below. No flicker,
