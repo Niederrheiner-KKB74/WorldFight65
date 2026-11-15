@@ -38,10 +38,10 @@ COSTUME = fa.Costume(
     skin=SKIN, torso=SINGLET, pelvis=SINGLET, thigh=SINGLET, shin=SKIN, foot=SHOES, rim=13,
     hair=(6, 7, 5), hair_style='buzz', beard=True, eye=14, pupil=1, mouth=15,
     neckline=True, stripes=(11, 12), short_thigh=True, shoes=True,
-    neck_w=8, w_upper=(9, 7, 2.5), w_fore=(8, 6, 1.5), w_thigh=(13, 10, 1.5), w_shin=(8, 6, 1.5), hand_r=4,
+    neck_w=8, w_upper=(9, 7, 2.5), w_fore=(8, 6, 1.5), w_thigh=(12, 9, 1), w_shin=(8, 6, 1.5), hand_r=4,
     foot_w=6, head_r=7, chest=10,
 )
-BODY = dict(thigh=22, shin=21, upper=13, fore=13, torso=27, shoulder=4, hips=5)
+BODY = dict(thigh=22, shin=21, upper=13, fore=13, torso=27, shoulder=4, hips=2)
 STATS = dict(health=128, walk_fwd=1, walk_back=1, hurt_w=15, hurt_top=-90, crouch_top=-60)
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk=(18, 22, 12, 0, 0),
@@ -96,7 +96,7 @@ def lk():
 def hk():
     # knee strike
     return [frame(stance(lean=8, ankle_f=(8, -18), toe_f=(13, -16), hand_f=(20, -70), hand_b=(14, -68)), 5),
-            frame(stance(lean=4, hip=(4, -44), ankle_f=(14, -34), toe_f=(18, -30),
+            frame(stance(lean=4, hip=(7, -44), ankle_f=(14, -34), toe_f=(18, -30),
                          hand_f=(26, -74), hand_b=(20, -72)), 5, 'knee_f'),
             frame(stance(lean=10, ankle_f=(12, -18), toe_f=(17, -16)), 6),
             frame(stance(lean=14), 4)]
@@ -164,7 +164,7 @@ def j_p():
 def j_k():
     # flying knee
     return [frame(stance(**TUCK), 3),
-            frame(stance(hip=(4, -48), lean=4, ankle_f=(14, -36), toe_f=(18, -32), ankle_b=(-8, -22),
+            frame(stance(hip=(7, -48), lean=4, ankle_f=(14, -36), toe_f=(18, -32), ankle_b=(-8, -22),
                          hand_f=(26, -74), hand_b=(20, -72)), 12, 'knee_f'),
             frame(stance(**TUCK), 30)]
 

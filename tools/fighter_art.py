@@ -46,7 +46,7 @@ def disc(m, c, r):
     ImageDraw.Draw(m).ellipse((x - r, y - r, x + r, y + r), fill=255)
 
 
-def limb(m, a, b, wa, wb, bulge=0.0, at=0.4):
+def limb(m, a, b, wa, wb, bulge=0.0, at=0.4, cap_b=True):
     """Tapered limb from joint a (width wa) to joint b (width wb), with a muscle bulge of `bulge` pixels
     (extra width) centred at fraction `at` of the length; round ends."""
     ax, ay = a
@@ -66,7 +66,23 @@ def limb(m, a, b, wa, wb, bulge=0.0, at=0.4):
         right.append((cx - nx * w / 2, cy - ny * w / 2))
     poly(m, left + right[::-1])
     disc(m, a, wa / 2 - 0.3)
-    disc(m, b, wb / 2 - 0.3)
+    if cap_b:
+        disc(m, b, wb / 2 - 0.3)
+
+
+def foot_shape(m, ankle, toe, w):
+    """A foot or shoe in profile: flat sole from the heel to the toes, rounded toes, instep rising to the
+    ankle. Built in the foot's own direction (ankle -> toe), so it also works for kicks."""
+    dx, dy = toe[0] - ankle[0], toe[1] - ankle[1]
+    ln = max(1e-3, (dx * dx + dy * dy) ** 0.5)
+    ux, uy = dx / ln, dy / ln
+    nx, ny = uy, -ux                       # "up" from the sole (for a flat foot: -y)
+    h = w / 2
+
+    def q(base, a, b):
+        return (base[0] + ux * a + nx * b, base[1] + uy * a + ny * b)
+    poly(m, [q(ankle, -3, -h + 0.5), q(toe, 0.5, -h + 0.5), q(toe, 1.5, -h * 0.4), q(toe, 1, 0.2),
+             q(toe, -1.5, h * 0.4), q(ankle, 2, h), q(ankle, -1, h + 1), q(ankle, -3.5, h * 0.3)])
 
 
 def line(m, a, b, w=1):
@@ -182,10 +198,13 @@ def render(pose, c, face='normal'):
         return lambda m: limb(m, a, b, c.w_thigh[0], w2, c.w_thigh[2], 0.35)
 
     def shin(side):
-        return lambda m: limb(m, p['knee_' + side], p['ankle_' + side], c.w_shin[0], c.w_shin[1], c.w_shin[2], 0.3)
+        k, a = p['knee_' + side], p['ankle_' + side]
+        if c.loose:                                   # wide trousers end just above the ankle
+            a = (k[0] + (a[0] - k[0]) * 0.93, k[1] + (a[1] - k[1]) * 0.93)
+        return lambda m: limb(m, k, a, c.w_shin[0], c.w_shin[1], c.w_shin[2], 0.3, cap_b=False)
 
     def foot(side):
-        return lambda m: limb(m, p['ankle_' + side], p['toe_' + side], c.foot_w, c.foot_w - 1)
+        return lambda m: foot_shape(m, p['ankle_' + side], p['toe_' + side], c.foot_w)
 
     def along(a, b, f0, f1, off):
         """segment from fraction f0 to f1 of a->b, shifted sideways by off pixels (towards the back)"""
@@ -200,7 +219,7 @@ def render(pose, c, face='normal'):
     hf, hb = p['hip_f'], p['hip_b']
 
     def pelvis(m):
-        poly(m, [(hb[0] - 3, hb[1] - 4), (hf[0] + 3, hf[1] - 4), (hf[0] + 4, hf[1] + 4), (hb[0] - 4, hb[1] + 4)])
+        poly(m, [(hb[0] - 2, hb[1] - 4), (hf[0] + 3, hf[1] - 4), (hf[0] + 3, hf[1] + 3), (hb[0] - 1, hb[1] + 3)])
 
     def arm_group(side, back):
         a = group([upper(side), fore(side), hand(side)], c.skin, back,
@@ -228,9 +247,8 @@ def render(pose, c, face='normal'):
         f = group([foot(side)], c.foot, back, [(ank, c.foot_w * 0.6)])
         if c.shoes and not back:
             toe = p['toe_' + side]
-            canvas[f & ~np.roll(f, -1, axis=0)] = c.foot[3]       # sole
             for t in (0.3, 0.65):
-                x, y = _pt((ank[0] + (toe[0] - ank[0]) * t, ank[1] + (toe[1] - ank[1]) * t - c.foot_w / 2 + 1))
+                x, y = _pt((ank[0] + (toe[0] - ank[0]) * t, ank[1] + (toe[1] - ank[1]) * t - c.foot_w / 2 + 1.5 - t))
                 if 0 <= int(y) < FRAME_H and 0 <= int(x) < FRAME_W and f[int(y), int(x)]:
                     canvas[int(y), int(x)] = c.eye            # laces
         if c.loose and not back:                      # folds in wide trousers

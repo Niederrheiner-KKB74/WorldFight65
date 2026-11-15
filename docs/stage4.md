@@ -8,12 +8,15 @@ Release files are in `releases/stage4/`. Game mechanics, controls and hit boxes 
   of sunset light on the skin, dark outline. After the owner's review: parts of the same material are merged
   and shaded as one area (an arm, a trouser leg with the pelvis, the singlet with torso, pelvis and thighs),
   and no edges are drawn where a limb grows out of the body, so arms and legs no longer look stuck on.
+  Feet and shoes have a real shape in profile (flat sole on the floor, heel, rounded toes, instep), and wide
+  trouser legs end above the ankle instead of reaching under the foot.
 - **Tiago:** bare, muscular torso with chest and belly lines, curly black hair, wide white capoeira trousers
   with folds, green-and-yellow cord belt (cordão) with knot and tassels, bare feet. Livelier ginga in the
   idle animation; the rear-hand strike now crosses in front of the body; new win pose (fist raised, other
   hand on the hip).
 - **Konrad:** broad build (after the owner's first look: flatter back and shoulders closer together in
-  profile, so his bent-forward stance no longer looks like a hump or a rucksack; slimmer lower legs), black singlet with black-red-gold side-seam stripes on torso and thighs, bare
+  profile, so his bent-forward stance no longer looks like a hump or a rucksack; slimmer lower legs; hip joints
+  closer together and slimmer thighs, so his seat no longer sticks out), black singlet with black-red-gold side-seam stripes on torso and thighs, bare
   shoulders, red wrestling shoes with laces and sole, a military buzz cut (very short on top, sides shaved with
   stubble) and a blond beard; new win pose (double biceps).
 - **Facial expressions:** eyes shut and mouth open when hit or falling, open mouth in the win pose.
