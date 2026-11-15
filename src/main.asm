@@ -1,9 +1,10 @@
 // ============================================================================
-// WorldFight65 - Stage 2: Tiago against Konrad
+// WorldFight65 - Stage 3: rounds, crouching, jumping, blocking, knockdowns
 //   H320/V200. The Rio beach arena is a static full-colour (FCM) picture; the
 //   fighters are RRB objects of NCM glyphs, streamed frame by frame from attic
 //   RAM. Player 1: joystick port 1 (Tiago), player 2: port 2 (Konrad).
-//   Button 1 = punch, button 2 (POT X line) = kick, forward + button = heavy.
+//   Button 1 = punch, button 2 (POT X line) = kick, forward + button = heavy;
+//   down = crouch, up = jump, back = block. Best of three rounds.
 //   Keys: X or RUN/STOP = back to BASIC, P = show the POT X readings in the border.
 // Build: python3 tools/build.py   (KickAssembler 65CE02 5.25, see README)
 // ============================================================================
@@ -39,6 +40,7 @@
 .label px_gl     = $32          // 16 bit
 .label px_c0     = $34
 .label px_step   = $35
+.label tx_ptr    = $36          // 16 bit: text pointer
 
 // ---------------------------------------------------------------- BASIC stub
 *=$2001
@@ -64,9 +66,9 @@ start:
     bcs !fail+
     LoadFile(name_amap, name_amap_end - name_amap, ARENA_MAP, 35)
     bcs !fail+
-    LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $200)
+    LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
     bcs !fail+
-    LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $200)
+    LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
     bcc !+
 !fail:
     rts                                // failed: message printed, back to BASIC
@@ -84,10 +86,12 @@ start:
     sta pot_debug
     RunDma(job_blank)                  // the blank NCM glyph that ends every row
     RunDma(job_hud)                    // energy bar glyphs
+    RunDma(job_font)                   // 16x16 font
     jsr wait_vblank
     jsr video_init
     jsr palette_init
     jsr fighters_init
+    jsr game_init
 
 main_loop:
     jsr wait_vblank
@@ -98,12 +102,15 @@ main_loop:
     sta front_slot+1
     jsr read_keys
 #if AUTOTEST
-    jsr autotest_joy                   // test build: scripted joysticks (build.py --define AUTOTEST)
+    jsr autotest_joy                   // test build: scripted joysticks (build.py --define AUTOTEST...)
+    lda at_freeze
+    bne !+
 #else
     jsr read_joysticks
 #endif
+    jsr game_update
     jsr fighters_update
-    jsr buffer_clear
+!:  jsr buffer_clear
     jsr fighters_draw
     jsr hud_draw
     jmp main_loop
@@ -144,43 +151,89 @@ read_joysticks:
 pot_debug: .byte 0
 
 #if AUTOTEST
-// Emulator test without joysticks (frame numbers since the start):
-//   0-49   Tiago walks towards Konrad      60  Tiago: light punch
-//   90     Konrad: heavy kick (knee)       130 Tiago: heavy kick (martelo)
-//   from 137 the game freezes during Tiago's kick, so the emulator screenshot shows it.
+// Emulator test without joysticks: a script of (frame, joystick 1, joystick 2) events; the joystick
+// values hold until the next event. At the frame marked with $ff the game freezes (drawing goes on),
+// so the emulator screenshot shows that moment. Frame 0 = start; the fight begins at frame 140.
 autotest_joy:
-    lda #0
-    sta f_joy
-    sta f_joy+1
+    lda at_freeze
+    bne !done+
+    ldy at_pos
+    lda at_script,y             // next event due?
+    cmp at_frame
+    bne !run+
+    lda at_script+1,y
+    cmp at_frame+1
+    bne !run+
+    lda at_script+2,y
+    cmp #$ff
+    bne !+
+    lda #1
+    sta at_freeze
+    rts
+!:  sta at_j1
+    lda at_script+3,y
+    sta at_j2
+    tya
+    clc
+    adc #4
+    sta at_pos
+!run:
+#if AUTOTEST_KO
+    lda at_frame+1                      // after the walk-in: kick every 16 frames while walking forward
+    bne !k+
     lda at_frame
-    cmp #137
+    cmp #196
     bcc !+
-    lda #1                             // freeze the fighters (drawing goes on)
-    sta hitstop
-    rts
-!:  inc at_frame
-    lda at_frame
-    cmp #50
-    bcs !+
-    lda #JOY_RIGHT
+!k: lda at_frame
+    and #16
+    asl                                 // JOY_B2
+    ora #JOY_RIGHT
+    sta at_j1
+!:
+#endif
+    lda at_j1
     sta f_joy
-    rts
-!:  cmp #60
-    bne !+
-    lda #JOY_FIRE
-    sta f_joy
-    rts
-!:  cmp #90
-    bne !+
-    lda #JOY_LEFT | JOY_B2              // Konrad faces left: left = forward
+    lda at_j2
     sta f_joy+1
+    inc at_frame
+    bne !done+
+    inc at_frame+1
+!done:
     rts
-!:  cmp #130
-    bne !+
-    lda #JOY_RIGHT | JOY_B2
-    sta f_joy
-!:  rts
-at_frame: .byte 0
+at_frame:  .word 0
+at_pos:    .byte 0
+at_j1:     .byte 0
+at_j2:     .byte 0
+at_freeze: .byte 0
+.macro AtEvent(frame, j1, j2) { .word frame
+    .byte j1, j2 }
+at_script:
+#if AUTOTEST_INTRO
+    AtEvent(60, $ff, 0)                                  // "ROUND 1" banner
+#elif AUTOTEST_JUMP
+    AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
+    AtEvent(176, JOY_UP | JOY_RIGHT, 0)                   // jumps forward
+    AtEvent(178, 0, 0)
+    AtEvent(186, JOY_B2, 0)                               // flying kick
+    AtEvent(188, 0, 0)
+    AtEvent(194, $ff, 0)
+#elif AUTOTEST_KO
+    AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in, then keeps kicking
+    AtEvent(620, $ff, 0)
+#elif AUTOTEST_BLOCK
+    AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
+    AtEvent(196, 0, 0)
+    AtEvent(200, 0, JOY_RIGHT)                            // Konrad holds back (blocks)
+    AtEvent(204, JOY_FIRE | JOY_RIGHT, JOY_RIGHT)         // Tiago: heavy punch
+    AtEvent(206, 0, JOY_RIGHT)
+    AtEvent(214, $ff, 0)
+#else
+    AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
+    AtEvent(196, JOY_DOWN | JOY_RIGHT, 0)                 // crouches, forward
+    AtEvent(200, JOY_DOWN | JOY_RIGHT | JOY_B2, 0)        // sweep
+    AtEvent(202, JOY_DOWN, 0)
+    AtEvent(250, $ff, 0)                                  // Konrad on the floor
+#endif
 #endif
 
 wait_vblank:
@@ -234,10 +287,14 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "video.asm"
 #import "pixie.asm"
 #import "fighter.asm"
+#import "game.asm"
 #import "../build/gen/assets.inc"
+#import "../build/gen/texts.inc"
 
 pal_buf: .fill MAP_PAL_BYTES, 0
 hud_gfx: .import binary "../build/gen/HUD.bin"
 job_hud: DmaJob(DMA_CMD_COPY, hud_gfx, HUD_GFX, 17 * 64)
+font_gfx: .import binary "../build/gen/FONT.bin"
+job_font: DmaJob(DMA_CMD_COPY, font_gfx, FONT_GFX, 80 * 64)
 
 .errorif * > $c000, "program must end below $C000"

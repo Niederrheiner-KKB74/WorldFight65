@@ -17,4 +17,5 @@
 .errorif SAVED_PAL0 + 768 > SAVED_ZP || SAVED_ZP + 256 > $5e000, "saved palette / zero page overlap"
 .errorif COLOUR_A < $1000 || COLOUR_A + BUF_BYTES > COLOUR_B || COLOUR_B + BUF_BYTES > $8000, "colour buffers"
 .errorif (SCREEN_A >> 16) != (SCREEN_B >> 16), "both screen buffers must lie in the same bank"
-.errorif ATTIC_F1 + $20000 > ATTIC_F2, "fighter packages overlap in attic RAM"
+.errorif ATTIC_F1 + $40000 > ATTIC_F2, "fighter packages overlap in attic RAM"
+.errorif FONT_GFX < SAVED_ZP + 256 || FONT_GFX + 128 * 64 > $60000, "font glyphs"

@@ -1,6 +1,6 @@
 # WorldFight65 – Technical Design
 
-Status: Stage 2. This document is the plan. Everything below that has not been built and tested on hardware is
+Status: Stage 3. This document is the plan. Everything below that has not been built and tested on hardware is
 marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 
 ## 1. Game summary
@@ -13,6 +13,14 @@ marked **(planned)** or **(to verify)**. Decisions are logged in §12.
   light and heavy attacks standing, crouching and in the air, throws (optional, late), two to three special
   moves each, one of them a projectile.
 - Both players may choose the same fighter (mirror match); the second one then uses an alternative palette.
+- Stage 3 controls: up = jump (up-forward / up-back: jump in that direction), down = crouch, holding back =
+  block. Standing: button 1 punch, button 2 kick, with forward heavy. Crouching: button 1 crouching punch,
+  button 2 low kick, down-forward + button 2 sweep. In the air: one jump punch or jump kick per jump.
+- Attack heights: mid (blockable standing or crouching), low (crouching kicks, sweep: must be blocked
+  crouching; Konrad's stomp kick is low as well), overhead (jump attacks: must be blocked standing).
+  Blocked attacks do no damage, cause half the hitstun and full pushback.
+- Knockdown: sweeps and every hit on a fighter in the air knock down; the fighter lies for 1 s, gets up
+  (0.4 s) and is invulnerable meanwhile. A KO knocks down for good.
 
 ## 2. Display (planned)
 - H320/V200 PAL, 50 Hz, CPU at 40.5 MHz, settings inherited from ShooterMega65 (`CHRXSCL = 120`, RRB double
@@ -67,9 +75,10 @@ attic RAM DMA time)**
 - At fighter selection the two chosen packages are loaded from disk into two attic-RAM slots
   (loader from ShooterMega65). A mirror match loads one package and uses its second palette.
 - **Size budget per package: 64 KB on disk** (frames compressed), checked by the build. Stage 2
-  measurement: 26 uncompressed frames are already 81 KB (Tiago) and 91 KB (Konrad); a package may take
-  up to 128 KB of attic RAM, and the files must be **compressed by Stage 6** (empty glyphs and repeated
-  glyphs are the obvious savings) to reach the disk budget. Estimate for the
+  measurement: 26 uncompressed frames are already 81 KB (Tiago) and 91 KB (Konrad); Stage 3 (55 frames):
+  162 KB and 173 KB. A package may take up to 256 KB of attic RAM (8 MB are available), but on the disk the
+  files must be **compressed by Stage 6**. Plan: a glyph dictionary per fighter (every unique glyph stored
+  once, frames as lists of glyph numbers, blank glyphs as 0) expanded by DMA when a frame is uploaded. Estimate for the
   D81 (about 790 KB): program ~40 KB, music and samples ~60 KB, arenas ~40–60 KB each (compressed),
   fighters 64 KB each. Seven fighters and their arenas do not fit on one D81; the plan is therefore:
   disk 1 = game with Tiago, Konrad and their arenas; further fighters on disk 1 as long as space
@@ -111,10 +120,15 @@ attic RAM DMA time)**
   below `$80` as pressed; key P shows port 2's reading in the border colour for diagnosis.
   **(confirmed on hardware with the owner's 8BitDo pads, Stage 2)**
 
-## 6. HUD and round flow (planned)
-- Energy bars for both players, a two-digit timer, round markers, player names.
-- Round flow: "ROUND 1" / "FIGHT!" banner, play, KO or time over, slow-down on KO, win pose, next round;
-  after two won rounds the winner screen.
+## 6. HUD and round flow (Stage 3)
+- Energy bars for both players (row 1), the round timer between them, the names below the bars, a star
+  for every won round next to the timer; all text in a 16×16 font (two NCM glyphs per character, drawn
+  by Claude in `tools/make_assets.py`).
+- Round flow (`src/game.asm`): "ROUND n" (1.8 s), "FIGHT!" (1 s), fight with a 99-second timer
+  (50 frames per second); KO ("K.O.") or time up ("TIME", the fighter with more energy wins, equal =
+  "DRAW"); the winner strikes his win pose; after 4.4 s the next round. Whoever wins two rounds wins the
+  match ("<NAME> WINS", 6 s), then a new match starts. After a draw in round 3 round 3 is repeated.
+  (Planned later: slow motion on KO, a separate winner screen.)
 
 ## 7. Sound (planned)
 - Music and sound engine from ShooterMega65 (`sound.asm`, `build_music.py`): music on two SIDs, effects on
@@ -140,7 +154,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 0 | repository, rules, design, build pipeline, D81 test program |
 | 1 | video set-up, the Rio arena (FCM), Tiago (placeholder art) standing and walking with joystick 2, frame streaming from attic RAM, horizontal flip test, exit to BASIC |
 | 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, hitstop, pushback, push boxes, energy bars, KO and next round |
-| 3 | jumping, crouching, blocking, hitstun, knockdown; rounds, timer, KO, win poses |
+| 3 | jumping, crouching, blocking, attack heights, knockdown and getting up; rounds, timer, KO, win poses, font, names |
 | 4 | first real artwork for both fighters and the first arena |
 | 5 | special moves and projectiles, input buffer; sound effects |
 | 6 | title, fighter selection with package loading, versus screen, music, winner screen |
@@ -170,6 +184,9 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Stage 2 move set:** button 1 = light punch, forward + button 1 = heavy punch, button 2 = light kick,
   forward + button 2 = heavy kick. Tiago: open-hand jab, rear-hand strike, ponteira, martelo.
   Konrad: jab, forearm smash, stomp kick, knee strike. Health 128 (= bar width in pixels).
+- **Stage 3:** vertical trimming of frames (only glyph rows with pixels are stored); fighter packages
+  256 KB in attic RAM; 19 animations and 9 moves per fighter (tables indexed fighter * 32 + animation and
+  fighter * 16 + move).
 - **Fighter tables are still built into the program** in Stage 2 (both fighters are known at build time);
   moving the headers into the packages follows with the fighter selection in Stage 6.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different

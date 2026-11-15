@@ -40,9 +40,11 @@ COSTUME = fa.Costume(
     thigh_w=13, shin_w=11, foot_w=7, upper_w=9, fore_w=8, hand_r=4, neck_w=8, head_r=7,
 )
 BODY = dict(thigh=22, shin=21, upper=13, fore=13, torso=27, shoulder=8, hips=5)
-STATS = dict(health=128, walk_fwd=1, walk_back=1, hurt_w=15, hurt_top=-90)
-# damage, hitstun (frames), pushback (pixels, 2 per frame)
-MOVES = dict(lp=(7, 12, 6), hp=(16, 20, 14), lk=(9, 14, 8), hk=(18, 22, 12))
+STATS = dict(health=128, walk_fwd=1, walk_back=1, hurt_w=15, hurt_top=-90, crouch_top=-60)
+# damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
+MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk=(18, 22, 12, 0, 0),
+             c_lp=(6, 11, 6, 0, 0), c_lk=(8, 13, 8, 1, 0), sweep=(14, 20, 6, 1, 1),
+             j_p=(12, 16, 8, 2, 0), j_k=(15, 18, 10, 2, 0))
 
 
 def stance(bob=0.0, **kw):
@@ -103,8 +105,97 @@ def hit():
             frame(stance(lean=-4, hip=(-2, -41), head=(-3, 2), hand_f=(10, -56), hand_b=(-2, -54)), 4)]
 
 
+CROUCH = dict(hip=(0, -28), lean=22, hand_f=(26, -46), hand_b=(16, -40))
+
+
+def crouch():
+    return [frame(stance(**CROUCH), 8)]
+
+
+def c_lp():
+    return [frame(stance(**CROUCH), 3),
+            frame(stance(**{**CROUCH, 'lean': 26, 'hand_f': (38, -44)}), 4, 'hand_f'),
+            frame(stance(**{**CROUCH, 'hand_f': (30, -44)}), 6)]
+
+
+def c_lk():
+    c = {**CROUCH, 'lean': 12}
+    return [frame(stance(**c, ankle_f=(20, -10), toe_f=(25, -9)), 4),
+            frame(stance(**c, ankle_f=(38, -6), toe_f=(44, -5)), 4, 'toe_f'),
+            frame(stance(**c, ankle_f=(24, -5), toe_f=(30, -4)), 6)]
+
+
+def sweep():
+    # low leg sweep
+    c = dict(hip=(-2, -22), lean=34, hand_f=(22, -14), hand_b=(10, -10), ankle_b=(-12, -3))
+    return [frame(stance(**c, ankle_f=(16, -4), toe_f=(22, -3)), 5),
+            frame(stance(**c, ankle_f=(42, -4), toe_f=(48, -3)), 6, 'ankle_f'),
+            frame(stance(**c, ankle_f=(30, -4), toe_f=(36, -3)), 9),
+            frame(stance(**CROUCH), 6)]
+
+
+def block():
+    return [frame(stance(lean=8, hand_f=(18, -82), hand_b=(16, -72)), 4)]
+
+
+def c_block():
+    return [frame(stance(**{**CROUCH, 'lean': 12, 'hand_f': (20, -62), 'hand_b': (18, -54)}), 4)]
+
+
+TUCK = dict(hip=(0, -46), lean=12, ankle_f=(12, -24), ankle_b=(-6, -22), hand_f=(22, -66), hand_b=(14, -58))
+
+
+def jump():
+    return [frame(stance(hip=(0, -44), ankle_f=(14, -10), ankle_b=(-10, -8)), 6),
+            frame(stance(**TUCK), 14),
+            frame(stance(hip=(0, -45), ankle_f=(14, -8), ankle_b=(-8, -6)), 30)]
+
+
+def j_p():
+    # double axe-handle blow from above
+    return [frame(stance(**{**TUCK, 'hand_f': (12, -86), 'hand_b': (8, -84)}), 4),
+            frame(stance(**{**TUCK, 'lean': 24, 'hand_f': (34, -56), 'hand_b': (30, -58)}), 10, 'hand_f'),
+            frame(stance(**TUCK), 30)]
+
+
+def j_k():
+    # flying knee
+    return [frame(stance(**TUCK), 3),
+            frame(stance(hip=(4, -48), lean=4, ankle_f=(14, -36), toe_f=(18, -32), ankle_b=(-8, -22),
+                         hand_f=(26, -74), hand_b=(20, -72)), 12, 'knee_f'),
+            frame(stance(**TUCK), 30)]
+
+
+LYING = dict(hip=(14, -8), lean=-86, ankle_f=(38, -4), ankle_b=(32, -3), toe_f=(40, -10), toe_b=(34, -9),
+             hand_f=(4, -5), hand_b=(-2, -3), head=(0, 4))
+
+
+def fall():
+    return [frame(stance(lean=-24, hip=(-2, -40), ankle_f=(12, -10), hand_f=(14, -70), hand_b=(-6, -66)), 6),
+            frame(stance(lean=-62, hip=(4, -22), ankle_f=(26, -14), ankle_b=(20, -8), hand_f=(0, -36),
+                         hand_b=(-10, -30)), 8),
+            frame(stance(**LYING), 8)]
+
+
+def getup():
+    return [frame(stance(hip=(6, -14), lean=-20, ankle_f=(26, -3), ankle_b=(18, -3), hand_f=(-6, -6),
+                         hand_b=(-10, -4)), 10),
+            frame(stance(hip=(0, -30), lean=20, ankle_f=(16, -3), ankle_b=(-10, -3), hand_f=(20, -44),
+                         hand_b=(12, -34)), 10)]
+
+
+def win():
+    # flexing both arms
+    return [frame(stance(lean=4, hip=(0, -44), hand_f=(18, -92), hand_b=(-12, -90), ankle_f=(12, -3),
+                         ankle_b=(-12, -3)), 14),
+            frame(stance(lean=4, hip=(0, -43), hand_f=(16, -96), hand_b=(-10, -94), ankle_f=(12, -3),
+                         ankle_b=(-12, -3)), 14)]
+
+
 def anims():
-    return dict(idle=idle(), walk=walk(), lp=lp(), hp=hp(), lk=lk(), hk=hk(), hit=hit())
+    return dict(idle=idle(), walk=walk(), lp=lp(), hp=hp(), lk=lk(), hk=hk(), hit=hit(),
+                crouch=crouch(), c_lp=c_lp(), c_lk=c_lk(), sweep=sweep(), block=block(), c_block=c_block(),
+                jump=jump(), j_p=j_p(), j_k=j_k(), fall=fall(), getup=getup(), win=win())
 
 
 if __name__ == '__main__':
