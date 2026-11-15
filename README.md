@@ -3,7 +3,9 @@
 A one-on-one fighting game for the MEGA65 in the style of the classic arcade versus fighters, written in
 45GS02 assembly (KickAssembler 65CE02 5.25).
 
-**Status:** Stage 0 (toolchain and disk test). Nothing playable yet.
+**Status:** Stage 1 – the Rio arena and Tiago walking (not playable yet).
+
+![Stage 1 in XEMU](docs/img/stage1_xemu.png)
 
 ## The plan
 - A "world championship": fighters from different countries, each with its own moves, special moves and
@@ -16,7 +18,7 @@ A one-on-one fighting game for the MEGA65 in the style of the classic arcade ver
 See [docs/design.md](docs/design.md) for the technical design and the roadmap.
 
 ## Build
-Requirements: Python 3 (Pillow and NumPy from Stage 1 on), Java, and `KickAss65CE02-5.25.jar` (not part of
+Requirements: Python 3 with Pillow and NumPy, Java, and `KickAss65CE02-5.25.jar` (not part of
 the repository; put it into `tools/bin/` or pass `--kickass`).
 ```
 python3 tools/build.py --kickass /path/to/KickAss65CE02-5.25.jar
@@ -33,6 +35,7 @@ checklist in `docs/stageN.md`; confirmed stages are tagged `stageN-stable`.
 | Stage | Content |
 |---|---|
 | 0 | repository, working rules, design, build pipeline, D81 test program |
+| 1 | Rio arena, Tiago standing and walking, frame streaming from attic RAM, horizontal flip |
 
 ## Documentation
 - [Technical design and roadmap](docs/design.md)

@@ -1,6 +1,6 @@
 # WorldFight65 – Technical Design
 
-Status: Stage 0. This document is the plan. Everything below that has not been built and tested on hardware is
+Status: Stage 1. This document is the plan. Everything below that has not been built and tested on hardware is
 marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 
 ## 1. Game summary
@@ -130,8 +130,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | Stage | Content |
 |---|---|
 | 0 | repository, rules, design, build pipeline, D81 test program |
-| 1 | video set-up, one placeholder arena (FCM), one fighter (placeholder art) standing and walking with joystick 2, horizontal flip test, hit-box debug overlay, exit to BASIC |
-| 2 | both fighters, both joysticks, light/heavy attacks, hits, push boxes, energy bars |
+| 1 | video set-up, the Rio arena (FCM), Tiago (placeholder art) standing and walking with joystick 2, frame streaming from attic RAM, horizontal flip test, exit to BASIC |
+| 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, push boxes, hit-box debug overlay, energy bars |
 | 3 | jumping, crouching, blocking, hitstun, knockdown; rounds, timer, KO, win poses |
 | 4 | first real artwork for both fighters and the first arena |
 | 5 | special moves and projectiles, input buffer; sound effects |
@@ -155,9 +155,12 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Horizontal flip instead of mirrored frames** (Stage 0 plan, to verify).
 - **Frames in attic RAM, streamed by DMA** (Stage 0 plan).
 - **Two-button control scheme** (owner, 2026-11-15), see §5.
+- **First arena: the Rio beach promenade** (owner, 2026-11-15).
+- **Skeleton renderer for the fighters** (Stage 1): poses are joint positions, `tools/fighter_art.py`
+  draws limbs, outline and shading; every fighter is a costume plus poses.
+- **Layout constants in one place** (Stage 1): `tools/make_assets.py` writes `build/gen/layout.inc`.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 
 ## 13. Open questions for the owner
-1. The first arena (proposal: Tiago's home arena, a beach promenade in Rio, or Konrad's, a wrestling hall).
-2. One D81 with an add-on disk, or a different medium, once the roster no longer fits (§3.2).
+1. One D81 with an add-on disk, or a different medium, once the roster no longer fits (§3.2).

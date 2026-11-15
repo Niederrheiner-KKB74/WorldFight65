@@ -25,6 +25,7 @@ import d81            # noqa: E402
 KICKASS_SHA256 = '5d8544280dae2d018c79151d8c7b877eca1fb994096e54ca380b26d0cd79f847'
 PRG_NAME = 'WORLDFIGHT'
 DISK_NAME = 'WORLDFIGHT65.D81'
+DATA_FILES = ['A-RIO-GFX', 'A-RIO-MAP', 'F-TIAGO']   # SEQ files, loaded by src/main.asm
 
 
 def find_kickass(arg):
@@ -47,6 +48,17 @@ def main():
     digest = hashlib.sha256(jar.read_bytes()).hexdigest()
     if digest != KICKASS_SHA256 and not a.allow_other_kickass:
         sys.exit(f'unexpected KickAssembler build {digest}; pass --allow-other-kickass to continue')
+
+    asset = subprocess.run([sys.executable, str(ROOT / 'tools/make_assets.py')], text=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(asset.stdout.strip())
+    if asset.returncode:
+        sys.exit('asset generation failed')
+    chk = subprocess.run([sys.executable, str(ROOT / 'tools/check_assets.py')], text=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(chk.stdout.strip())
+    if chk.returncode:
+        sys.exit('asset check failed')
 
     prg = out / f'{PRG_NAME}.PRG'
     disk = out / DISK_NAME
@@ -71,7 +83,10 @@ def main():
     if 0x2001 + len(data) - 2 > 0xC000:
         sys.exit('PRG must end below $C000')
 
+    gen = ROOT / 'build/gen'
     files = [(PRG_NAME, data, d81.PRG)]
+    for name in DATA_FILES:
+        files.append((name, (gen / f'{name}.bin').read_bytes(), d81.SEQ))
     image = d81.build_disk(files)
     for fname, payload, _ in files:
         if d81.read_file(image, fname) != payload:
