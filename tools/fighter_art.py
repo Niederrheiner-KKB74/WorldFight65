@@ -231,8 +231,10 @@ def render(pose, c, face='normal'):
 
     def torso(m):
         ch = c.chest
+        # chest at the front; the back is flatter, so a bent-forward body does not get a hump
         pts = [tpt(-0.08, ch * 0.75), tpt(0.12, ch), tpt(0.45, ch * 0.78), tpt(0.8, ch * 0.72), tpt(1.05, ch * 0.75),
-               tpt(1.05, -ch * 0.75), tpt(0.7, -ch * 0.72), tpt(0.3, -ch * 0.9), tpt(0.0, -ch), tpt(-0.1, -ch * 0.7)]
+               tpt(1.05, -ch * 0.72), tpt(0.7, -ch * 0.66), tpt(0.3, -ch * 0.72), tpt(0.0, -ch * 0.7),
+               tpt(-0.1, -ch * 0.5)]
         poly(m, pts)
 
     def neck(m):

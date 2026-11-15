@@ -10,7 +10,8 @@ Release files are in `releases/stage4/`. Game mechanics, controls and hit boxes 
   with folds, green-and-yellow cord belt (cordão) with knot and tassels, bare feet. Livelier ginga in the
   idle animation; the rear-hand strike now crosses in front of the body; new win pose (fist raised, other
   hand on the hip).
-- **Konrad:** broad build, black singlet with black-red-gold side-seam stripes on torso and thighs, bare
+- **Konrad:** broad build (after the owner's first look: flatter back and shoulders closer together in
+  profile, so his bent-forward stance no longer looks like a hump or a rucksack; slimmer lower legs), black singlet with black-red-gold side-seam stripes on torso and thighs, bare
   shoulders, red wrestling shoes with laces and sole, blond crew cut and beard; new win pose (double biceps).
 - **Facial expressions:** eyes shut and mouth open when hit or falling, open mouth in the win pose.
 - **Sparks:** yellow-white star burst at the point where a hit lands, blue shield arc on a block
