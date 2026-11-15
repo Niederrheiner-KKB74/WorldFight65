@@ -38,10 +38,9 @@ for the emulator test.
 | Assembly, asset checks (`tools/check_assets.py`), D81 read-back | ✔ |
 | XEMU (owner's ROM, headless): normal build | ✔ arena complete, Tiago stands on the pavement at x 96, facing right |
 | XEMU: `AUTOTEST` build | ✔ walks right to the edge, turns round, shown mirrored |
-| **Real MEGA65** | **open – please test** |
+| **Real MEGA65** | **✔ confirmed by the owner (2026-11-15): everything works as intended, no graphics glitches, including the horizontal flip** |
 
-XEMU is not authoritative for RRB rendering and glyph flipping (CLAUDE.md rule 2), so the hardware test
-decides.
+Tagged `stage1-stable`.
 
 ## Hardware test checklist
 1. `LOAD "WORLDFIGHT",8` and `RUN`: after a few seconds of loading the arena appears without stray characters,

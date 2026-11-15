@@ -43,7 +43,7 @@ marked **(planned)** or **(to verify)**. Decisions are logged in §12.
   with Y offset for sub-row positioning, blank guard glyphs above and below every column.
 - **Facing:** only right-facing frames are stored. A left-facing fighter is drawn with the column order
   reversed and the VIC-IV horizontal flip bit set in the glyph colour byte (colour RAM byte 0, bit 6:
-  `$48` instead of `$08`). This halves the frame memory. **(to verify on hardware in Stage 1)**
+  `$48` instead of `$08`). This halves the frame memory. **(confirmed on hardware, Stage 1)**
 - Each frame stores an x anchor (the fighter's foot point) so that flipping mirrors around the body and
   not around the bounding box.
 
@@ -152,8 +152,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **FCM background, NCM fighters** (Stage 0 plan): a static picture does not need to be built from
   reusable tiles, so full-colour characters give the best arenas; fighters stay in the 16-colour format
   whose RRB handling is proven in ShooterMega65.
-- **Horizontal flip instead of mirrored frames** (Stage 0 plan, to verify).
-- **Frames in attic RAM, streamed by DMA** (Stage 0 plan).
+- **Horizontal flip instead of mirrored frames** (confirmed on hardware in Stage 1).
+- **Frames in attic RAM, streamed by DMA** (confirmed on hardware in Stage 1).
 - **Two-button control scheme** (owner, 2026-11-15), see §5.
 - **First arena: the Rio beach promenade** (owner, 2026-11-15).
 - **Skeleton renderer for the fighters** (Stage 1): poses are joint positions, `tools/fighter_art.py`

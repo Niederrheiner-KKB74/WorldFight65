@@ -15,6 +15,8 @@ These rules are taken from ShooterMega65 (Stage 19) and adapted. They apply to e
    - Audio DMA: write `$D72A/$D72B` before `$D72C`; test `$D711` bit 7 only.
    - KERNAL I/O: `SETBNK ($FF6B)` before `SETNAM`.
    - `$20000–$3FFFF` is ROM, never a data target.
+   Confirmed in WorldFight65 (Stage 1): FCM background chars (> $FF, colour `$00,$00`) under NCM RRB
+   fragments; horizontal glyph flip with colour byte 0 `$48` and reversed column order; frame DMA from attic RAM.
 3. **Memory.** Check `docs/memory_map.md` before using any address and update it in the same change.
    Guard regions with assembler checks (`.errorif` / `.if … .error`).
 4. **Stages.** Every test stage ships PRG, D81 and reproducible build instructions in `releases/stageN/`
