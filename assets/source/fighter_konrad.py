@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Konrad (Germany, wrestling) - drawn by Claude for WorldFight65 with tools/fighter_art.py.
 
-Look: heavy build, black wrestling singlet with a red stripe, red wrestling shoes, short blond hair and a
-blond beard. Slower than Tiago, but his attacks hit harder; low wrestling stance with open hands.
+Look: heavy build, black wrestling singlet with black-red-gold side stripes, red wrestling shoes, a military
+buzz cut (blond, sides shaved) and a blond beard. Slower than Tiago, but his attacks hit harder; low wrestling stance with open hands.
 Same interface as fighter_tiago.py.
 """
 import math
@@ -36,7 +36,7 @@ PALETTE = [
 SKIN, SINGLET, SHOES = (4, 3, 5, 2), (9, 8, 10, 1), (11, 15, 13, 15)
 COSTUME = fa.Costume(
     skin=SKIN, torso=SINGLET, pelvis=SINGLET, thigh=SINGLET, shin=SKIN, foot=SHOES, rim=13,
-    hair=(6, 7, 5), hair_style='crew', beard=True, eye=14, pupil=1, mouth=15,
+    hair=(6, 7, 5), hair_style='buzz', beard=True, eye=14, pupil=1, mouth=15,
     neckline=True, stripes=(11, 12), short_thigh=True, shoes=True,
     neck_w=8, w_upper=(9, 7, 2.5), w_fore=(8, 6, 1.5), w_thigh=(13, 10, 1.5), w_shin=(8, 6, 1.5), hand_r=4,
     foot_w=6, head_r=7, chest=10,

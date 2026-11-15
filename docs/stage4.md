@@ -5,14 +5,17 @@ Release files are in `releases/stage4/`. Game mechanics, controls and hit boxes 
 ## What it does
 - **New fighter renderer** (`tools/fighter_art.py`): tapered limbs with muscle bulges instead of capsules,
   shaped torso, faces in profile (nose, ear, eye, brow, mouth), light from the front and the top, a warm rim
-  of sunset light on the skin, dark outline.
+  of sunset light on the skin, dark outline. After the owner's review: parts of the same material are merged
+  and shaded as one area (an arm, a trouser leg with the pelvis, the singlet with torso, pelvis and thighs),
+  and no edges are drawn where a limb grows out of the body, so arms and legs no longer look stuck on.
 - **Tiago:** bare, muscular torso with chest and belly lines, curly black hair, wide white capoeira trousers
   with folds, green-and-yellow cord belt (cordão) with knot and tassels, bare feet. Livelier ginga in the
   idle animation; the rear-hand strike now crosses in front of the body; new win pose (fist raised, other
   hand on the hip).
 - **Konrad:** broad build (after the owner's first look: flatter back and shoulders closer together in
   profile, so his bent-forward stance no longer looks like a hump or a rucksack; slimmer lower legs), black singlet with black-red-gold side-seam stripes on torso and thighs, bare
-  shoulders, red wrestling shoes with laces and sole, blond crew cut and beard; new win pose (double biceps).
+  shoulders, red wrestling shoes with laces and sole, a military buzz cut (very short on top, sides shaved with
+  stubble) and a blond beard; new win pose (double biceps).
 - **Facial expressions:** eyes shut and mouth open when hit or falling, open mouth in the win pose.
 - **Sparks:** yellow-white star burst at the point where a hit lands, blue shield arc on a block
   (palette bank 11); they keep playing while the fighters freeze in the hitstop.
