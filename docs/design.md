@@ -142,7 +142,8 @@ attic RAM DMA time)**
 - **Fighter renderer (Stage 4, `tools/fighter_art.py`):** a pose is a set of joint positions; the renderer
   draws tapered limbs with muscle bulges, a torso with chest and belly lines (bare torso) or a singlet with
   side-seam stripes, wide trousers with folds, a cord belt with knot and tassels, shoes with sole and laces,
-  a head in profile with nose, ear, eye, brow and mouth, curly hair or a military buzz cut with a beard, and three
+  a head in profile (elongated cranium, forehead, brow, nose, lips, chin, jaw, hairline from the forehead to
+  the nape) with ear, eye, brow and mouth, curly hair or a military buzz cut with a beard, and three
   facial expressions (normal, hit: eyes shut and mouth open, win). Parts of the same material are merged
   and shaded as one area, and the edges are left out around the joints where limbs grow out of the body.
   The head is drawn upright and turned with the neck when it is tilted by more than 25° (falling, lying). Light falls from the front and the top,

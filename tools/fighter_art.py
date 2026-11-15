@@ -181,38 +181,54 @@ def draw_head(canvas, solid, c, head_pt, neck_pt, face):
     hx, hy = head_pt
     r = c.head_r
 
+    def L(ax, ay):
+        """point in head units (r) relative to the head centre, facing +x"""
+        return (hx + ax * r, hy + ay * r)
+
     def head(m):
-        disc(m, (hx, hy), r)
-        poly(m, [(hx - 1, hy + 2), (hx + r + 0.5, hy + 1), (hx + r, hy + r * 0.6), (hx + r - 2, hy + r + 1),
-                 (hx, hy + r + 1)])
-        poly(m, [(hx + r, hy - 0.5), (hx + r + 2, hy + 2), (hx + r, hy + 2.5)])        # nose
+        # cranium: longer than high, reaching back
+        x0, y0 = _pt(L(-1.05, -1.02))
+        x1, y1 = _pt(L(0.85, 0.62))
+        ImageDraw.Draw(m).ellipse((x0, y0, x1, y1), fill=255)
+        # face in profile: forehead, brow, nose, lips, chin, jaw
+        poly(m, [L(0.45, -0.85), L(0.86, -0.42), L(0.92, -0.12), L(0.84, 0.02), L(1.22, 0.4), L(0.94, 0.52),
+                 L(1.0, 0.64), L(0.92, 0.74), L(1.0, 0.88), L(0.96, 1.04), L(0.72, 1.16), L(0.2, 1.08),
+                 L(-0.28, 0.74), L(-0.45, 0.2), L(0.0, -0.6)])
     hd = group([head], c.skin, roots=[(neck_pt, c.neck_w * 0.8)])
-    paint(lambda m: disc(m, (hx - 1, hy + 1), 1.2), c.skin[1], hd)                    # ear
-    # hair
+    paint(lambda m: poly(m, [L(-0.25, 0.05), L(-0.02, 0.1), L(-0.02, 0.45), L(-0.22, 0.42)]), c.skin[1], hd)  # ear
+    paint(lambda m: line(m, L(-0.14, 0.18), L(-0.12, 0.32)), c.skin[3], hd)
+    paint(lambda m: line(m, L(0.55, 0.32), L(0.72, 0.42)), c.skin[1], hd)             # cheek
+    # hairline: from the forehead down to the nape; hair lies on the upper-back side of this line
+    (ax_, ay_), (bx_, by_) = _pt(L(0.62, -0.72)), _pt(L(-0.42, 0.58))
+    upper = ((xx - ax_) * (by_ - ay_) - (yy - ay_) * (bx_ - ax_)) < 0
     if c.hair_style == 'curly':
-        hm = paint(lambda m: ImageDraw.Draw(m).pieslice(
-            _pt((hx - r - 1, hy - r - 2)) + _pt((hx + r + 1, hy + r)), 165, 355, fill=255), c.hair[0])
-        hm |= paint(lambda m: disc(m, (hx - r * 0.5, hy - 1), r * 0.75), c.hair[0])
-        canvas[hm & (((xx * 3 + yy * 5) % 7) == 0)] = c.hair[2]
-        canvas[hm & (((xx * 3 + yy * 5) % 7) == 3)] = c.hair[1]
-        solid |= hm
+        # thick curls: the hair region of the head, grown outwards by a pixel
+        hreg = hd & upper
+        pad = np.pad(hreg, 1)
+        grown = hreg | pad[:-2, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]
+        grown &= upper | hreg
+        canvas[grown] = c.hair[0]
+        canvas[grown & (((xx * 3 + yy * 5) % 7) == 0)] = c.hair[2]
+        canvas[grown & (((xx * 3 + yy * 5) % 7) == 3)] = c.hair[1]
+        solid |= grown
     elif c.hair_style == 'buzz':
         # military cut: a very short layer on top, the back and the sides shaved (stubble on the skin)
-        cx, cy = _pt((hx, hy))
-        d2 = (xx - cx) ** 2 + (yy - cy) ** 2
-        top = hd & (d2 >= (r - 1.6) ** 2) & (yy < cy - r * 0.45) & (xx < cx + r - 1)
+        pad = np.pad(hd, 2)
+        edge = hd & ~(pad[:-4, 2:-2] & pad[1:-3, 2:-2])            # the top 2 px of the head
+        top = hd & upper & edge & (yy < _pt(L(0, -0.3))[1])
         canvas[top] = c.hair[0]
         canvas[top & ~np.roll(hd, 1, axis=0)] = c.hair[2]
-        sides = hd & (yy >= cy - r * 0.45) & (yy < cy + 2) & (xx < cx + 1) & ~top
-        canvas[sides & (((xx * 3 + yy * 5) % 7) == 0)] = c.skin[1]       # stubble
-        canvas[sides & (((xx * 3 + yy * 5) % 7) == 4)] = c.hair[1]
+        sides = hd & upper & ~top
+        canvas[sides & (((xx * 3 + yy * 5) % 9) == 0)] = c.hair[1]   # stubble
     if c.beard:
-        bm = paint(lambda m: poly(m, [(hx, hy + 3.5), (hx + r - 3, hy + 4), (hx + r + 0.5, hy + r * 0.75),
-                                      (hx + r - 2, hy + r + 2), (hx + 0.5, hy + r + 1.5)]), c.hair[0], hd)
+        (bx0, by0), (bx1, by1) = _pt(L(-0.3, 0.34)), _pt(L(0.8, 0.5))
+        below = ((xx - bx0) * (by1 - by0) - (yy - by0) * (bx1 - bx0)) < 0
+        bm = hd & below & (xx >= _pt(L(-0.35, 0))[0])
+        canvas[bm] = c.hair[0]
         canvas[bm & ~np.roll(bm, -1, axis=0)] = c.hair[1]
-        canvas[(bm & np.roll(bm, 1, axis=1)) & ~np.roll(bm, -1, axis=1)] = c.hair[1]
+        canvas[bm & (((xx * 3 + yy * 5) % 7) == 2)] = c.hair[1]
     # eye, brow, mouth
-    ex, ey = _pt((hx + r - 3, hy))
+    ex, ey = _pt(L(0.6, -0.04))
     ex, ey = int(round(ex)), int(round(ey))
     dark_brow = c.hair[1] if c.hair_style != 'curly' else c.hair[0]
     if face == 'hit':
@@ -220,14 +236,15 @@ def draw_head(canvas, solid, c, head_pt, neck_pt, face):
     else:
         canvas[ey, ex] = c.eye
         canvas[ey, ex + 1] = c.pupil
-    canvas[ey - 2, ex - 1:ex + 2] = dark_brow
-    mx, my = _pt((hx + r - 2, hy + r * 0.6 + 1))
+    bx, by = _pt(L(0.62, -0.32))
+    bx, by = int(round(bx)), int(round(by))
+    canvas[by, bx - 1:bx + 2] = dark_brow
+    mx, my = _pt(L(0.82, 0.66))
     mx, my = int(round(mx)), int(round(my))
     if face in ('hit', 'win'):
         canvas[my:my + 2, mx:mx + 2] = c.mouth
     else:
         canvas[my, mx:mx + 2] = c.mouth
-
 
 def render(pose, c, face='normal'):
     """Return (FRAME_H, FRAME_W) uint8 array of palette indices. face: 'normal', 'hit' or 'win'.
