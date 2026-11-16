@@ -35,7 +35,7 @@ These rules are taken from ShooterMega65 (Stage 19) and adapted. They apply to e
    a comment.
 8. **Artwork.** Claude draws arenas and screens with scripts in `assets/source/`. Fighters come from sprite
    sheets the owner creates with an image generator (since Stage 4b, owner decision 2026-11-16); Claude checks
-   them against `docs/art_import.md` and imports them with `tools/import_fighter.py`. Animations without a
+   them against `docs/art_import.md` and imports them with `tools/import_fighter.py` (prompts: `docs/art_prompts.md`). Animations without a
    sheet are drawn by the skeleton renderer. Generated images are checked by `tools/check_*.py` scripts.
 9. **Scope.** Two fighters on screen, chosen from loadable fighter packages (Tiago and Konrad first). The engine
    has no fighter-specific code; fighters are data (`docs/design.md` §3.2). Two-player mode comes first; the CPU
