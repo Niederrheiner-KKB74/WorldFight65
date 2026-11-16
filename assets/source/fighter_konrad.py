@@ -40,9 +40,14 @@ COSTUME = fa.Costume(
     neckline=True, stripes=(11, 12), short_thigh=True, shoes=True,
     neck_w=8, w_upper=(9, 7, 2.5), w_fore=(8, 6, 1.5), w_thigh=(12, 9, 1), w_shin=(8, 6, 1.5), hand_r=4,
     foot_w=6, head_r=7, chest=10,
+    # front view (win pose)
+    fr_head=(6.6, 7.6), fr_neck=11, fr_traps=6, fr_upper=(11, 9, 4), fr_fore=(10, 8, 2), fr_hand=4.5,
+    fr_thigh=(17, 13), fr_shin=(13, 9), fr_waist=12,
 )
 BODY = dict(thigh=22, shin=21, upper=13, fore=13, torso=27, shoulder=4, hips=2)
-STATS = dict(health=128, walk_fwd=1, walk_back=1, hurt_w=15, hurt_top=-90, crouch_top=-60)
+# walk speeds in half pixels per video frame (Stage 4b); walk ticks = video frames per walk frame
+# at forward speed, so that the feet of the sprite sheet stay on the ground
+STATS = dict(health=128, walk_fwd=3, walk_back=2, hurt_w=15, hurt_top=-90, crouch_top=-60)
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk=(18, 22, 12, 0, 0),
              c_lp=(6, 11, 6, 0, 0), c_lk=(8, 13, 8, 1, 0), sweep=(14, 20, 6, 1, 1),
@@ -67,7 +72,7 @@ def walk():
         sw = math.cos(ph)
         af = (3 + 13 * sw, -3 - 4 * max(0.0, math.sin(ph)))
         ab = (-2 - 13 * sw, -3 - 4 * max(0.0, -math.sin(ph)))
-        out.append(frame(stance(bob=1.5 - 1.5 * abs(math.sin(ph)), ankle_f=af, ankle_b=ab), 5))
+        out.append(frame(stance(bob=1.5 - 1.5 * abs(math.sin(ph)), ankle_f=af, ankle_b=ab), 8))
     return out
 
 
@@ -191,11 +196,13 @@ def getup():
 def win():
     # seen from the front: double biceps
     def pose(flex, bob):
-        return fa.front(sho_l=(-14, -71 + bob), sho_r=(14, -71 + bob), neck=(0, -77 + bob), head=(0, -86 + bob),
-                        elb_l=(-27, -71 + bob), hand_l=(-22 + flex, -86 + bob - flex),
-                        elb_r=(27, -71 + bob), hand_r=(22 - flex, -86 + bob - flex),
-                        hip_l=(-7, -44 + bob), hip_r=(7, -44 + bob), knee_l=(-11, -23), knee_r=(11, -23),
-                        ankle_l=(-14, -3), ankle_r=(14, -3))
+        # proportions after the owner's reference: shoulders with deltoids about half the body height wide,
+        # elbows at head height, fists above the head, strong trapezius
+        return fa.front(sho_l=(-17, -76 + bob), sho_r=(17, -76 + bob), neck=(0, -83 + bob), head=(0, -90 + bob),
+                        elb_l=(-30, -81 + bob), hand_l=(-25 + flex, -97 + bob - flex),
+                        elb_r=(30, -81 + bob), hand_r=(25 - flex, -97 + bob - flex),
+                        hip_l=(-7, -47 + bob), hip_r=(7, -47 + bob), knee_l=(-11, -25), knee_r=(11, -25),
+                        ankle_l=(-13, -3), ankle_r=(13, -3))
     return [frame(pose(0, 0), 16, face='win'), frame(pose(1, -1), 16, face='win')]
 
 

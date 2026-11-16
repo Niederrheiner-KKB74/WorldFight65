@@ -33,8 +33,10 @@ These rules are taken from ShooterMega65 (Stage 19) and adapted. They apply to e
    save/restore and exit, audio DMA, sound engine, loader, D81/high-score code) and, where they came from,
    `Niederrheiner-KKB74/Vyper_for_Mega65`, into clean modules here. Note the source repository and stage in
    a comment.
-8. **Artwork.** Claude draws all fighters, arenas and screens with scripts in `assets/source/`; the generated
-   images are checked by `tools/check_*.py` scripts. The owner does not supply artwork.
+8. **Artwork.** Claude draws arenas and screens with scripts in `assets/source/`. Fighters come from sprite
+   sheets the owner creates with an image generator (since Stage 4b, owner decision 2026-11-16); Claude checks
+   them against `docs/art_import.md` and imports them with `tools/import_fighter.py`. Animations without a
+   sheet are drawn by the skeleton renderer. Generated images are checked by `tools/check_*.py` scripts.
 9. **Scope.** Two fighters on screen, chosen from loadable fighter packages (Tiago and Konrad first). The engine
    has no fighter-specific code; fighters are data (`docs/design.md` §3.2). Two-player mode comes first; the CPU
    opponent reads the same virtual joystick as a human player and is added later without changing the fighter code.

@@ -136,6 +136,10 @@ attic RAM DMA time)**
 - Hit and block sounds, voice-like shouts for special moves as samples played by audio DMA.
 
 ## 8. Artwork
+- **Since Stage 4b the fighters come from sprite sheets** made by the owner with an image generator and
+  imported during the build (`tools/import_fighter.py`, format and rules in `docs/art_import.md`). Walk
+  animations are driven by the distance walked, walk speeds are in half pixels. The skeleton renderer
+  described below draws the animations that have no sheet yet.
 - Claude draws both fighters, the arenas, the title and the character screens with Python scripts in
   `assets/source/` (as in ShooterMega65), with check scripts for size, palette and frame limits.
 - The fighters are original characters (no likeness of existing games).
@@ -185,7 +189,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   loadable fighter packages** (owner, 2026-11-15); first fighters: Tiago (Brazil, capoeira) and Konrad
   (Germany, wrestling).
 - **Two players first, CPU opponent later** (owner, 2026-11-14), hence the virtual joystick (§5).
-- **Artwork by Claude** (owner, 2026-11-14), drawn with scripts as in ShooterMega65.
+- **Artwork by Claude** (owner, 2026-11-14), drawn with scripts as in ShooterMega65 (fighters: replaced in Stage 4b, see below).
 - **Toolchain and working rules from ShooterMega65** (2026-11-14).
 - **FCM background, NCM fighters** (Stage 0 plan): a static picture does not need to be built from
   reusable tiles, so full-colour characters give the best arenas; fighters stay in the 16-colour format
@@ -205,6 +209,11 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   fighter * 16 + move).
 - **Fighter tables are still built into the program** in Stage 2 (both fighters are known at build time);
   moving the headers into the packages follows with the fighter selection in Stage 6.
+- **Fighter art from an image generator** (owner, 2026-11-16): the owner supplies sprite sheets (256 px
+  cells, magenta background), Claude imports them; replaces "artwork by Claude" for the fighters. Figures in
+  calm poses at most 0.6 x their height wide (about 55 px in the game) to leave room to move.
+- **Walk speed in half pixels, walk animation driven by distance** (Stage 4b): Tiago 2 px, Konrad 1.5 px
+  forward, both 1 px back; the feet of the sheets stay on the ground in both directions.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

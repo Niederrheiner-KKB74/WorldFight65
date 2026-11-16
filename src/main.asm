@@ -20,6 +20,7 @@
 .label scr_ptr   = $10          // 32-bit pointer into the screen buffer
 .label col_ptr   = $14          // 32-bit pointer into colour RAM
 .label tmp       = $18          // 16 bit
+.label tmp2      = $1e          // walk: half pixels this frame (Stage 4b)
 .label backscr   = $1a          // low 16 bits of the back screen buffer
 .label backcol   = $1c          // colour RAM offset of the back buffer
 .label px_x      = $20          // 16 bit signed
@@ -183,6 +184,19 @@ autotest_joy:
     adc #4
     sta at_pos
 !run:
+#if AUTOTEST_KO2
+    lda at_frame+1                      // Konrad: after the walk-in, kick every 16 frames while walking forward
+    bne !k+
+    lda at_frame
+    cmp #196
+    bcc !+
+!k: lda at_frame
+    and #16
+    asl                                 // JOY_B2
+    ora #JOY_LEFT
+    sta at_j2
+!:
+#endif
 #if AUTOTEST_KO
     lda at_frame+1                      // after the walk-in: kick every 16 frames while walking forward
     bne !k+
@@ -222,9 +236,18 @@ at_script:
     AtEvent(186, JOY_B2, 0)                               // flying kick
     AtEvent(188, 0, 0)
     AtEvent(194, $ff, 0)
+#elif AUTOTEST_WALK
+    AtEvent(150, JOY_RIGHT, JOY_LEFT)                     // both walk forward for 40 frames (Stage 4b)
+    AtEvent(190, $ff, 0)
+#elif AUTOTEST_WALKB
+    AtEvent(150, JOY_LEFT, JOY_RIGHT)                     // both walk back for 40 frames
+    AtEvent(190, $ff, 0)
 #elif AUTOTEST_KO
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in, then keeps kicking
     AtEvent(620, $ff, 0)
+#elif AUTOTEST_KO2
+    AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in, then keeps kicking
+    AtEvent(640, $ff, 0)
 #elif AUTOTEST_BLOCK
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
     AtEvent(196, 0, 0)

@@ -42,9 +42,14 @@ COSTUME = fa.Costume(
     belt=11, belt2=12, bare_torso=True, loose=True,
     neck_w=5, w_upper=(6, 5, 1.5), w_fore=(5, 4, 1), w_thigh=(11, 10, 1), w_shin=(10, 11, 0), hand_r=3, foot_w=5,
     head_r=6, chest=8,
+    # front view (win pose), proportions after the owner's reference picture
+    fr_head=(6.3, 7.5), fr_neck=8, fr_upper=(9, 7, 2), fr_fore=(7, 6, 1.5), fr_hand=3.8, fr_thigh=(12, 11),
+    fr_shin=(11, 11), fr_waist=9,
 )
 # health = width of the energy bar in pixels; speeds in pixels per frame; hurt box half width and top
-STATS = dict(health=128, walk_fwd=2, walk_back=1, hurt_w=13, hurt_top=-92, crouch_top=-62)
+# walk speeds in half pixels per video frame (Stage 4b); walk ticks = video frames per walk frame
+# at forward speed, so that the feet of the sprite sheet stay on the ground
+STATS = dict(health=128, walk_fwd=4, walk_back=2, hurt_w=13, hurt_top=-92, crouch_top=-62)
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(6, 12, 6, 0, 0), hp=(14, 18, 12, 0, 0), lk=(8, 14, 8, 0, 0), hk=(16, 20, 14, 0, 0),
              c_lp=(5, 11, 6, 0, 0), c_lk=(7, 13, 8, 1, 0), sweep=(12, 20, 6, 1, 1),
@@ -74,7 +79,7 @@ def walk():
         sw = math.cos(ph)
         af = (1 + 14 * sw, -3 - 6 * max(0.0, math.sin(ph)))
         ab = (1 - 14 * sw, -3 - 6 * max(0.0, -math.sin(ph)))
-        out.append(frame(stance(bob=2 - 2 * abs(math.sin(ph)), guard=math.sin(ph), ankle_f=af, ankle_b=ab), 4))
+        out.append(frame(stance(bob=2 - 2 * abs(math.sin(ph)), guard=math.sin(ph), ankle_f=af, ankle_b=ab), 6))
     return out
 
 
@@ -196,14 +201,15 @@ def getup():
 
 
 def win():
-    # seen from the front: one fist raised high, the other hand on the hip, cheering
+    # seen from the front (proportions after the owner's reference): fist raised above the head, the other
+    # arm hanging relaxed, broad smile
     def pose(lift, bob):
-        return fa.front(sho_l=(-11, -72 + bob), sho_r=(11, -72 + bob), neck=(0, -78 + bob), head=(0, -87 + bob),
-                        elb_l=(-20, -62 + bob), hand_l=(-10, -50 + bob),
-                        elb_r=(19, -82 + bob - lift), hand_r=(15, -94 + bob - lift),
-                        hip_l=(-6, -46 + bob), hip_r=(6, -46 + bob), knee_l=(-10, -24), knee_r=(10, -24),
-                        ankle_l=(-12, -3), ankle_r=(12, -3))
-    return [frame(pose(0, 0), 16, face='win'), frame(pose(2, -1), 16, face='win')]
+        return fa.front(sho_l=(-13, -76 + bob), sho_r=(13, -76 + bob), neck=(0, -84 + bob), head=(0, -91 + bob),
+                        elb_l=(-22, -60 + bob), hand_l=(-22, -46 + bob),
+                        elb_r=(19, -90 + bob - lift), hand_r=(16, -103 + bob - lift),
+                        hip_l=(-5, -48 + bob), hip_r=(5, -48 + bob), knee_l=(-7, -25), knee_r=(7, -25),
+                        ankle_l=(-9, -3), ankle_r=(9, -3))
+    return [frame(pose(0, 0), 16, face='win'), frame(pose(1, -1), 16, face='win')]
 
 
 def anims():

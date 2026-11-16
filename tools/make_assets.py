@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 sys.path.insert(0, str(ROOT / 'assets/source'))
 import fighter_art as fa      # noqa: E402
+import import_fighter as imf  # noqa: E402
 
 # ------------------------------------------------------------------ layout (single source of truth)
 L = dict(
@@ -183,31 +184,53 @@ def fighters(gen, prev):
         an = m.anims()
         base = L[attic] - L['ATTIC_F1']
         blob = bytearray()
+        # skeleton-drawn frames; animations with a sprite sheet in assets/art/<fighter>/ replace them
+        drawn = {a: [fa.render(fr['pose'], m.COSTUME, fr.get('face', 'normal')) for fr in an[a]] for a in ANIMS}
+        art = imf.import_anims(ROOT / 'assets' / 'art' / modname[8:], drawn['idle'][0],
+                               {a: len(an[a]) for a in ANIMS})
+        palette = m.PALETTE
+        if art:
+            pal = np.array(m.PALETTE, np.uint8)
+            mixed, weights = [], []
+            for a in ANIMS:
+                for k, img in enumerate(drawn[a]):
+                    if a in art:
+                        mixed.append(art[a][k])
+                        weights.append(8)
+                    else:
+                        mixed.append((pal[img], img > 0))
+                        weights.append(1)
+            idx, palette = imf.quantise(mixed, weights=weights)
+            it = iter(idx)
+            drawn = {a: [next(it) for _ in drawn[a]] for a in ANIMS}
         rendered = []
         for a in ANIMS:
             rows_first.append(len(tab))
             rows_len.append(len(an[a]))
-            for fr in an[a]:
-                img = fa.render(fr['pose'], m.COSTUME, fr.get('face', 'normal'))
+            for fr, img in zip(an[a], drawn[a]):
                 rendered.append(img)
                 data, w, h, xofs, ytop = frame_block(img)
                 if len(data) > L['SLOT_SIZE']:
                     sys.exit(f'{fname}: frame too large ({len(data)} bytes)')
                 hb = fr['hit'] or (0, 0, 0, 0)
+                # walk frames: duration in half pixels walked (fighter.asm walk_step), not in video frames
+                ticks = fr['ticks'] * m.STATS['walk_fwd'] if a == 'walk' else fr['ticks']
+                if not 0 < ticks < 256:
+                    sys.exit(f'{fname}: {a} frame duration {ticks} out of range')
                 tab.append(dict(ofs=base + len(blob), glyphs=len(data) // 64, w=w, h=h, xofs=xofs, ytop=ytop,
-                                ticks=fr['ticks'], hit=1 if fr['hit'] else 0, hb=hb))
+                                ticks=ticks, hit=1 if fr['hit'] else 0, hb=hb))
                 blob += data
         rows_first += [0] * (ANIM_SLOTS - len(ANIMS))
         rows_len += [0] * (ANIM_SLOTS - len(ANIMS))
         if len(blob) > 0x40000:
             sys.exit(f'{fname}: larger than 256 KB')
         (gen / f'{fname}.bin').write_bytes(bytes(blob))
-        fa.sheet(rendered, m.PALETTE, scale=2, cols=8).save(prev / f'{modname[8:]}.png')
+        fa.sheet(rendered, palette, scale=2, cols=8).save(prev / f'{modname[8:]}.png')
         st = m.STATS
         stats.append(st)
         moves.append([m.MOVES[k] for k in MOVES])
         st.setdefault('crouch_top', -60)
-        pals.append(m.PALETTE)
+        pals.append(palette)
         print(f'{fname}: {len(rendered)} frames, {len(blob)} bytes')
     if len(tab) > 255:
         sys.exit('more than 255 frames')

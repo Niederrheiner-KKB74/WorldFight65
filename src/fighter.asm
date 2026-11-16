@@ -167,6 +167,31 @@ anim_step:
     clc
     rts
 
+// Walking (Stage 4b): the animation is driven by the distance walked, so the feet stay on the ground
+// at every speed (walking back is slower than forward). frame_ticks of walk frames hold half pixels
+// (ticks x forward speed, see make_assets.py); tmp2 = half pixels walked in this video frame.
+walk_step:
+    clc
+    lda f_tick,x
+    adc tmp2
+    sta f_tick,x
+    ldy f_frame,x
+    cmp frame_ticks,y
+    bcc !same+
+    sec
+    sbc frame_ticks,y
+    sta f_tick,x
+    inc f_aframe,x
+    jsr anim_index
+    lda f_aframe,x
+    cmp anim_len,y
+    bcc !+
+    lda #0
+    sta f_aframe,x
+!:  jsr anim_frame
+!same:
+    rts
+
 // ---------------------------------------------------------------- per frame
 fighters_update:
     lda hitstop                 // a hit has just landed: both freeze
@@ -294,7 +319,15 @@ st_ground:
     bne !mv+
 !:  lda ft_walk_back,y
 !mv:
+    // speeds are in half pixels per video frame (Stage 4b): f_sub keeps the odd half pixel
+    sta tmp2
+    clc
+    adc f_sub,x
+    lsr
     sta tmp
+    lda #0
+    rol
+    sta f_sub,x
     // moving right if (forward and facing right) or (back and facing left)
     lda f_state,x
     cmp #ST_FWD
@@ -305,6 +338,7 @@ st_ground:
 !:  lda f_facing,x
 !dir:
     jsr move_x                  // A = 0: right, 1: left; tmp = pixels
+    jmp walk_step
 !anim:
     jmp anim_step
 
@@ -1014,7 +1048,7 @@ fighter_draw:
     lda #((FIGHTER_BANK + 1) << 4) | $0f
 !:  sta px_pal
     jmp pixie_draw
-.errorif FLOOR_Y - FRAME_TOP + 104 > 255 || FLOOR_Y - FRAME_TOP < JUMP_H, "fighter y must stay within 0..255"
+.errorif FLOOR_Y - FRAME_TOP + 112 > 255 || FLOOR_Y - FRAME_TOP < JUMP_H, "fighter y must stay within 0..255"
 
 move_anim:    .byte ANIM_LP, ANIM_HP, ANIM_LK, ANIM_HK, ANIM_C_LP, ANIM_C_LK, ANIM_SWEEP, ANIM_J_P, ANIM_J_K
 slot_lo:      .byte <SLOT_A, <SLOT_B, <SLOT_C, <SLOT_D
@@ -1037,6 +1071,7 @@ f_state:    .fill 2, 0
 f_anim:     .fill 2, 0
 f_aframe:   .fill 2, 0
 f_tick:     .fill 2, 0
+f_sub:      .fill 2, 0      // odd half pixel of the walk movement
 f_frame:    .fill 2, 0
 f_joy:      .fill 2, 0
 f_joyprev:  .fill 2, 0

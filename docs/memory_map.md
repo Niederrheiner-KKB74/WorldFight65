@@ -10,7 +10,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 
 | Address | Use |
 |---|---|
-| `$0002–$0037` | game zero page (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
+| `$0002–$0037` | game zero page (`$1E` tmp2 since Stage 4b) (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
 | `$2020–$6915` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `$C000`) |
 

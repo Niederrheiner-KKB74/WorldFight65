@@ -74,8 +74,8 @@ def main():
         for k in [0] + [(1 + col * (h + 1) + h) for col in range(w)]:
             if blk[k * 64:(k + 1) * 64] != bytes(64):
                 errors.append(f'frame {i}: glyph {k} must be blank')
-        if (w * 16) > 112 or h * 8 > 104:
-            errors.append(f'frame {i}: larger than 112x104')
+        if (w * 16) > 112 or h * 8 > 112:
+            errors.append(f'frame {i}: larger than 112x112')
     if errors:
         print('\n'.join('check_assets: ' + e for e in errors))
         sys.exit(1)
