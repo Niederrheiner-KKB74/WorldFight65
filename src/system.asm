@@ -124,7 +124,10 @@ read_keys:
     and #$df                     // fold lower case
     cmp #$58                     // X
     beq !exit+
-    cmp #$50                     // P: POT X debug display in the border on/off
+    cmp #$54                     // T: sparring partner (sparring.asm)
+    bne !+
+    jmp spar_toggle
+!:  cmp #$50                     // P: POT X debug display in the border on/off
     bne !+
     lda pot_debug
     eor #1

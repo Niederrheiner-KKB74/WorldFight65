@@ -196,10 +196,10 @@ def fighters(gen, prev):
                 for k, img in enumerate(drawn[a]):
                     if a in art:
                         mixed.append(art[a][k])
-                        weights.append(8)
+                        weights.append(1)
                     else:
                         mixed.append((pal[img], img > 0))
-                        weights.append(1)
+                        weights.append(0)       # only mapped onto the palette of the imported art
             idx, palette = imf.quantise(mixed, weights=weights)
             it = iter(idx)
             drawn = {a: [next(it) for _ in drawn[a]] for a in ANIMS}

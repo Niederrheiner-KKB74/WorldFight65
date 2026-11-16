@@ -19,6 +19,9 @@ marked **(planned)** or **(to verify)**. Decisions are logged in §12.
 - Attack heights: mid (blockable standing or crouching), low (crouching kicks, sweep: must be blocked
   crouching; Konrad's stomp kick is low as well), overhead (jump attacks: must be blocked standing).
   Blocked attacks do no damage, cause half the hitstun and full pushback.
+- **Proximity guard (Stage 4b, as in Street Fighter II):** holding back while the opponent attacks within
+  100 px (on the ground or with a jump attack) stops walking back and shows the block pose (crouching block
+  when down-back is held). Whether a hit is blocked is still decided at the hit.
 - Knockdown: sweeps and every hit on a fighter in the air knock down; the fighter lies for 1 s, gets up
   (0.4 s) and is invulnerable meanwhile. A KO knocks down for good.
 
@@ -118,6 +121,9 @@ attic RAM DMA time)**
 - Button 2 is read through the joystick port's POT X line, as two-button adapters (C64GS convention) wire
   it: pressed reads a low value. Stage 2 reads `$D620` (port 1) and `$D622` (port 2) and counts values
   below `$80` as pressed; key P shows port 2's reading in the border colour for diagnosis.
+- **Sparring partner (Stage 4b, `src/sparring.asm`):** key T lets player 2 (border red) or player 1 (border
+  blue) fight by himself: he walks up and runs through all his attacks, so one person can test blocking and
+  hits on the real machine. It only writes the virtual joystick, like the later CPU opponent.
   **(confirmed on hardware with the owner's 8BitDo pads, Stage 2)**
 
 ## 6. HUD and round flow (Stage 3)
@@ -212,6 +218,10 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Fighter art from an image generator** (owner, 2026-11-16): the owner supplies sprite sheets (256 px
   cells, magenta background), Claude imports them; replaces "artwork by Claude" for the fighters. Figures in
   calm poses at most 0.6 x their height wide (about 55 px in the game) to leave room to move.
+- **Palette per fighter from the imported art only** (Stage 4b): k-means in CIELAB over the distinct colours,
+  weighted by the square root of their pixel count, so small details (belt, stripes) keep their colours;
+  skeleton-drawn frames are only mapped onto it. **Master image per fighter** (`assets/art/<f>/master.png`),
+  every sheet is an edit of it; `tools/check_sheets.py` compares sheets with it.
 - **Walk speed in half pixels, walk animation driven by distance** (Stage 4b): Tiago 2 px, Konrad 1.5 px
   forward, both 1 px back; the feet of the sheets stay on the ground in both directions.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different

@@ -6,18 +6,38 @@ unless told not to; it ignores exact pixel distances but keeps relative rules ("
 stays where it is"). Sizes and foot lines that are slightly off are corrected by `tools/normalize_sheet.py`;
 wrong colours and wrong scale cannot be corrected. Hit boxes are fitted to the delivered art afterwards.
 
+Lessons from the first round (owner, 2026-11-16): sheets made from *different* starting images drift apart
+(Tiago's walk narrower and brighter, Konrad's singlet grey instead of black, frame 2 of the idle sheets
+bigger than the others - visible as "pulsing"). Therefore every sheet starts from one master image.
+
 How to use:
 
-1. One animation per request. Attach the fighter's idle sheet (or only its first cell) and, where named
-   below, an already approved sheet as a second reference.
-2. Prompt = **base prompt** + **character block** + **animation block**, all in one message.
-3. Check before sending it on: right number of figures, figure the same size as in the idle sheet,
-   colours unchanged, no pink on the figure.
+1. **Master first.** Generate a single standing pose per fighter (one 256 x 256 cell, guard up, the
+   character exactly as he should look in the game) with the master prompt below. When it is approved it is
+   stored as `assets/art/<fighter>/master.png`; nothing else defines the character.
+2. **Every sheet is an edit of the master** - also idle and walk. Attach `master.png` (and, where named
+   below, an already approved sheet for the pose), never an older sheet alone.
+3. One animation per request. Prompt = **base prompt** + **character block** + **animation block**.
+4. Before a sheet goes into the game, `python3 tools/check_sheets.py <fighter> <sheet.png>` compares it with
+   the master: format, frame count, foot line, height, torso width, colours, brightness, magenta, and for idle
+   the jitter between the frames. It also writes an overview `build/preview/check_<fighter>.png`.
+
+## Master prompt
+
+```
+Pixel-art character for a 2D fighting game in the style of Street Fighter II: one single sprite in a
+256 x 256 px cell, solid flat magenta background #FF00FF, no shadow, no ground line, no text.
+{character block}
+Standing fighting stance facing right, guard up (both fists in front of the chest), feet about shoulder-width
+apart, compact: the figure is at most 135 px wide. Soles at y = 239 (16 px above the bottom of the cell),
+top of the head at y = 16, so the figure is 224 px tall. Clean pixel art with dark outlines, at most about
+24 colours, no anti-aliasing against the background, no magenta, pink or purple on the character.
+```
 
 ## Base prompt
 
 ```
-Edit the attached idle sprite: keep the character exactly as he is - the same face, hair, body, costume,
+Edit the attached master sprite: keep the character exactly as he is - the same face, hair, body, costume,
 the same colours, the same pixel-art style and the same scale. Only the pose changes, as described below.
 
 Output: one sprite sheet, a single row of {N} square cells of exactly 256 x 256 px (image {N*256} x 256 px).
@@ -25,8 +45,8 @@ Solid flat magenta background #FF00FF, no gradient, no shadow, no ground line, n
 No magenta, pink or purple anywhere on the character.
 The character faces right in every cell. Soles on one common line: the lowest pixel of a foot on the
 ground is at y = 239 (16 px above the bottom of the cell). The character is exactly as big as in the
-idle sprite (standing: 224 px from soles to top of head) - never enlarge or shrink him to fit the cell.
-In standing poses the back foot stays where it is in the idle sprite; the cell is wide enough for
+master sprite (standing: 224 px from soles to top of head) - never enlarge or shrink him to fit the cell.
+In standing poses the back foot stays where it is in the master sprite; the cell is wide enough for
 punches and kicks to the right. Nothing may be cut off at the cell edges.
 ```
 
@@ -53,7 +73,10 @@ the hit: arm or leg fully extended.
 
 | Sheet | Frames | Second reference |
 |---|---|---|
-| `crouch` | 1 | `c_block` |
+| `idle` | 4 | – |
+| `walk` | 6 | – |
+| `block`, `c_block` | 1, 1 | for `c_block`: `crouch` |
+| `crouch` | 1 | – |
 | `lp`, `hp`, `lk`, `hk` | 3, 4, 3, 4 | – |
 | `c_lp`, `c_lk`, `sweep` | 3, 3, 4 | `crouch` |
 | `hit` | 2 | – |
@@ -61,11 +84,37 @@ the hit: arm or leg fully extended.
 | `fall`, `getup` | 3, 2 | – |
 | `win` | 2 | – |
 
+**idle** (4)
+```
+Animation: idle (breathing), 4 frames, all four almost identical to the master. Only the breathing changes:
+frame 1 = master, frame 2 = chest and shoulders 1-2 px higher, frame 3 = like frame 1, frame 4 = 1-2 px
+lower. The head moves by at most 3 px. Same width, same size, same position of the feet in all four frames.
+```
+
+**walk** (6)
+```
+Animation: forward walk cycle, 6 frames, looping (frame 6 leads back into frame 1), walking in place like a
+game sprite. Head and torso stay at the same position in all frames (at most 2 px variation); same torso
+width as in the master in every frame. Only the legs move: frames 1 and 4 are the contact poses (one foot
+forward, the other back, feet about one and a half foot lengths apart), frames 2-3 and 5-6 the passing
+poses. The guard stays as in the master. [Konrad: short, heavy steps.] [Tiago: light, springy steps.]
+```
+
+**block** (1), **c_block** (1)
+```
+Animation: standing block, 1 frame. Same stance as the master, forearms raised in front of the face, chin
+down.
+```
+```
+Animation: crouching block, 1 frame, from the attached crouch sprite and at its scale (about 150 px from
+soles to top of head; the upper part of the cell stays empty magenta). Forearms raised in front of the face.
+```
+
 **crouch** (1)
 ```
-Animation: crouch, 1 frame. Deep crouch with the guard up (fists in front of the chin), as in the attached
-crouching-block sprite but with the forearms lowered. Same scale as standing: crouching he is only about
-150 px from soles to top of head; the upper part of the cell stays empty magenta.
+Animation: crouch, 1 frame. Deep crouch with the guard up (fists in front of the chin). Same scale as
+standing: crouching he is only about 150 px from soles to top of head; the upper part of the cell stays
+empty magenta. Do not enlarge him to fill the cell.
 ```
 
 **lp** – Konrad: jab, Tiago: open-hand jab (3)
@@ -154,6 +203,6 @@ knees bent, guard coming up.
 ```
 Animation: victory pose, 2 frames, facing the viewer or three-quarter view. [Konrad: double-biceps pose,
 fists at head height.] [Tiago: a proud capoeira pose, one fist raised.] Raised fists may reach the top edge
-of the cell but must not be cut off: keep the top of the head at y = 16 as in the idle sprite.
+of the cell but must not be cut off: keep the top of the head at y = 16 as in the master sprite.
 1 and 2 differ slightly (breathing, smile).
 ```

@@ -55,3 +55,13 @@ Emulator test builds as in Stage 3 (`--define AUTOTEST` plus `AUTOTEST_INTRO`, `
 4. Hit and falling fighters close their eyes; the winner turns to the front for his win pose (Tiago:
    fist up, Konrad: double biceps).
 5. Everything else as in Stage 3 (rounds, timer, KO, exit to BASIC).
+
+## Stage 4b test builds (generator artwork, not a release yet)
+
+- Fighters partly from the owner's generator sheets (`docs/art_import.md`, `docs/art_prompts.md`).
+- Blocking: hold back while the opponent attacks nearby -> block pose (down-back: crouching block).
+- Key **T**: sparring partner - player 2 (border red), then player 1 (border blue) attacks by himself; once
+  more T = off. Test on hardware: hold back / down-back against his attacks; low attacks (crouching kick,
+  sweep) must be blocked crouching, jump attacks standing.
+- Emulator check: `--define AUTOTEST --define AUTOTEST_SPAR` (standing guard) and
+  `... --define AUTOTEST_SPAR_LOW` (crouching guard) freeze in the guard pose.

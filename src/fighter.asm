@@ -306,11 +306,28 @@ st_ground:
 !atk:
     jmp start_attack
 !walk:
-    lda f_dir                   // 0 idle, 1 forward, 2 back = the state numbers
+    jsr guard                   // holding back while the opponent attacks nearby: block pose, no walking
+    bcc !+
+    lda f_state,x
+    beq !g+
+    lda #ST_IDLE
+    jsr set_state
+!g: lda #ANIM_BLOCK
+    jmp guard_anim
+!:  lda f_dir                   // 0 idle, 1 forward, 2 back = the state numbers
     cmp f_state,x
     beq !+
     jsr set_state
-!:  lda f_state,x
+    jmp !st+
+!:  lda f_state,x               // still idle after a guard: back to the idle animation
+    bne !st+
+    lda f_anim,x
+    cmp #ANIM_BLOCK
+    bne !st+
+    lda #ST_IDLE
+    jsr set_state
+!st:
+    lda f_state,x
     beq !anim+
     ldy f_id,x
     cmp #ST_FWD
@@ -364,7 +381,59 @@ st_crouch:
     lda #MOVE_SWEEP
 !atk:
     jmp start_attack
+!:  jsr guard                   // crouching block pose while the opponent attacks nearby
+    lda #ANIM_CROUCH
+    bcc guard_anim
+    lda #ANIM_C_BLOCK
+    // fall through
+// A = animation: switch to it if it is not running yet, else keep animating
+guard_anim:
+    cmp f_anim,x
+    beq !+
+    jmp start_anim
 !:  jmp anim_step
+
+// Proximity guard (Stage 4b, as in Street Fighter II): C = 1 when fighter X holds back while the other
+// fighter attacks (on the ground or in the air) within GUARD_DIST pixels. Blocking itself is decided at
+// the hit (hit_test); this only shows the pose and stops walking back.
+.const GUARD_DIST = 100
+guard:
+    lda f_back,x
+    beq !no+
+    ldy other
+    lda f_state,y
+    cmp #ST_ATTACK
+    beq !near+
+    cmp #ST_JUMP
+    bne !no+
+    lda f_jatk,y
+    beq !no+
+!near:
+    sec                         // tmp = x - other x (16 bit), then its absolute value
+    lda f_x_lo,x
+    sbc f_x_lo,y
+    sta tmp
+    lda f_x_hi,x
+    sbc f_x_hi,y
+    sta tmp+1
+    bpl !+
+    lda #0
+    sec
+    sbc tmp
+    sta tmp
+    lda #0
+    sbc tmp+1
+    sta tmp+1
+!:  lda tmp+1
+    bne !no+
+    lda tmp
+    cmp #GUARD_DIST
+    bcs !no+
+    sec
+    rts
+!no:
+    clc
+    rts
 
 // A = move: start the attack
 start_attack:

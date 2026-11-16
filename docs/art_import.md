@@ -4,6 +4,12 @@ Since Stage 4b the fighters are drawn by an image generator (the owner creates t
 `tools/import_fighter.py` during the build. Animations without a sheet are still drawn by the skeleton
 renderer `tools/fighter_art.py` until every sheet exists.
 
+## Master and check
+
+`assets/art/<fighter>/master.png` (one 256 x 256 cell, the approved standing pose) defines the character;
+every sheet is generated as an edit of it (`docs/art_prompts.md`). `tools/check_sheets.py <fighter> [sheet]`
+compares sheets with the master before they are imported (without a master: frame 1 of idle).
+
 ## Sheet format
 
 - One PNG per animation: `assets/art/<fighter>/<animation>.png`, animation names as in `ANIMS` of
@@ -31,13 +37,14 @@ renderer `tools/fighter_art.py` until every sheet exists.
 ## Conversion
 
 1. Key out the magenta background and its tinted fringe; fill small enclosed specks.
-2. Scale: once per fighter, from frame 1 of the idle sheet, so that the figure has the height of the
+2. Scale: once per fighter, from frame 1 of the idle sheet (the master, once the idle sheet is made from it), so that the figure has the height of the
    skeleton-drawn idle frame (about 97 px in the game, scale about 0.41). Head and torso are placed at the
    same position relative to the anchor as in the skeleton frame, so the hit and push boxes of the fighter
    module keep fitting.
 3. Place every frame in the 144 x 112 px canvas with the foot line on the anchor `(64, 109)`.
 4. Quantise all frames of the fighter together to 15 colours + transparent (palette bank of the fighter).
-   While imported and skeleton-drawn frames are mixed, the imported frames get eight times the weight.
+   While imported and skeleton-drawn frames are mixed, only the imported frames choose the palette; the
+   skeleton-drawn frames are mapped onto it.
 
 ## Walk cycles and speed
 

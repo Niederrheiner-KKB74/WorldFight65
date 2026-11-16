@@ -111,6 +111,7 @@ main_loop:
     bne !+
 #else
     jsr read_joysticks
+    jsr spar_update                    // key T: one player attacks by himself (solo tests)
 #endif
     jsr game_update
     jsr fighters_update
@@ -214,6 +215,32 @@ autotest_joy:
     sta f_joy
     lda at_j2
     sta f_joy+1
+#if AUTOTEST_SPAR
+    lda f_anim                          // freeze as soon as Tiago shows the guard pose
+#if AUTOTEST_SPAR_LOW
+    cmp #ANIM_C_BLOCK
+#else
+    cmp #ANIM_BLOCK
+#endif
+    bne !+
+    lda f_stun                          // the pose, not a blockstun after the hit
+    bne !+
+    inc at_guard
+    lda at_guard
+    cmp #3                              // a few frames into the guard
+    bne !+
+    lda #1
+    sta at_freeze
+!:  lda #1                              // the sparring partner plays Konrad (player 2)
+    sta spar_mode
+    lda at_frame+1
+    bne !s+
+    lda at_frame
+    cmp #150
+    bcc !+
+!s: jsr spar_update
+!:
+#endif
     inc at_frame
     bne !done+
     inc at_frame+1
@@ -224,6 +251,7 @@ at_pos:    .byte 0
 at_j1:     .byte 0
 at_j2:     .byte 0
 at_freeze: .byte 0
+at_guard:  .byte 0
 .macro AtEvent(frame, j1, j2) { .word frame
     .byte j1, j2 }
 at_script:
@@ -242,6 +270,12 @@ at_script:
 #elif AUTOTEST_WALKB
     AtEvent(150, JOY_LEFT, JOY_RIGHT)                     // both walk back for 40 frames
     AtEvent(190, $ff, 0)
+#elif AUTOTEST_SPAR
+    AtEvent(150, JOY_LEFT, 0)                             // Tiago holds back, Konrad = sparring partner
+#if AUTOTEST_SPAR_LOW
+    AtEvent(152, JOY_LEFT | JOY_DOWN, 0)                  // down-back (freezes in the crouching guard)
+#endif
+    AtEvent(1500, $ff, 0)
 #elif AUTOTEST_KO
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in, then keeps kicking
     AtEvent(620, $ff, 0)
@@ -317,6 +351,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "fighter.asm"
 #import "game.asm"
 #import "fx.asm"
+#import "sparring.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"
 

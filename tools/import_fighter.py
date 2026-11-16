@@ -115,7 +115,8 @@ def fit(art_dir, ref_idle):
     """Scale and horizontal reference for a fighter, from his idle sheet and the skeleton-drawn idle frame
     ref_idle (index array): the imported figure gets the same height (soles to top of head) and the same
     head/torso position relative to the anchor, so the hit boxes of the fighter module still fit."""
-    c0 = cells(art_dir / 'idle.png')[0]
+    master = art_dir / 'master.png'
+    c0 = cells(master)[0] if master.exists() else cells(art_dir / 'idle.png')[0]
     ref_fg = ref_idle > 0
     ref_h = fa.ANCHOR[1] - int(np.nonzero(ref_fg.any(axis=1))[0][0]) + 1
     scale = ref_h / figure_height(c0)
@@ -133,6 +134,8 @@ def import_anims(art_dir, ref_idle, counts):
     out = {}
     for png in sorted(art_dir.glob('*.png')):
         a = png.stem
+        if a == 'master':
+            continue
         if a not in counts:
             raise ValueError(f'{png}: unknown animation {a!r}')
         cs = cells(png)
@@ -149,19 +152,49 @@ def import_anims(art_dir, ref_idle, counts):
     return out
 
 
+def to_lab(rgb):
+    """sRGB (N, 3) uint8 -> CIELAB (N, 3) float"""
+    c = rgb.astype(np.float64) / 255.0
+    c = np.where(c > 0.04045, ((c + 0.055) / 1.055) ** 2.4, c / 12.92)
+    xyz = c @ np.array([[0.4124, 0.2126, 0.0193], [0.3576, 0.7152, 0.1192], [0.1805, 0.0722, 0.9505]])
+    xyz /= np.array([0.9505, 1.0, 1.089])
+    f = np.where(xyz > 0.008856, np.cbrt(xyz), 7.787 * xyz + 16 / 116)
+    return np.stack([116 * f[:, 1] - 16, 500 * (f[:, 0] - f[:, 1]), 200 * (f[:, 1] - f[:, 2])], axis=1)
+
+
 def quantise(frames_rgbm, colours=15, weights=None):
     """frames_rgbm: [(rgb, mask)] -> (list of index frames (0 = transparent), palette of 16 RGB tuples).
-    weights: optional repeat count per frame for the palette choice (imported frames count more than
-    skeleton-drawn ones while both are mixed in one fighter)."""
+    weights: optional repeat count per frame for the palette choice; frames with weight 0 do not take part
+    in the choice and are only mapped onto the palette (skeleton-drawn frames while imported and drawn
+    frames are mixed in one fighter: the palette belongs to the imported art).
+    k-means in CIELAB over the distinct colours, weighted by the square root of their pixel count, so that
+    small but distinct details (a green belt, red shoes) keep a colour of their own instead of being
+    swallowed by large areas of skin."""
+    from sklearn.cluster import KMeans
     weights = weights or [1] * len(frames_rgbm)
-    pix = np.concatenate([np.repeat(rgb[m], w, axis=0) for (rgb, m), w in zip(frames_rgbm, weights)], axis=0)
-    strip = Image.fromarray(pix.reshape(1, -1, 3))
-    q = strip.quantize(colors=colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
-    pal = q.getpalette()[:colours * 3]
-    palette = [(0, 0, 0)] + [tuple(pal[i * 3:i * 3 + 3]) for i in range(colours)]
+    pix = np.concatenate([np.repeat(rgb[m], w, axis=0) for (rgb, m), w in zip(frames_rgbm, weights) if w],
+                         axis=0)
+    uniq, count = np.unique(pix, axis=0, return_counts=True)
+    lab = to_lab(uniq)
+    km = KMeans(n_clusters=min(colours, len(uniq)), n_init=4, random_state=1)
+    km.fit(lab, sample_weight=np.sqrt(count))
+    # palette entry = the pixel-count weighted mean colour of each cluster, darkest first
+    pal = []
+    for k in range(km.n_clusters):
+        sel = km.labels_ == k
+        pal.append(np.round((uniq[sel] * count[sel, None]).sum(0) / count[sel].sum()).astype(int))
+    pal.sort(key=lambda c: int(c.sum()))
+    while len(pal) < colours:
+        pal.append(np.zeros(3, int))
+    pal = np.array(pal)
+    pal_lab = to_lab(pal.astype(np.uint8))
+    palette = [(0, 0, 0)] + [tuple(int(v) for v in c) for c in pal]
     out = []
     for rgb, m in frames_rgbm:
-        qi = np.array(Image.fromarray(rgb).quantize(palette=q, dither=Image.Dither.NONE), np.uint8) + 1
+        flat = rgb.reshape(-1, 3)
+        u, inv = np.unique(flat, axis=0, return_inverse=True)
+        d = ((to_lab(u)[:, None, :] - pal_lab[None]) ** 2).sum(2)
+        qi = (d.argmin(1)[inv.ravel()] + 1).astype(np.uint8).reshape(m.shape)
         qi[~m] = 0
         out.append(qi)
     return out, palette
