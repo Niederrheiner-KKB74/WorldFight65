@@ -17,6 +17,11 @@ renderer `tools/fighter_art.py` until every sheet exists.
 - The figure faces right. Soles on a common line, lowest pixel at y = 239 (16 px above the cell bottom);
   figure height from soles to top of head 224 px in every sheet of a fighter. Head and torso centred in the
   cell and at the same x in all frames (walk cycles are drawn in place).
+- Crouching figures (`crouch`, `c_lp`, `c_lk`, `c_block`) are drawn at the same scale: about 150 px from the
+  soles to the top of the head (the crouching hurt box). A sheet drawn to fill the cell can be fixed with
+  `normalize_sheet.py … --height 150`.
+- Colours exactly as in the idle sheet of the fighter (skin, hair, costume, belt, shoes): a fighter has only
+  15 colours for all of his frames, so every deviating shade takes palette entries from the others.
 - Width of the figure at most 135 px (0.6 x height) in idle, walk, block and hit poses; attacks and
   knockdowns up to about 250 px.
 - Sheets in another size (e.g. 2172 x 724) are brought into this format with
