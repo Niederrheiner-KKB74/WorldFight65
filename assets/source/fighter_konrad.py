@@ -72,7 +72,7 @@ def walk():
         sw = math.cos(ph)
         af = (3 + 13 * sw, -3 - 4 * max(0.0, math.sin(ph)))
         ab = (-2 - 13 * sw, -3 - 4 * max(0.0, -math.sin(ph)))
-        out.append(frame(stance(bob=1.5 - 1.5 * abs(math.sin(ph)), ankle_f=af, ankle_b=ab), 8))
+        out.append(frame(stance(bob=1.5 - 1.5 * abs(math.sin(ph)), ankle_f=af, ankle_b=ab), 7))
     return out
 
 

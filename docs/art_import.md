@@ -58,4 +58,4 @@ stay on the ground, also when walking back at a lower speed.
 | Fighter | walk_fwd / walk_back (half px per frame) | ticks per walk frame | cycle in the game | two steps in the sheet |
 |---|---|---|---|---|
 | Tiago | 4 / 2 (2 px / 1 px) | 6 | 72 px | about 75 px |
-| Konrad | 3 / 2 (1.5 px / 1 px) | 8 | 72 px | about 69 px |
+| Konrad | 3 / 2 (1.5 px / 1 px) | 7 | 63 px | about 61 px (master-based walk, 2026-11-17) |
