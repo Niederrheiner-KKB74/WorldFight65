@@ -49,7 +49,7 @@ def main():
     col[bg] = imf.OUTLINE_RGB
     col = np.pad(col, ((pad, pad), (pad, pad), (0, 0)), mode='edge')
     msk = np.pad((~bg).astype(np.uint8) * 255, pad, mode='constant')
-    src_c, src_m = Image.fromarray(col), Image.fromarray(msk)
+    src_c = Image.fromarray(col)
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     for k in range(a.frames):
         cx = (k + 0.5) * slot
@@ -58,7 +58,11 @@ def main():
         sy0 = pad + foot + 1 - (imf.BASELINE + 1) / scale
         box = (sx0, sy0, sx0 + imf.CELL / scale, sy0 + imf.CELL / scale)
         c = np.array(src_c.resize((imf.CELL, imf.CELL), Image.LANCZOS, box=box))
-        m = np.array(src_m.resize((imf.CELL, imf.CELL), Image.BOX, box=box)) >= 128
+        # only this slot's figure: the cell window can reach into the neighbouring slots
+        mk = msk.copy()
+        mk[:, :pad + round(k * slot)] = 0
+        mk[:, pad + round((k + 1) * slot):] = 0
+        m = np.array(Image.fromarray(mk).resize((imf.CELL, imf.CELL), Image.BOX, box=box)) >= 128
         c[~m] = KEY
         out.paste(Image.fromarray(c), (k * imf.CELL, 0))
     out.save(a.dst)
