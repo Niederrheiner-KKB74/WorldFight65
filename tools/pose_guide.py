@@ -56,11 +56,15 @@ POSES = {
         'lp': [P(lead_hand=(180, 78), lean=8),
                P(lead_hand=(198, 70), lean=12, hip=(126, 130)),          # jab, x 171-206 y 55-85
                P(lead_hand=(176, 82), lean=6)],
-        'hp': [P(rear_hand=(110, 70), lead_hand=(160, 88), lean=-4, hip=(118, 130)),      # wind-up, arm high
-               P(rear_hand=(200, 92), rear_elbow=(160, 92), lead_hand=(164, 84), lean=16,
-                 hip=(130, 132), rear_foot=(92, 228)),                                    # forearm smash x 171-206 y 75-105
-               P(rear_hand=(192, 100), rear_elbow=(156, 100), lead_hand=(162, 88), lean=14, hip=(128, 132)),
-               P(rear_hand=(150, 90), lean=6)],
+        'hp': [P(rear_elbow=(90, 64), rear_hand=(80, 38), lead_hand=(168, 84), lean=-12,
+                 hip=(116, 130)),                                                         # wind-up: arm raised high behind
+               P(rear_elbow=(166, 92), rear_hand=(204, 88), lead_elbow=(154, 112), lead_hand=(170, 100), lean=18,
+                 hip=(132, 132),
+                 rear_foot=(96, 226), arrow=((86, 40), (196, 82))),                      # forearm smash x 171-206 y 75-105
+               P(rear_elbow=(168, 106), rear_hand=(198, 116), lead_elbow=(156, 116), lead_hand=(172, 106), lean=22,
+                 hip=(134, 134),
+                 rear_foot=(98, 226), arrow=((200, 92), (196, 116))),                     # follow-through, swept down
+               P(rear_hand=(146, 88), lean=8, hip=(126, 130))],                             # back towards the guard
         'lk': [P(lead_foot=(150, 176), lean=0, hip=(118, 128)),                           # knee up
                P(lead_foot=(196, 206), lean=-4, hip=(118, 130)),                          # stomp, x 171-206 y 189-219
                P(lead_foot=(160, 200), lean=0, hip=(118, 128))],
@@ -132,16 +136,25 @@ def draw(pose, d, ox):
         L([sh, el, hand], cols[0], 12)
         C(hand, 8, cols[1])
 
-    # rear limbs behind the body, lead limbs in front
+    # rear leg behind the body; both arms in front of the (narrow, side-view) torso so they stay visible
     leg('rear_foot', 'rear_knee', REAR, 1)
-    arm(sh_rear, 'rear_hand', 'rear_elbow', REAR, -1)
-    d.polygon([((ox + hip[0] - 20) * S, (hip[1] + 6) * S), ((ox + hip[0] + 20) * S, (hip[1] + 6) * S),
-               ((ox + neck[0] + 22) * S, (neck[1] + 4) * S), ((ox + neck[0] - 24) * S, (neck[1] + 4) * S)],
+    d.polygon([((ox + hip[0] - 14) * S, (hip[1] + 6) * S), ((ox + hip[0] + 14) * S, (hip[1] + 6) * S),
+               ((ox + neck[0] + 16) * S, (neck[1] + 4) * S), ((ox + neck[0] - 16) * S, (neck[1] + 4) * S)],
               fill=BODY)
     C(head, HEAD_R, HEADC)
     C((head[0] + 12, head[1] - 2), 4, (80, 80, 80))
     leg('lead_foot', 'lead_knee', LEAD, 1)
+    arm(sh_rear, 'rear_hand', 'rear_elbow', REAR, -1)
     arm(sh_lead, 'lead_hand', 'lead_elbow', LEAD, -1)
+    if 'arrow' in pose:                             # motion of the striking limb since the previous frame
+        (x0, y0), (x1, y1) = pose['arrow']
+        n = max(1, int(math.hypot(x1 - x0, y1 - y0) // 8))
+        for i in range(0, n, 2):                    # dashed
+            a, b = i / n, min(1, (i + 1) / n)
+            L([(x0 + (x1 - x0) * a, y0 + (y1 - y0) * a), (x0 + (x1 - x0) * b, y0 + (y1 - y0) * b)], (120, 120, 120), 3)
+        ang = math.atan2(y1 - y0, x1 - x0)
+        for da in (2.6, -2.6):
+            L([(x1, y1), (x1 + 10 * math.cos(ang + da), y1 + 10 * math.sin(ang + da))], (120, 120, 120), 3)
 
 
 def main():

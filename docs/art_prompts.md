@@ -225,7 +225,7 @@ second attached image, a pose guide with {N} mannequins, one per frame, from lef
 In the mannequins, the ORANGE arm and leg are his LEAD arm and leg (the front ones, towards the opponent on
 the right), the BLUE arm and leg are his REAR arm and leg. Match the positions of hands, feet, knees, elbows,
 hips and the lean of the torso as closely as possible; the mannequin is only a stick figure, so give him
-his real body, costume and muscles.
+his real body, costume and muscles. Dashed grey arrows only show a movement - do not draw them.
 Animation: {DESCRIPTION}
 Output: one sprite sheet, a single row of {N} cells of exactly 256 x 256 px (image {N*256} x 256 px), solid
 flat magenta background #FF00FF, no shadow, no text, no frame numbers, no magenta, pink or purple on the
