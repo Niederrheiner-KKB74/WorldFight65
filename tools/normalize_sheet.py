@@ -28,6 +28,8 @@ def main():
     ap.add_argument('frames', type=int)
     ap.add_argument('dst')
     ap.add_argument('--height', type=int, default=224)
+    ap.add_argument('--scale', type=float, help='fixed scale instead of --height (e.g. the scale of the '
+                    'master, for images drawn on the same canvas as the master: crouching figures stay small)')
     a = ap.parse_args()
 
     rgb = np.array(Image.open(a.src).convert('RGB'))
@@ -40,7 +42,7 @@ def main():
         ys = np.nonzero((~bg[:, x0:x1]).any(axis=1))[0]
         tops.append(int(ys[0]))
         foot = max(foot, int(ys[-1]))
-    scale = a.height / (foot - min(tops) + 1)
+    scale = a.scale or a.height / (foot - min(tops) + 1)
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     # colour: background replaced by the outline colour, resampled with LANCZOS (no aliasing on large
     # downscales of generator images); figure mask resampled separately, key colour put back outside it

@@ -142,7 +142,7 @@ def main():
                 if f['w'] > 0.62 * m['h']:
                     r.err(where, f'Breite {f["w"]} px, höchstens {int(0.6 * m["h"])} px')
                 dc = f['chest'] / m['chest'] - 1
-                if abs(dc) > 0.08:
+                if abs(dc) > 0.08 and a in ('idle', 'walk'):     # same arm pose as the master
                     r.err(where, f'Oberkörper {f["chest"]} px, Master {m["chest"]} px ({dc:+.0%})')
             ce, far = colour_error(f['lab'], centres)
             dl = f['L'] - m['L']
