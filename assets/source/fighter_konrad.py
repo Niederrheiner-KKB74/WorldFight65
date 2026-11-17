@@ -79,7 +79,7 @@ def walk():
 def lp():
     # straight jab
     return [frame(stance(hand_f=(16, -66)), 3),
-            frame(stance(lean=20, hand_f=(36, -68)), 4, 'hand_f'),
+            frame(stance(lean=20, hand_f=(36, -68)), 4, (37, 51, -74, -62)),   # fist of the generator art (Stage 4b)
             frame(stance(lean=18, hand_f=(28, -66)), 6)]
 
 

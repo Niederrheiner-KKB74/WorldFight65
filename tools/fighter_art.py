@@ -527,11 +527,14 @@ def box_at(pose, joint, w=14, h=12):
 
 
 def frame(pose, ticks, hit=None, face='normal', b_front=False):
-    """One animation frame: pose, duration in video frames, optional hit-box joint, facial expression
-    ('normal', 'hit', 'win'); b_front: the far arm strikes across the body and is drawn in front."""
+    """One animation frame: pose, duration in video frames, optional hit box - a joint name (box around that
+    joint of the skeleton pose) or an explicit box (x0, x1, y0, y1) in game pixels relative to the anchor,
+    measured on imported art -, facial expression ('normal', 'hit', 'win'); b_front: the far arm strikes
+    across the body and is drawn in front."""
     if b_front:
         pose = dict(pose, _b_front=True)
-    return dict(pose=pose, ticks=ticks, hit=box_at(pose, hit) if hit else None, face=face)
+    box = hit if isinstance(hit, tuple) else (box_at(pose, hit) if hit else None)
+    return dict(pose=pose, ticks=ticks, hit=box, face=face)
 
 
 # ------------------------------------------------------------------ frontal view (win poses)
