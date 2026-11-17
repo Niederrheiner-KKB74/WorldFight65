@@ -42,22 +42,24 @@ def main():
         foot = max(foot, int(ys[-1]))
     scale = a.height / (foot - min(tops) + 1)
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
-    clean = rgb.copy()
-    clean[bg] = KEY
-    pad = int(imf.CELL / scale) + 1           # key-coloured margin, so every cell window lies inside
-    clean = np.pad(clean, ((pad, pad), (pad, pad), (0, 0)), mode='constant')
-    clean[:pad], clean[-pad:], clean[:, :pad], clean[:, -pad:] = KEY, KEY, KEY, KEY
-    src = Image.fromarray(clean)
+    # colour: background replaced by the outline colour, resampled with LANCZOS (no aliasing on large
+    # downscales of generator images); figure mask resampled separately, key colour put back outside it
+    pad = int(imf.CELL / scale) + 1           # margin, so every cell window lies inside
+    col = rgb.copy()
+    col[bg] = imf.OUTLINE_RGB
+    col = np.pad(col, ((pad, pad), (pad, pad), (0, 0)), mode='edge')
+    msk = np.pad((~bg).astype(np.uint8) * 255, pad, mode='constant')
+    src_c, src_m = Image.fromarray(col), Image.fromarray(msk)
+    out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     for k in range(a.frames):
         cx = (k + 0.5) * slot
         # source window that maps onto the 256 x 256 cell
         sx0 = pad + cx - 128 / scale
         sy0 = pad + foot + 1 - (imf.BASELINE + 1) / scale
         box = (sx0, sy0, sx0 + imf.CELL / scale, sy0 + imf.CELL / scale)
-        cell = src.resize((imf.CELL, imf.CELL), Image.NEAREST, box=box)
-        c = np.array(cell)
-        # NEAREST keeps the key colour pure; reapply it to anything key-like that resampling produced
-        c[imf.background_mask(c)] = KEY
+        c = np.array(src_c.resize((imf.CELL, imf.CELL), Image.LANCZOS, box=box))
+        m = np.array(src_m.resize((imf.CELL, imf.CELL), Image.BOX, box=box)) >= 128
+        c[~m] = KEY
         out.paste(Image.fromarray(c), (k * imf.CELL, 0))
     out.save(a.dst)
     print(f'{a.src}: {W} x {H}, {a.frames} slots of {slot:.0f} px, figures {foot - min(tops) + 1} px high, '
