@@ -218,6 +218,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 - **Fighter art from an image generator** (owner, 2026-11-16): the owner supplies sprite sheets (256 px
   cells, magenta background), Claude imports them; replaces "artwork by Claude" for the fighters. Figures in
   calm poses at most 0.6 x their height wide (about 55 px in the game) to leave room to move.
+- **All fighters equally tall and in the same side view facing right** (owner, 2026-11-17): about 97 px in
+  the game; differences in build (Konrad heavy, Tiago slim) come from width and mass, not from height.
 - **Palette per fighter from the imported art only** (Stage 4b): k-means in CIELAB over the distinct colours,
   weighted by the square root of their pixel count, so small details (belt, stripes) keep their colours;
   skeleton-drawn frames are only mapped onto it. **Master image per fighter** (`assets/art/<f>/master.png`),

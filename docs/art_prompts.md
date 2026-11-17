@@ -28,8 +28,12 @@ How to use:
 Pixel-art character for a 2D fighting game in the style of Street Fighter II: one single sprite in a
 256 x 256 px cell, solid flat magenta background #FF00FF, no shadow, no ground line, no text.
 {character block}
-Standing fighting stance facing right, guard up (both fists in front of the chest), feet about shoulder-width
-apart, compact: the figure is at most 135 px wide. Soles at y = 239 (16 px above the bottom of the cell),
+Standing fighting stance in side view facing right (body turned sideways, the left shoulder towards the
+viewer is the rear one, the front shoulder points to the right - not turned towards the viewer), guard up
+(both fists in front of the chest), knees slightly bent in a springy stance, feet about shoulder-width apart
+one behind the other, compact: the figure is at most 135 px wide.
+Proportions like classic Street Fighter II sprites: slightly larger head, hands and feet than realistic,
+broad shoulders, so the face and fists stay readable when the sprite is shown only about 100 px tall. Soles at y = 239 (16 px above the bottom of the cell),
 top of the head at y = 16, so the figure is 224 px tall. Clean pixel art with dark outlines, at most about
 24 colours, no anti-aliasing against the background, no magenta, pink or purple on the character.
 ```
@@ -56,7 +60,9 @@ Konrad:
 ```
 Character: Konrad, a muscular German Greco-Roman wrestler with a very short blond buzz cut and a short
 beard; black singlet with a black-red-gold side stripe, white socks, red wrestling shoes with white stripes.
-Heavy, powerful, grounded movements.
+He is clearly the heavier and more massive of the two fighters: very broad chest and shoulders, thick neck,
+thick arms and thighs, wide stable stance - a heavyweight wrestler, noticeably bulkier than a slim martial
+artist, but exactly as tall as the other fighters. Heavy, powerful, grounded movements.
 ```
 
 Tiago:
