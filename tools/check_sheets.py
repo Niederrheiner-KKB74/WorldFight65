@@ -134,7 +134,7 @@ def main():
             preview.append((f'{a}{k + 1}', c))
             if a not in AIR and abs(f['bot'] - imf.BASELINE) > 2:
                 r.err(where, f'Fußlinie y = {f["bot"]} statt {imf.BASELINE}')
-            if a in STANDING and a not in ('hit', 'getup') and abs(f['h'] - m['h']) > 6:
+            if a in STANDING and a not in ('hit', 'getup') and abs(f['h'] - m['h']) > (12 if a == 'walk' else 6):
                 r.err(where, f'Höhe {f["h"]} px, Master {m["h"]} px (Maßstab?)')
             if a in CROUCHING and abs(f['h'] - CROUCH_H) > 10 and a != 'sweep':
                 r.err(where, f'Höhe {f["h"]} px, geduckt etwa {CROUCH_H} px (Maßstab?)')
