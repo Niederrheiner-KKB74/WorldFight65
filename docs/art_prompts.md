@@ -209,3 +209,26 @@ fists at head height.] [Tiago: a proud capoeira pose, one fist raised.] Raised f
 of the cell but must not be cut off: keep the top of the head at y = 16 as in the master sprite.
 1 and 2 differ slightly (breathing, smile).
 ```
+
+## Attacks with pose guides (2026-11-17)
+
+`python3 tools/pose_guide.py` draws a mannequin per frame for the standing attacks of both fighters
+(`assets/art/guides/<fighter>_<anim>_guide.png`, single frames `<fighter>_<anim>_<n>.png`): LEAD (front) arm
+and leg orange, REAR arm and leg blue. Hands and feet of the hitting frame sit on the hit boxes of the fighter
+module. Attach the master first and the guide sheet second; if a frame comes out wrong, generate that frame
+alone with its single-frame guide (`tools/fit_single_frames.py` assembles the sheet).
+
+```
+Edit the first attached image (the master sprite of {NAME}): keep the character exactly as he is - the same
+face, hair, body, costume, colours, pixel-art style and the same scale. Draw him in the {N} poses of the
+second attached image, a pose guide with {N} mannequins, one per frame, from left to right.
+In the mannequins, the ORANGE arm and leg are his LEAD arm and leg (the front ones, towards the opponent on
+the right), the BLUE arm and leg are his REAR arm and leg. Match the positions of hands, feet, knees, elbows,
+hips and the lean of the torso as closely as possible; the mannequin is only a stick figure, so give him
+his real body, costume and muscles.
+Animation: {DESCRIPTION}
+Output: one sprite sheet, a single row of {N} cells of exactly 256 x 256 px (image {N*256} x 256 px), solid
+flat magenta background #FF00FF, no shadow, no text, no frame numbers, no magenta, pink or purple on the
+character. Facing right. Feet on the floor at y = 239 (the black line in the guide). Same size as the master
+in every frame - never enlarge or shrink him.
+```
