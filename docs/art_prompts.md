@@ -79,7 +79,7 @@ the hit: arm or leg fully extended.
 
 | Sheet | Frames | Second reference |
 |---|---|---|
-| `idle` | 4 | made by `tools/make_idle.py` |
+| `idle` | 4 | – |
 | `walk` | 6 | – |
 | `block`, `c_block` | 1, 1 | for `c_block`: `crouch` |
 | `crouch` | 1 | – |
@@ -90,10 +90,9 @@ the hit: arm or leg fully extended.
 | `fall`, `getup` | 3, 2 | – |
 | `win` | 2 | – |
 
-**idle** (4) - not generated: `python3 tools/make_idle.py <fighter>` draws the breathing from the master
-(upper body stretched up by 0, 3, 5, 3 cell px = 0, 1, 2, 1 game px, legs unchanged). Generators either
-change too much between the frames (pulsing) or too little to be seen in the game (first Konrad idle draft,
-2026-11-17: head moved by 1 px = less than half a game pixel).
+**idle** (4) - generated (owner's choice, 2026-11-17: the generator idle looks better than the breathing
+drawn by `tools/make_idle.py`, which stays available as a fallback). Konrad's approved idle sheet is in
+`assets/art/source/konrad_idle_raw.png`; it moves very little (head 1 px), which the owner accepts.
 
 **walk** (6)
 ```
