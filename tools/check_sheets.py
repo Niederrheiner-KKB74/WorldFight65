@@ -158,8 +158,11 @@ def main():
         if a == 'idle' and len(ms) > 1:
             tops = [f['top'] for f in ms]
             areas = [f['area'] for f in ms]
-            if max(tops) - min(tops) > 3:
-                r.err(name, f'Kopf springt zwischen den Frames um {max(tops) - min(tops)} px (höchstens 3)')
+            if max(tops) - min(tops) > 8:
+                r.err(name, f'Kopf springt zwischen den Frames um {max(tops) - min(tops)} px (höchstens 8)')
+            elif max(tops) - min(tops) < 3:
+                r.warn(name, f'Kopf bewegt sich nur um {max(tops) - min(tops)} px - im Spiel kaum sichtbar '
+                             f'(tools/make_idle.py erzeugt das Atmen aus dem Master)')
             if max(areas) / min(areas) - 1 > 0.05:
                 r.err(name, f'Figurfläche schwankt um {max(areas) / min(areas) - 1:.0%} (Pulsieren)')
         if not any(l.startswith(('  FEHLER   ' + a + ' ', '  FEHLER   ' + name)) for l in r.lines):

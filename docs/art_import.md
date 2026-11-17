@@ -12,6 +12,8 @@ compares sheets with the master before they are imported (without a master: fram
 
 ## Sheet format
 
+- `idle.png` is made from the master with `tools/make_idle.py` (breathing), not by the generator.
+
 - One PNG per animation: `assets/art/<fighter>/<animation>.png`, animation names as in `ANIMS` of
   `tools/make_assets.py` (`idle`, `walk`, `lp`, `hp`, `lk`, `hk`, `hit`, `crouch`, `c_lp`, `c_lk`, `sweep`,
   `block`, `c_block`, `jump`, `j_p`, `j_k`, `fall`, `getup`, `win`).
