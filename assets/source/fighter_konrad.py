@@ -102,7 +102,7 @@ def hk():
     # knee strike
     return [frame(stance(lean=8, ankle_f=(8, -18), toe_f=(13, -16), hand_f=(20, -70), hand_b=(14, -68)), 5),
             frame(stance(lean=4, hip=(7, -44), ankle_f=(14, -34), toe_f=(18, -30),
-                         hand_f=(26, -74), hand_b=(20, -72)), 5, 'knee_f'),
+                         hand_f=(26, -74), hand_b=(20, -72)), 5, (16, 28, -54, -42)),   # knee of the generator art
             frame(stance(lean=10, ankle_f=(12, -18), toe_f=(17, -16)), 6),
             frame(stance(lean=14), 4)]
 
