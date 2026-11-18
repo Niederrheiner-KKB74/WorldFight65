@@ -33,7 +33,7 @@ def P(**kw):
 
 
 # crouch (about 150 px high, as the crouch sprites)
-CROUCH = dict(squat=True, hip=(118, 190), lean=20, lead_foot=(164, 231), rear_foot=(80, 231),
+CROUCH = dict(squat=True, hip=(118, 188), lean=20, lead_foot=(166, 231), rear_foot=(112, 231),
               lead_hand=(166, 120), rear_hand=(148, 126))
 
 
@@ -51,10 +51,10 @@ def crouch_attacks():
         'c_lk': [Q(lead_foot=(178, 222), lean=16),
                  Q(lead_foot=(236, 226), lean=8, hip=(114, 192)),       # foot along the floor, ankle height
                  Q(lead_foot=(184, 228), lean=14)],
-        'sweep': [Q(hip=(112, 204), lean=34, rear_hand=(98, 232), lead_hand=(168, 168), lead_foot=(158, 231)),
-                  Q(hip=(110, 206), lean=38, rear_hand=(96, 232), lead_hand=(166, 174),
+        'sweep': [Q(hip=(112, 198), lean=34, rear_hand=(84, 232), lead_hand=(168, 168), lead_foot=(158, 231), rear_foot=(118, 231)),
+                  Q(hip=(110, 200), lean=38, rear_hand=(82, 232), lead_hand=(166, 174), rear_foot=(116, 231),
                     lead_foot=(236, 228), arrow=((170, 236), (226, 236))),   # leg sweeps along the floor
-                  Q(hip=(112, 204), lean=34, rear_hand=(98, 232), lead_hand=(168, 170),
+                  Q(hip=(112, 198), lean=34, rear_hand=(84, 232), lead_hand=(168, 170), rear_foot=(118, 231),
                     lead_foot=(196, 230), arrow=((232, 222), (204, 222))),
                   Q()],
     }
@@ -78,7 +78,7 @@ POSES = {
                P(rear_foot=(228, 72), lean=-24, hip=(112, 124), lead_foot=(140, 231),
                  lead_hand=(150, 96), rear_hand=(100, 110)),                              # martelo, x 207-240 y 56-85
                P(rear_foot=(170, 150), lean=-12, hip=(120, 126), lead_foot=(140, 231)),
-               P(rear_foot=(96, 231), lean=0)],
+               P(rear_foot=(116, 231), lean=0)],
     },
     'konrad': {
         'lp': [P(lead_hand=(180, 78), lean=8),
@@ -109,6 +109,27 @@ POSES = {
 
 for _f in POSES:
     POSES[_f].update(crouch_attacks())
+
+
+def fwd_angle(a, b):
+    """direction a -> b as an angle from straight down, positive towards the front (+x), degrees"""
+    return math.degrees(math.atan2(b[0] - a[0], b[1] - a[1]))
+
+
+def joint(root, target, l1, l2, leg):
+    """two-bone IK with a human joint: a knee only bends so that the shin folds BACK behind the thigh
+    (shin angle <= thigh angle), an elbow only so that the forearm folds FORWARD/UP (forearm angle >=
+    upper-arm angle). Of the two IK solutions the anatomically possible one is taken."""
+    best = None
+    for bend in (1, -1):
+        j, e = ik(root, target, l1, l2, bend)
+        a1, a2 = fwd_angle(root, j), fwd_angle(j, e)
+        d = (a1 - a2) if leg else (a2 - a1)
+        d = (d + 180) % 360 - 180
+        score = d if d >= -1 else -1000 + d
+        if best is None or score > best[0]:
+            best = (score, j, e)
+    return best[1], best[2]
 
 
 def ik(root, target, l1, l2, bend):
@@ -148,12 +169,8 @@ def draw(pose, d, ox):
             dx, dy = foot[0] - knee[0], foot[1] - knee[1]
             n = math.hypot(dx, dy) or 1
             ank = (knee[0] + SHIN * dx / n, knee[1] + SHIN * dy / n)
-        elif pose.get('squat'):                    # crouch: of the two knee positions the higher one
-            k1, a1 = ik(hip, foot, THIGH, SHIN, 1)
-            k2, a2 = ik(hip, foot, THIGH, SHIN, -1)
-            knee, ank = (k1, a1) if k1[1] <= k2[1] else (k2, a2)
         else:
-            knee, ank = ik(hip, foot, THIGH, SHIN, bend)
+            knee, ank = joint(hip, foot, THIGH, SHIN, leg=True)
         L([hip, knee, ank], cols[0], 15)
         on_floor = ank[1] > GROUND - 14
         if on_floor:
@@ -168,7 +185,7 @@ def draw(pose, d, ox):
         if elbow_key in pose:
             el = pose[elbow_key]
         else:
-            el, hand = ik(sh, hand, UPPER, FORE, bend)
+            el, hand = joint(sh, hand, UPPER, FORE, leg=False)
         L([sh, el, hand], cols[0], 12)
         C(hand, 8, cols[1])
 
@@ -193,8 +210,22 @@ def draw(pose, d, ox):
             L([(x1, y1), (x1 + 10 * math.cos(ang + da), y1 + 10 * math.sin(ang + da))], (120, 120, 120), 3)
 
 
+def check_floor():
+    bad = []
+    for f, anims in POSES.items():
+        for a, frames in anims.items():
+            for k, p in enumerate(frames):
+                for foot in ('lead_foot', 'rear_foot'):
+                    kn = p.get(foot.replace('foot', 'knee')) or joint(p['hip'], p[foot], THIGH, SHIN, leg=True)[0]
+                    if kn[1] > GROUND - 4:
+                        bad.append(f'{f} {a} {k + 1} {foot[:4]} knee y {kn[1]:.0f}')
+    return bad
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    for b in check_floor():
+        print('warning: knee below the floor:', b)
     for fighter, anims in POSES.items():
         for anim, frames in anims.items():
             n = len(frames)
