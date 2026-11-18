@@ -100,7 +100,11 @@ def ncm_glyph(a):
 # ------------------------------------------------------------------ arena
 def arena(gen, prev):
     import arena_rio
-    img = arena_rio.draw()
+    src = ROOT / 'assets' / 'art' / 'arena' / 'rio_source.png'
+    if src.exists():                    # owner's generator picture (Stage 4b), brought to 320 x 200
+        img = Image.open(src).convert('RGB').resize((320, 200), Image.BOX)
+    else:
+        img = arena_rio.draw()
     n = L['ARENA_COLOURS'] - 1          # entries 1..175; 0 stays black/transparent
     q = img.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
     idx = np.array(q, np.uint8).astype(np.int32) + 1

@@ -18,7 +18,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 
 | Address | Size | Use |
 |---|---|---|
-| `$40000–$4F9FF` | ≤ 62.5 KB | arena FCM glyphs (file `A-RIO-GFX`), char `$1000`+, max. 1,000 glyphs (Rio: 593) |
+| `$40000–$4F9FF` | ≤ 62.5 KB | arena FCM glyphs (file `A-RIO-GFX`), char `$1000`+, max. 1,000 glyphs (Rio: 996 since the generator picture of Stage 4b, 63,744 bytes) |
 | `$50000–$51BFF` | 7 KB | fighter 1, frame slot A (char `$1400`+) |
 | `$51C00–$537FF` | 7 KB | fighter 1, frame slot B (char `$1470`+) |
 | `$53800–$5383F` | 64 B | blank NCM glyph that ends every row (char `$14E0`) |
