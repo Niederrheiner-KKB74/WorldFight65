@@ -51,6 +51,14 @@ def main():
     col[bg] = imf.OUTLINE_RGB
     col = np.pad(col, ((pad, pad), (pad, pad), (0, 0)), mode='edge')
     msk = np.pad((~bg).astype(np.uint8) * 255, pad, mode='constant')
+    # each connected part of the figures belongs to the slot of its centre: a kicking foot may reach into
+    # the neighbouring slot and must neither be cut off nor appear in the neighbour's cell
+    from scipy import ndimage
+    lab, nlab = ndimage.label(msk > 0)
+    owner = np.zeros(nlab + 1, int)
+    for i, sl in enumerate(ndimage.find_objects(lab), start=1):
+        cx = (sl[1].start + sl[1].stop) / 2 - pad
+        owner[i] = min(a.frames - 1, max(0, int(cx // slot)))
     src_c = Image.fromarray(col)
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     for k in range(a.frames):
@@ -61,9 +69,7 @@ def main():
         box = (sx0, sy0, sx0 + imf.CELL / scale, sy0 + imf.CELL / scale)
         c = np.array(src_c.resize((imf.CELL, imf.CELL), Image.LANCZOS, box=box))
         # only this slot's figure: the cell window can reach into the neighbouring slots
-        mk = msk.copy()
-        mk[:, :pad + round(k * slot)] = 0
-        mk[:, pad + round((k + 1) * slot):] = 0
+        mk = np.where((lab > 0) & (owner[lab] == k), 255, 0).astype(np.uint8)
         m = np.array(Image.fromarray(mk).resize((imf.CELL, imf.CELL), Image.BOX, box=box)) >= 128
         c[~m] = KEY
         out.paste(Image.fromarray(c), (k * imf.CELL, 0))

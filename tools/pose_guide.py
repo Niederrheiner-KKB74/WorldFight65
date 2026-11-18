@@ -32,6 +32,34 @@ def P(**kw):
     return p
 
 
+# crouch (about 150 px high, as the crouch sprites)
+CROUCH = dict(squat=True, hip=(118, 190), lean=20, lead_foot=(164, 231), rear_foot=(80, 231),
+              lead_hand=(166, 120), rear_hand=(148, 126))
+
+
+def Q(**kw):
+    p = dict(CROUCH)
+    p.update(kw)
+    return p
+
+
+def crouch_attacks():
+    return {
+        'c_lp': [Q(lead_hand=(180, 118), lean=22),
+                 Q(lead_hand=(208, 114), lean=26, hip=(122, 190)),      # punch at stomach height of a stander
+                 Q(lead_hand=(180, 120), lean=22)],
+        'c_lk': [Q(lead_foot=(178, 222), lean=16),
+                 Q(lead_foot=(236, 226), lean=8, hip=(114, 192)),       # foot along the floor, ankle height
+                 Q(lead_foot=(184, 228), lean=14)],
+        'sweep': [Q(hip=(112, 204), lean=34, rear_hand=(98, 232), lead_hand=(168, 168), lead_foot=(158, 231)),
+                  Q(hip=(110, 206), lean=38, rear_hand=(96, 232), lead_hand=(166, 174),
+                    lead_foot=(236, 228), arrow=((170, 236), (226, 236))),   # leg sweeps along the floor
+                  Q(hip=(112, 204), lean=34, rear_hand=(98, 232), lead_hand=(168, 170),
+                    lead_foot=(196, 230), arrow=((232, 222), (204, 222))),
+                  Q()],
+    }
+
+
 # per fighter and animation: one pose per frame (only what differs from the guard)
 POSES = {
     'tiago': {
@@ -46,7 +74,7 @@ POSES = {
         'lk': [P(lead_foot=(150, 170), knee_lead=1, lean=-2, hip=(118, 126)),             # chamber
                P(lead_foot=(228, 124), lean=-10, hip=(114, 124), lead_hand=(150, 80)),   # ponteira, x 202-236
                P(lead_foot=(160, 190), lean=-2, hip=(118, 126))],
-        'hk': [P(rear_foot=(118, 170), lean=-6, hip=(126, 126)),                          # rear knee rises
+        'hk': [P(rear_foot=(120, 178), rear_knee=(154, 146), lean=-6, hip=(126, 126)),                          # rear knee rises
                P(rear_foot=(228, 72), lean=-24, hip=(112, 124), lead_foot=(140, 231),
                  lead_hand=(150, 96), rear_hand=(100, 110)),                              # martelo, x 207-240 y 56-85
                P(rear_foot=(170, 150), lean=-12, hip=(120, 126), lead_foot=(140, 231)),
@@ -77,6 +105,10 @@ POSES = {
                P(lean=4)],
     },
 }
+
+
+for _f in POSES:
+    POSES[_f].update(crouch_attacks())
 
 
 def ik(root, target, l1, l2, bend):
@@ -116,6 +148,10 @@ def draw(pose, d, ox):
             dx, dy = foot[0] - knee[0], foot[1] - knee[1]
             n = math.hypot(dx, dy) or 1
             ank = (knee[0] + SHIN * dx / n, knee[1] + SHIN * dy / n)
+        elif pose.get('squat'):                    # crouch: of the two knee positions the higher one
+            k1, a1 = ik(hip, foot, THIGH, SHIN, 1)
+            k2, a2 = ik(hip, foot, THIGH, SHIN, -1)
+            knee, ank = (k1, a1) if k1[1] <= k2[1] else (k2, a2)
         else:
             knee, ank = ik(hip, foot, THIGH, SHIN, bend)
         L([hip, knee, ank], cols[0], 15)
