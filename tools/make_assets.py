@@ -204,15 +204,19 @@ def fighters(gen, prev):
             it = iter(idx)
             drawn = {a: [next(it) for _ in drawn[a]] for a in ANIMS}
         rendered = []
+        art_boxes = []
         for a in ANIMS:
             rows_first.append(len(tab))
             rows_len.append(len(an[a]))
-            for fr, img in zip(an[a], drawn[a]):
+            for fi, (fr, img) in enumerate(zip(an[a], drawn[a])):
                 rendered.append(img)
                 data, w, h, xofs, ytop = frame_block(img)
                 if len(data) > L['SLOT_SIZE']:
                     sys.exit(f'{fname}: frame too large ({len(data)} bytes)')
                 hb = fr['hit'] or (0, 0, 0, 0)
+                if fr['hit'] and a in art:      # imported art: the box sits on the fist / foot / knee drawn
+                    hb = imf.strike_box(art[a][fi][1], hb)
+                    art_boxes.append(f'{a} {fi + 1}: {hb}')
                 # walk frames: duration in half pixels walked (fighter.asm walk_step), not in video frames
                 ticks = fr['ticks'] * m.STATS['walk_fwd'] if a == 'walk' else fr['ticks']
                 if not 0 < ticks < 256:
@@ -220,6 +224,8 @@ def fighters(gen, prev):
                 tab.append(dict(ofs=base + len(blob), glyphs=len(data) // 64, w=w, h=h, xofs=xofs, ytop=ytop,
                                 ticks=ticks, hit=1 if fr['hit'] else 0, hb=hb))
                 blob += data
+        if art_boxes:
+            print(f'  hit boxes from the art ({fname}): ' + '; '.join(art_boxes))
         rows_first += [0] * (ANIM_SLOTS - len(ANIMS))
         rows_len += [0] * (ANIM_SLOTS - len(ANIMS))
         if len(blob) > 0x40000:

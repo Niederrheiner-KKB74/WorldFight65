@@ -47,7 +47,7 @@ COSTUME = fa.Costume(
 BODY = dict(thigh=22, shin=21, upper=13, fore=13, torso=27, shoulder=4, hips=2)
 # walk speeds in half pixels per video frame (Stage 4b); walk ticks = video frames per walk frame
 # at forward speed, so that the feet of the sprite sheet stay on the ground
-STATS = dict(health=128, walk_fwd=3, walk_back=2, hurt_w=15, hurt_top=-90, crouch_top=-60)
+STATS = dict(health=128, walk_fwd=3, walk_back=2, hurt_w=18, hurt_top=-90, crouch_top=-60)
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk=(18, 22, 12, 0, 0),
              c_lp=(6, 11, 6, 0, 0), c_lk=(8, 13, 8, 1, 0), sweep=(14, 20, 6, 1, 1),

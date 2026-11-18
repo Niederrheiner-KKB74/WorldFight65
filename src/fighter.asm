@@ -25,7 +25,7 @@
 .const ST_WIN    = 12
 .const X_MIN = 24
 .const X_MAX = 296
-.const PUSH_MIN = 36            // the fighters' anchors never come closer than this (on the ground)
+.const PUSH_MIN = 34            // the fighters' anchors never come closer than this (on the ground)
 .const HITSTOP = 6              // frames both fighters freeze when a hit lands
 .const BLOCKSTOP = 4
 .const JUMP_T = 40              // frames in the air

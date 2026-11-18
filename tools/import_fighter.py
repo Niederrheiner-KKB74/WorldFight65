@@ -112,17 +112,38 @@ def place(cell_rgb, scale, ref_x):
 
 
 def fit(art_dir, ref_idle):
-    """Scale and horizontal reference for a fighter, from his idle sheet and the skeleton-drawn idle frame
-    ref_idle (index array): the imported figure gets the same height (soles to top of head) and the same
-    head/torso position relative to the anchor, so the hit boxes of the fighter module still fit."""
+    """Scale and horizontal reference for a fighter from his master (or idle) image: the figure gets the
+    height of the skeleton-drawn idle frame ref_idle (soles to top of head, about 97 px), and the anchor
+    (position, push and hurt boxes of the engine) sits under the centre of head and torso (Stage 4b; before,
+    the head/torso offset of the skeleton figure was copied, which put the anchors of the two fighters at
+    different places of their bodies)."""
     master = art_dir / 'master.png'
     c0 = cells(master)[0] if master.exists() else cells(art_dir / 'idle.png')[0]
     ref_fg = ref_idle > 0
     ref_h = fa.ANCHOR[1] - int(np.nonzero(ref_fg.any(axis=1))[0][0]) + 1
     scale = ref_h / figure_height(c0)
-    ref_dx = upper_centre_x(ref_fg, fa.ANCHOR[1]) - fa.ANCHOR[0]
-    ref_x = upper_centre_x(figure_mask(c0), BASELINE) - ref_dx / scale
+    ref_x = upper_centre_x(figure_mask(c0), BASELINE)
     return scale, ref_x
+
+
+def strike_box(mask, box, margin=8, width=14, min_h=10):
+    """Hit box (x0, x1, y0, y1) relative to the anchor, measured on an imported frame (canvas mask): the
+    foremost part of the figure inside the height band of the module's box (+- margin) - fist, foot or
+    knee of the attack."""
+    ax, ay = fa.ANCHOR
+    y0 = max(0, ay + box[2] - margin)
+    y1 = min(mask.shape[0], ay + box[3] + margin + 1)
+    band = mask[y0:y1]
+    ys, xs = np.nonzero(band)
+    if not len(xs):
+        return box
+    tip = int(xs.max())
+    sel = xs >= tip - width + 1
+    ty0, ty1 = int(ys[sel].min()) + y0, int(ys[sel].max()) + y0
+    if ty1 - ty0 + 1 < min_h:
+        c = (ty0 + ty1) // 2
+        ty0, ty1 = c - min_h // 2, c - min_h // 2 + min_h - 1
+    return (tip - width + 1 - ax, tip + 1 - ax, ty0 - ay, ty1 - ay)
 
 
 def import_anims(art_dir, ref_idle, counts):
