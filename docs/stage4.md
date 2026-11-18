@@ -65,3 +65,11 @@ Emulator test builds as in Stage 3 (`--define AUTOTEST` plus `AUTOTEST_INTRO`, `
   sweep) must be blocked crouching, jump attacks standing.
 - Emulator check: `--define AUTOTEST --define AUTOTEST_SPAR` (standing guard) and
   `... --define AUTOTEST_SPAR_LOW` (crouching guard) freeze in the guard pose.
+
+## Result (2026-11-18)
+
+Confirmed by the owner on real MEGA65 hardware: all fighter animations and moves of Tiago and Konrad
+from the generator art (idle, walk, block, crouch, standing and crouching attacks, sweep with fall and
+get-up, jump and jump attacks, hit, K.O., win), blocking with back / down-back, the sparring partner,
+the K.O. at the left and right screen edge (fighter stays visible), the generator arena.
+Release: `releases/stage4/` (SHA-256 in `SHA256SUMS.txt`); tag `stage4-stable` is set by the owner.
