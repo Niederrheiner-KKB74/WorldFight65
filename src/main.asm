@@ -281,7 +281,7 @@ at_script:
     AtEvent(620, $ff, 0)
 #elif AUTOTEST_KO2
     AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in, then keeps kicking
-    AtEvent(640, $ff, 0)
+    AtEvent(900, $ff, 0)
 #elif AUTOTEST_BLOCK
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
     AtEvent(196, 0, 0)

@@ -220,6 +220,9 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   calm poses at most 0.6 x their height wide (about 55 px in the game) to leave room to move.
 - **All fighters equally tall and in the same side view facing right** (owner, 2026-11-17): about 97 px in
   the game; differences in build (Konrad heavy, Tiago slim) come from width and mass, not from height.
+- **Pixie clipping at the screen edges** (Stage 4b): glyph columns that lie completely left (GOTOX < 0) or
+  right (GOTOX >= 336) of the screen are dropped, so a fighter lying at the edge after a K.O. stays partly
+  visible instead of vanishing (owner report on hardware, 2026-11-18).
 - **Palette per fighter from the imported art only** (Stage 4b): k-means in CIELAB over the distinct colours,
   weighted by the square root of their pixel count, so small details (belt, stripes) keep their colours;
   skeleton-drawn frames are only mapped onto it. **Master image per fighter** (`assets/art/<f>/master.png`),

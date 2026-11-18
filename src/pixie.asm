@@ -36,24 +36,29 @@ pixie_draw:
     lda px_x+1
     adc #0
     sta px_gx+1
-    bmi !skip+
+    bpl !+
+    cmp #$ff                    // left of the screen: columns are clipped below (Stage 4b)
+    bne !sk+
     beq !xok+
+!:  beq !xok+
     cmp #1
-    bne !skip+
+    bne !sk+
     lda px_gx
     cmp #<336
-    bcs !skip+
+    bcs !sk+
 !xok:
     lda px_y+1
     bmi !neg+
-    bne !skip+                  // >= 256: below the screen
+    bne !sk+                  // >= 256: below the screen
     lda px_y
     cmp #VIS_ROWS*8
-    bcs !skip+
+    bcs !sk+
     bcc !rows+
 !neg:
     cmp #$ff                    // more than 256 px above: skip
-    bne !skip+
+    beq !rows+
+!sk:
+    jmp px_skip
 !rows:
     lda px_y
     and #7
@@ -93,6 +98,62 @@ px_adv:
     inc px_bhi
     jmp px_adv
 px_noflip:
+    // Stage 4b: drop the columns that lie completely left of the screen (GOTOX < 0), so a fighter at the
+    // left edge (lying after a K.O., a wide attack frame) is clipped instead of not drawn at all
+!clip:
+    lda px_gx+1
+    bpl !clipped+
+    clc                         // gx += 16, one column less
+    lda px_gx
+    adc #16
+    sta px_gx
+    lda px_gx+1
+    adc #0
+    sta px_gx+1
+    dec px_w
+    beq !skip+                  // nothing left
+    lda px_flip
+    bne !cb+
+    clc                         // first emitted column moves one to the right: base + h + 1
+    lda px_base
+    adc px_step
+    sta px_base
+    bcc !clip-
+    inc px_bhi
+    jmp !clip-
+!cb:
+    sec                         // flipped: the first emitted column is one further back
+    lda px_base
+    sbc px_step
+    sta px_base
+    bcs !clip-
+    dec px_bhi
+    jmp !clip-
+!clipped:
+    // and the columns that would start right of the screen (GOTOX >= 336): keep (336 - gx + 15) / 16
+    sec
+    lda #<336+15
+    sbc px_gx
+    sta px_cmax
+    lda #>336+15
+    sbc px_gx+1
+    lsr
+    ror px_cmax
+    lsr
+    ror px_cmax
+    lsr
+    ror px_cmax
+    lsr
+    ror px_cmax
+    lda px_cmax
+    cmp px_w
+    bcs !+
+    sta px_w
+!:  lda px_w                    // bytes per fragment for the remaining columns
+    asl
+    clc
+    adc #2
+    sta px_need
     lda #0
     sta px_i
 !loop:
@@ -111,7 +172,9 @@ px_noflip:
     bne !loop-
 !done:
 !skip:
+px_skip:
     rts
+px_cmax: .byte 0               // columns that start on the screen (right-edge clipping)
 
 // emit row px_i of the current frame into display row px_row
 emit_fragment:
