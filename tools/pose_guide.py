@@ -107,8 +107,45 @@ POSES = {
 }
 
 
+def other_anims(fighter):
+    air = dict(squat=True, hip=(122, 126), lean=8, lead_foot=(150, 176), rear_foot=(108, 188),
+               lead_hand=(166, 80), rear_hand=(146, 86))
+
+    def A(**kw):
+        p = dict(air)
+        p.update(kw)
+        return p
+    if fighter == 'konrad':
+        win = [P(lean=0, lead_elbow=(166, 66), lead_hand=(160, 36), rear_elbow=(84, 66), rear_hand=(90, 36)),
+               P(lean=0, lead_elbow=(168, 64), lead_hand=(162, 32), rear_elbow=(82, 64), rear_hand=(88, 32),
+                 hip=(122, 126))]                                  # double biceps
+    else:
+        win = [P(lean=-2, lead_hand=(158, 12), rear_hand=(140, 96)),
+               P(lean=-4, lead_hand=(160, 8), rear_hand=(136, 100), hip=(122, 126))]   # one fist raised high
+    return {
+        'hit': [P(lean=-20, hip=(112, 128), lead_hand=(150, 104), rear_hand=(118, 112)),
+                P(lean=-8, hip=(116, 128), lead_hand=(160, 92), rear_hand=(132, 98))],
+        'jump': [Q(hip=(118, 176), lean=14, lead_hand=(168, 112), rear_hand=(150, 118)),
+                 A(),
+                 Q(hip=(118, 178), lean=12, lead_hand=(166, 116), rear_hand=(148, 122))],
+        'j_p': [A(), A(lead_hand=(204, 112), lean=16, arrow=((168, 84), (198, 108))), A()],
+        'j_k': [A(), A(lead_foot=(214, 196), lean=-6, rear_foot=(104, 184), arrow=((156, 178), (208, 194))), A()],
+        'fall': [P(lean=-34, hip=(108, 136), lead_foot=(150, 212), rear_foot=(84, 231),
+                   lead_hand=(150, 52), rear_hand=(70, 70)),
+                 P(lean=-74, hip=(124, 186), lead_foot=(186, 150), rear_foot=(176, 168),
+                   lead_hand=(70, 140), rear_hand=(64, 168)),
+                 P(lean=-90, hip=(140, 222), lead_foot=(214, 231), rear_foot=(206, 226),
+                   lead_hand=(110, 232), rear_hand=(96, 228))],
+        'getup': [Q(hip=(112, 196), lean=6, lead_foot=(150, 231), rear_foot=(66, 231), rear_knee=(104, 232),
+                    rear_hand=(82, 232), lead_hand=(150, 150)),
+                  Q(hip=(118, 160), lean=10, lead_hand=(162, 100), rear_hand=(146, 108))],
+        'win': win,
+    }
+
+
 for _f in POSES:
     POSES[_f].update(crouch_attacks())
+    POSES[_f].update(other_anims(_f))
 
 
 def fwd_angle(a, b):
@@ -158,9 +195,11 @@ def draw(pose, d, ox):
     hip = pose['hip']
     lean = math.radians(pose['lean'])
     neck = (hip[0] + TORSO * math.sin(lean), hip[1] - TORSO * math.cos(lean))
-    head = (neck[0] + 6 * math.sin(lean) + 4, neck[1] - HEAD_R - 6)
-    sh_lead = (neck[0] + 8, neck[1] + 8)
-    sh_rear = (neck[0] - 10, neck[1] + 8)
+    ux, uy = math.sin(lean), -math.cos(lean)        # along the torso, hip -> neck
+    px, py = -uy, ux                                 # across the torso (towards the front when upright)
+    head = (neck[0] + (HEAD_R + 6) * ux + 4 * px, neck[1] + (HEAD_R + 6) * uy + 4 * py)
+    sh_lead = (neck[0] + 8 * px - 8 * ux, neck[1] + 8 * py - 8 * uy)
+    sh_rear = (neck[0] - 10 * px - 8 * ux, neck[1] - 10 * py - 8 * uy)
 
     def leg(foot_key, knee_key, cols, bend):
         foot = pose[foot_key]
@@ -191,11 +230,12 @@ def draw(pose, d, ox):
 
     # rear leg behind the body; both arms in front of the (narrow, side-view) torso so they stay visible
     leg('rear_foot', 'rear_knee', REAR, 1)
-    d.polygon([((ox + hip[0] - 14) * S, (hip[1] + 6) * S), ((ox + hip[0] + 14) * S, (hip[1] + 6) * S),
-               ((ox + neck[0] + 16) * S, (neck[1] + 4) * S), ((ox + neck[0] - 16) * S, (neck[1] + 4) * S)],
+    h0, n0 = (hip[0] - 6 * ux, hip[1] - 6 * uy), (neck[0] - 4 * ux, neck[1] - 4 * uy)
+    d.polygon([((ox + h0[0] - 14 * px) * S, (h0[1] - 14 * py) * S), ((ox + h0[0] + 14 * px) * S, (h0[1] + 14 * py) * S),
+               ((ox + n0[0] + 16 * px) * S, (n0[1] + 16 * py) * S), ((ox + n0[0] - 16 * px) * S, (n0[1] - 16 * py) * S)],
               fill=BODY)
     C(head, HEAD_R, HEADC)
-    C((head[0] + 12, head[1] - 2), 4, (80, 80, 80))
+    C((head[0] + 12 * px - 2 * ux, head[1] + 12 * py - 2 * uy), 4, (80, 80, 80))
     leg('lead_foot', 'lead_knee', LEAD, 1)
     arm(sh_rear, 'rear_hand', 'rear_elbow', REAR, -1)
     arm(sh_lead, 'lead_hand', 'lead_elbow', LEAD, -1)
