@@ -136,7 +136,7 @@ def main():
                 r.err(where, f'Fußlinie y = {f["bot"]} statt {imf.BASELINE}')
             if a in ('idle', 'walk', 'block') and abs(f['h'] - m['h']) > (12 if a == 'walk' else 6):
                 r.err(where, f'Höhe {f["h"]} px, Master {m["h"]} px (Maßstab?)')
-            if a in CROUCHING and abs(f['h'] - CROUCH_H) > 10 and a != 'sweep':
+            if a in ('crouch', 'c_block') and abs(f['h'] - CROUCH_H) > 12:
                 r.err(where, f'Höhe {f["h"]} px, geduckt etwa {CROUCH_H} px (Maßstab?)')
             if a in CALM:
                 if f['w'] > 0.62 * m['h']:

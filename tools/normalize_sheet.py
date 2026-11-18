@@ -30,6 +30,9 @@ def main():
     ap.add_argument('--height', type=int, default=224)
     ap.add_argument('--scale', type=float, help='fixed scale instead of --height (e.g. the scale of the '
                     'master, for images drawn on the same canvas as the master: crouching figures stay small)')
+    ap.add_argument('--rear-foot', action='store_true', help='shift every cell so that the rear foot (the '
+                    'leftmost figure pixel on the floor) stands where it stands in the first cell - for attacks '
+                    'that keep the rear foot planted; generators centre each figure in its slot instead')
     a = ap.parse_args()
 
     rgb = np.array(Image.open(a.src).convert('RGB'))
@@ -73,6 +76,26 @@ def main():
         m = np.array(Image.fromarray(mk).resize((imf.CELL, imf.CELL), Image.BOX, box=box)) >= 128
         c[~m] = KEY
         out.paste(Image.fromarray(c), (k * imf.CELL, 0))
+    if a.rear_foot:
+        arr = np.array(out)
+        cellsl = [arr[:, k * imf.CELL:(k + 1) * imf.CELL] for k in range(a.frames)]
+
+        def rear_x(c):
+            fg = ~imf.background_mask(c)
+            floor = fg[imf.BASELINE - 12:imf.BASELINE + 1]
+            return int(np.nonzero(floor.any(axis=0))[0].min())
+        ref = rear_x(cellsl[0])
+        for k in range(1, a.frames):
+            dx = ref - rear_x(cellsl[k])
+            if dx:
+                c = np.full_like(cellsl[k], KEY)
+                if dx > 0:
+                    c[:, dx:] = cellsl[k][:, :-dx]
+                else:
+                    c[:, :dx] = cellsl[k][:, -dx:]
+                arr[:, k * imf.CELL:(k + 1) * imf.CELL] = c
+                print(f'  cell {k + 1}: shifted {dx:+d} px (rear foot)')
+        out = Image.fromarray(arr)
     out.save(a.dst)
     print(f'{a.src}: {W} x {H}, {a.frames} slots of {slot:.0f} px, figures {foot - min(tops) + 1} px high, '
           f'foot line y = {foot}, scale {scale:.3f} -> {a.dst}')
