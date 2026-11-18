@@ -62,6 +62,7 @@ system_save:
 
 exit_to_basic:
     sei
+    jsr sound_off                // Stage 5: silence the SIDs
     jsr wait_vblank              // switch modes while the raster is in the border
     lda #$00                     // MAPEDPAL = 0
     sta VIC_PALSEL

@@ -13,6 +13,7 @@
 #import "hw.asm"
 #import "layout.asm"
 #import "../build/gen/assets_const.inc"
+#import "../build/gen/music_const.inc"
 
 // ---------------------------------------------------------------- zero page ($02-$3f, saved and restored)
 .label back      = $02          // 0 = building buffer A, 1 = building buffer B
@@ -64,15 +65,20 @@ start:
     ldx #>msg_attic
     jmp print
 !:  LoadFile(name_agfx, name_agfx_end - name_agfx, ARENA_GFX, 250)
-    bcs !fail+
-    LoadFile(name_amap, name_amap_end - name_amap, ARENA_MAP, 35)
-    bcs !fail+
-    LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
-    bcs !fail+
-    LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
     bcc !+
-!fail:
     rts                                // failed: message printed, back to BASIC
+!:  LoadFile(name_amap, name_amap_end - name_amap, ARENA_MAP, 35)
+    bcc !+
+    rts
+!:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
+    bcc !+
+    rts
+!:  LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
+    bcc !+
+    rts
+!:  LoadFile(name_music, name_music_end - name_music, MUSIC_ADDR, (MUSIC_BYTES + 255) / 256)   // Stage 5
+    bcc !+
+    rts
 !:  sei
     lda #$47                           // VIC-IV I/O personality
     sta VIC_KEY
@@ -96,9 +102,11 @@ start:
     jsr palette_init
     jsr fighters_init
     jsr game_init
+    jsr sound_init                     // Stage 5: sound effects (SID 2 + 4)
 
 main_loop:
     jsr wait_vblank
+    jsr sound_frame                    // music (Stage 6) and sound effects, once per frame
     jsr flip                           // show the buffer just built
     lda build_slot                     // the shown buffer now uses the slots it was built with
     sta front_slot
@@ -341,6 +349,8 @@ name_f1:   .text "F-TIAGO,S,R"
 name_f1_end:
 name_f2:   .text "F-KONRAD,S,R"
 name_f2_end:
+name_music: .text "MUSIC,S,R"
+name_music_end:
 msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
            .byte 13, 0
 
@@ -352,6 +362,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "game.asm"
 #import "fx.asm"
 #import "sparring.asm"
+#import "sound.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"
 
@@ -363,4 +374,5 @@ job_font: DmaJob(DMA_CMD_COPY, font_gfx, FONT_GFX, 80 * 64)
 fx_gfx: .import binary "../build/gen/FX.bin"
 job_fx: DmaJob(DMA_CMD_COPY, fx_gfx, FX_GFX, 5 * FX_GLYPHS * 64)
 
+prg_end:
 .errorif * > $c000, "program must end below $C000"

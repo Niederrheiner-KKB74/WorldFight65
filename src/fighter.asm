@@ -442,9 +442,19 @@ start_attack:
     sta f_hitdone,x
     lda #ST_ATTACK
     sta f_state,x
+    jsr swing_sfx
     ldy f_move,x
     lda move_anim,y
     jmp start_anim
+
+// Stage 5: the swing sound of move f_move,X (light / heavy)
+swing_sfx:
+    ldy f_move,x
+    lda move_swing,y
+    jmp sfx_play
+move_swing: .byte SFX_SWING_LIGHT, SFX_SWING_HEAVY, SFX_SWING_LIGHT, SFX_SWING_HEAVY
+            .byte SFX_SWING_LIGHT, SFX_SWING_LIGHT, SFX_SWING_HEAVY, SFX_SWING_LIGHT, SFX_SWING_HEAVY
+            .fill MOVE_SLOTS - 9, SFX_SWING_HEAVY
 
 // ---- attack: on active frames test the hit box once; at the end back to standing or crouching
 st_attack:
@@ -494,6 +504,8 @@ start_jump:
     lda #0
     sta f_jt,x
     sta f_jatk,x
+    lda #SFX_JUMP               // Stage 5
+    jsr sfx_play
     lda #ST_JUMP
     jmp set_state
 
@@ -528,6 +540,7 @@ st_jump:
     sta f_jatk,x
     lda #0
     sta f_hitdone,x
+    jsr swing_sfx
     ldy f_move,x
     lda move_anim,y
     jsr start_anim
@@ -540,6 +553,8 @@ st_jump:
     bcc !+
     lda #0                      // landed
     sta f_y,x
+    lda #SFX_LAND
+    jsr sfx_play
     lda #ST_IDLE
     jmp set_state
 !:  rts
@@ -580,7 +595,20 @@ st_knock:
 !y: sta f_y,x
 !:  jsr pushback
     jsr anim_step
-    lda f_state,x
+    lda f_thud,x                // Stage 5: thud once when he lands on his back (last fall frame)
+    bne !t+
+    jsr anim_index
+    lda f_aframe,x
+    clc
+    adc #1
+    cmp anim_len,y
+    bne !t+
+    lda f_y,x
+    bne !t+
+    inc f_thud,x
+    lda #SFX_THUD
+    jsr sfx_play
+!t: lda f_state,x
     cmp #ST_KO
     beq !+
     dec f_stun,x
@@ -884,6 +912,8 @@ land_hit:
     beq !+
     lda #ST_CBLOCK
 !:  jsr set_state
+    lda #SFX_BLOCK              // Stage 5
+    jsr sfx_play
     lda #1                      // block spark
     jsr fx_spawn
     lda #BLOCKSTOP
@@ -900,6 +930,8 @@ land_hit:
     lda #0
 !:  sta f_health,x
     bne !alive+
+    lda #0
+    sta f_thud,x
     lda #ST_KO                  // knocked out
     jsr set_state
     lda #40
@@ -912,12 +944,20 @@ land_hit:
     beq !+
     lda #DOWN_TIME
     sta f_stun,x
+    lda #0
+    sta f_thud,x
     lda #ST_KNOCK
     jsr set_state
     jmp !done+
 !:  lda #ST_HIT
     jsr set_state
 !done:
+    lda #SFX_HIT_LIGHT          // Stage 5: heavy sound from 10 points of damage on
+    ldy lh_damage
+    cpy #10
+    bcc !+
+    lda #SFX_HIT_HEAVY
+!:  jsr sfx_play
     lda #0                      // hit spark
     jsr fx_spawn
     ldx sh_save
@@ -1141,6 +1181,7 @@ f_anim:     .fill 2, 0
 f_aframe:   .fill 2, 0
 f_tick:     .fill 2, 0
 f_sub:      .fill 2, 0      // odd half pixel of the walk movement
+f_thud:     .fill 2, 0      // Stage 5: the landing thud of this knockdown has sounded
 f_frame:    .fill 2, 0
 f_joy:      .fill 2, 0
 f_joyprev:  .fill 2, 0

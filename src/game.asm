@@ -74,6 +74,8 @@ g_intro:
     lda g_timer
     cmp #INTRO_FIGHT
     bne !+
+    lda #SFX_FIGHT              // Stage 5
+    jsr sfx_play
     lda #<txt_fight
     ldy #>txt_fight
     jmp set_banner
@@ -119,6 +121,8 @@ g_fight:
 
 // called by land_hit when fighter X is knocked out
 game_ko:
+    lda #SFX_KO                 // Stage 5
+    jsr sfx_play
     lda #G_KO
     sta g_state
     lda #0

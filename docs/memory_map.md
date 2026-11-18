@@ -1,4 +1,4 @@
-# Memory map (Stage 4)
+# Memory map (Stage 5)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -10,9 +10,10 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 
 | Address | Use |
 |---|---|
-| `$0002–$0037` | game zero page (`$1E` tmp2 since Stage 4b) (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
+| `$0002–$0037`, `$76–$79` | game zero page (`$1E` tmp2 since Stage 4b; `$76–$79` sound data pointer, Stage 5) (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
-| `$2020–$6915` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `$C000`) |
+| `$2020–$7493` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `MUSIC_ADDR`) |
+| `$A000–$BFFF` | file `MUSIC` (Stage 5): sound effects, later the music pieces (≤ 8 KB, `tools/build_music.py`) |
 
 ## Chip RAM, banks 4/5
 
@@ -33,7 +34,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 | `$5E000–$5F3FF` | 80×64 B | 16×16 font, 40 characters (char `$1780`+) |
 | `$5F400–$5FF3F` | 45×64 B | hit and block sparks, 5 frames of 2×3 NCM glyphs (char `$17D0`+) |
 
-Planned (not used yet): effect glyphs, music and samples.
+Planned (not used yet): effect glyphs for specials, samples.
 
 ## Colour RAM (`$FF80000`)
 

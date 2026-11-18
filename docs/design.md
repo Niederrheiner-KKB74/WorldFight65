@@ -136,9 +136,12 @@ attic RAM DMA time)**
   match ("<NAME> WINS", 6 s), then a new match starts. After a draw in round 3 round 3 is repeated.
   (Planned later: slow motion on KO, a separate winner screen.)
 
-## 7. Sound (planned)
-- Music and sound engine from ShooterMega65 (`sound.asm`, `build_music.py`): music on two SIDs, effects on
-  the others.
+## 7. Sound
+- Music and sound engine from ShooterMega65 Stage 19 (`src/sound.asm`, `tools/build_music.py`, format
+  `docs/music_json.md`): music on SID 1 mirrored to SID 3, effects on SID 2 mirrored to SID 4. File `MUSIC` at
+  `$A000` in bank 0. **Stage 5:** sound effects from `music/sfx.json` - swing light/heavy (attack start),
+  jump, landing, hit light/heavy (heavy from 10 points of damage), block, thud (lying after a knockdown),
+  K.O., "FIGHT!". Voice 0 swings/jump/landing, voice 1 hits/blocks, voice 2 thud/K.O./FIGHT. Music: Stage 6.
 - Hit and block sounds, voice-like shouts for special moves as samples played by audio DMA.
 
 ## 8. Artwork
