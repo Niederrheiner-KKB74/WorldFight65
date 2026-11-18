@@ -21,10 +21,13 @@ spar_a: .byte JOY_FIRE                      // light punch
         .byte JOY_DOWN | S_F | JOY_B2       // sweep (low, knocks down)
         .byte JOY_UP | S_F                  // jump in ...
         .byte JOY_UP | S_F                  // jump in ...
+        .byte 0                             // special move (Stage 5, spar_special)
 spar_b: .byte 0, 0, 0, 0, 0, 0, 0
         .byte JOY_FIRE                      // ... with a jumping punch (overhead)
         .byte JOY_B2                        // ... with a jumping kick (overhead)
-.const SPAR_STEPS = 9
+        .byte 0
+.const SPAR_STEPS = 10
+.const SPAR_SPECIAL = 9
 
 spar_mode: .byte 0              // 0 off, 1 = player 2 (fighter 1), 2 = player 1 (fighter 0)
 spar_t:    .byte 0
@@ -112,30 +115,76 @@ spar_update:
     rts
 !go:
     ldy spar_i
-    lda spar_t
+    cpy #SPAR_SPECIAL
+    bne !+
+    jmp spar_special
+!:  lda spar_t
     cmp #6
     bcs !+
     lda spar_a,y                // phase A
-    jmp !out+
+    jmp spar_out
 !:  cmp #14
     bcc !hold+
     cmp #20
     bcs !hold+
     lda spar_b,y                // phase B
-    jmp !out+
+    jmp spar_out
 !hold:
     lda spar_t                  // between the phases: keep crouching for crouching moves
     cmp #30
     bcs !none+
     lda spar_a,y
     and #JOY_DOWN
-    jmp !out+
+    jmp spar_out
 !none:
     lda #0
-!out:
+spar_out:
     bpl !+                      // bit 7 = forward
     and #$7f
     ora spar_fwd
 !:  sta f_joy,x
     rts
 spar_fwd: .byte 0
+
+// Stage 5: the special move of the sparring fighter, entered like a player would (fighter data:
+// ft_sp_motion, ft_sp_button). QCF: down 4 frames, down-forward 4, forward 4, then forward + button.
+// Charge: down-back for 42 frames (crouching, so he does not walk away), then forward + button.
+spar_special:
+    ldy f_id,x
+    lda ft_sp_motion,y
+    bne !chg+
+    lda spar_t
+    cmp #4
+    bcs !+
+    lda #JOY_DOWN
+    jmp spar_out
+!:  cmp #8
+    bcs !+
+    lda #JOY_DOWN | S_F
+    jmp spar_out
+!:  cmp #12
+    bcs !+
+    lda #S_F
+    jmp spar_out
+!:  cmp #15
+    bcs !none+
+    lda #S_F
+    ora ft_sp_button,y
+    jmp spar_out
+!chg:
+    lda spar_t
+    cmp #42
+    bcs !+
+    lda spar_fwd                // back = away from the other fighter
+    eor #JOY_LEFT | JOY_RIGHT
+    ora #JOY_DOWN
+    sta f_joy,x
+    rts
+!:  cmp #45
+    bcs !none+
+    lda #S_F
+    ora ft_sp_button,y
+    jmp spar_out
+!none:
+    lda #0
+    jmp spar_out

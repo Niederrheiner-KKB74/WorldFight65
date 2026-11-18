@@ -249,6 +249,7 @@ fighter_update:
     beq !+
     lda #1
 !:  sta f_down,x
+    jsr motion_track            // Stage 5: special-move motions
     // dispatch on the state
     ldy f_state,x
     lda st_lo,y
@@ -278,7 +279,10 @@ face_other:
 // ---- standing / walking
 st_ground:
     jsr face_other
-    lda f_hold                  // jump: up, with forward or back for a jump in that direction
+    jsr special_check           // Stage 5: a finished special motion + its button wins over everything
+    bcc !+
+    rts
+!:  lda f_hold                  // jump: up, with forward or back for a jump in that direction
     and #JOY_UP
     beq !+
     jmp start_jump
@@ -362,7 +366,10 @@ st_ground:
 // ---- crouching: crouching attacks; down-forward + button 2 = sweep
 st_crouch:
     jsr face_other
-    lda f_down,x
+    jsr special_check           // before leaving the crouch: QCF ends with down released in this frame
+    bcc !+
+    rts
+!:  lda f_down,x
     bne !+
     lda #ST_IDLE
     jmp set_state
@@ -454,10 +461,127 @@ swing_sfx:
     jmp sfx_play
 move_swing: .byte SFX_SWING_LIGHT, SFX_SWING_HEAVY, SFX_SWING_LIGHT, SFX_SWING_HEAVY
             .byte SFX_SWING_LIGHT, SFX_SWING_LIGHT, SFX_SWING_HEAVY, SFX_SWING_LIGHT, SFX_SWING_HEAVY
-            .fill MOVE_SLOTS - 9, SFX_SWING_HEAVY
+            .byte SFX_SPECIAL
+            .fill MOVE_SLOTS - 10, SFX_SWING_HEAVY
+
+// ---------------------------------------------------------------- special moves (Stage 5)
+// Each fighter has one special move (MOVE_SP1). Its motion and button are data (ft_sp_motion,
+// ft_sp_button); the recogniser below runs every frame in every state, so a motion can be entered while
+// an earlier attack or a hitstun is still running (input buffer).
+//  QCF:    down (f_q1) -> down-forward within Q_WIN (f_q2) -> forward within Q_WIN (f_q3), button within Q3_WIN
+//  charge: back (or down-back) held CHARGE_T frames, then forward + button within CHARGE_WIN frames
+.const Q_WIN = 12
+.const Q3_WIN = 10
+.const CHARGE_T = 40
+.const CHARGE_WIN = 10
+motion_track:
+    lda f_q1,x                  // count the windows down
+    beq !+
+    dec f_q1,x
+!:  lda f_q2,x
+    beq !+
+    dec f_q2,x
+!:  lda f_q3,x
+    beq !+
+    dec f_q3,x
+!:  lda f_cwin,x
+    beq !+
+    dec f_cwin,x
+!:  lda f_dir
+    ldy f_down,x
+    beq !up+
+    cmp #0                      // down
+    bne !+
+    lda #Q_WIN
+    sta f_q1,x
+    bne !chg+
+!:  cmp #1                      // down-forward after down
+    bne !chg+
+    lda f_q1,x
+    beq !chg+
+    lda #Q_WIN
+    sta f_q2,x
+    bne !chg+
+!up:
+    cmp #1                      // forward after down-forward
+    bne !chg+
+    lda f_q2,x
+    beq !chg+
+    lda #Q3_WIN
+    sta f_q3,x
+!chg:
+    lda f_dir
+    cmp #2
+    bne !rel+
+    lda f_chg,x                 // holding back: count up to 255
+    cmp #255
+    beq !+
+    inc f_chg,x
+!:  rts
+!rel:
+    cmp #1                      // forward after a full charge opens the window
+    bne !+
+    lda f_chg,x
+    cmp #CHARGE_T
+    bcc !+
+    lda #CHARGE_WIN
+    sta f_cwin,x
+!:  lda #0
+    sta f_chg,x
+    rts
+
+// C = 1 when the special move of fighter X has started (motion done and its button pressed now)
+special_check:
+    ldy f_id,x
+    lda f_press
+    and ft_sp_button,y
+    beq !no+
+    lda ft_sp_motion,y
+    bne !chg+
+    lda f_q3,x
+    beq !no+
+    bne !go+
+!chg:
+    lda f_dir                   // still holding forward
+    cmp #1
+    bne !no+
+    lda f_cwin,x
+    beq !no+
+!go:
+    lda #0
+    sta f_q1,x
+    sta f_q2,x
+    sta f_q3,x
+    sta f_cwin,x
+    lda #MOVE_SP1
+    jsr start_attack
+    sec
+    rts
+!no:
+    clc
+    rts
+
+// The special move dashes forward by ft_sp_dash pixels per frame until it has hit or been blocked
+// (at most up to its last active frame); push_apart keeps the fighters from passing through.
+special_dash:
+    lda f_move,x
+    cmp #MOVE_SP1
+    bne !+
+    lda f_hitdone,x
+    bne !+
+    lda f_aframe,x
+    cmp #3
+    bcs !+
+    ldy f_id,x
+    lda ft_sp_dash,y
+    sta tmp
+    lda f_facing,x              // 0 = right
+    jmp move_x
+!:  rts
 
 // ---- attack: on active frames test the hit box once; at the end back to standing or crouching
 st_attack:
+    jsr special_dash
     jsr attack_active
     jsr anim_step
     bcc !+
@@ -1159,7 +1283,7 @@ fighter_draw:
     jmp pixie_draw
 .errorif FLOOR_Y - FRAME_TOP + 112 > 255 || FLOOR_Y - FRAME_TOP < JUMP_H, "fighter y must stay within 0..255"
 
-move_anim:    .byte ANIM_LP, ANIM_HP, ANIM_LK, ANIM_HK, ANIM_C_LP, ANIM_C_LK, ANIM_SWEEP, ANIM_J_P, ANIM_J_K
+move_anim:    .byte ANIM_LP, ANIM_HP, ANIM_LK, ANIM_HK, ANIM_C_LP, ANIM_C_LK, ANIM_SWEEP, ANIM_J_P, ANIM_J_K, ANIM_SP1
 slot_lo:      .byte <SLOT_A, <SLOT_B, <SLOT_C, <SLOT_D
 slot_hi:      .byte >SLOT_A, >SLOT_B, >SLOT_C, >SLOT_D
 slot_bk:      .byte (SLOT_A >> 16) & $0f, (SLOT_B >> 16) & $0f, (SLOT_C >> 16) & $0f, (SLOT_D >> 16) & $0f
@@ -1196,6 +1320,11 @@ f_down:     .fill 2, 0              // holding down (crouch)
 f_jt:       .fill 2, 0              // frames in the air
 f_jdx:      .fill 2, 0              // jump sideways: 0 none, 1 right, 2 left
 f_jatk:     .fill 2, 0              // jump attack used
+f_q1:       .fill 2, 0              // Stage 5 QCF: frames left after down
+f_q2:       .fill 2, 0              //              after down-forward
+f_q3:       .fill 2, 0              //              after forward (the button may come now)
+f_chg:      .fill 2, 0              // Stage 5 charge: frames back has been held
+f_cwin:     .fill 2, 0              //                 frames left for forward + button after a charge
 front_slot: .fill 2, 0              // slot (0/1) used by the shown buffer
 build_slot: .fill 2, 0              // slot (0/1) used by the buffer being built
 other:      .byte 0

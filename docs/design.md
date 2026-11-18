@@ -142,7 +142,8 @@ attic RAM DMA time)**
   `$A000` in bank 0. **Stage 5:** sound effects from `music/sfx.json` - swing light/heavy (attack start),
   jump, landing, hit light/heavy (heavy from 10 points of damage), block, thud (lying after a knockdown),
   K.O., "FIGHT!". Voice 0 swings/jump/landing, voice 1 hits/blocks, voice 2 thud/K.O./FIGHT. Music: Stage 6.
-- Hit and block sounds, voice-like shouts for special moves as samples played by audio DMA.
+  Special moves start with their own sound (`special`, Stage 5b).
+- Later: voice-like shouts for special moves as samples played by audio DMA.
 
 ## 8. Artwork
 - **Since Stage 4b the fighters come from sprite sheets** made by the owner with an image generator and
@@ -235,6 +236,16 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   every sheet is an edit of it; `tools/check_sheets.py` compares sheets with it.
 - **Walk speed in half pixels, walk animation driven by distance** (Stage 4b): Tiago 2 px, Konrad 1.5 px
   forward, both 1 px back; the feet of the sheets stay on the ground in both directions.
+- **Special moves** (Stage 5b, proposal accepted by the owner 2026-11-18): one per fighter, as data in the
+  fighter module (`SPECIAL`: motion, button, dash, sheet mapping, placeholder) and in `MOVES['sp1']`; the
+  engine has no fighter-specific code. Motions: **QCF** (down, down-forward, forward within 12 frames each,
+  button within 10 frames) and **charge** (back or down-back held 40 frames, then forward + button within
+  10 frames). The recogniser (`motion_track`) runs every frame in every state, so motions can be entered
+  during an attack or a hitstun (input buffer). The special dashes forward by `dash` px per frame until it
+  hits or is blocked (at most up to its last active frame). Tiago: **meia-lua de compasso** (QCF + kick,
+  16 damage, knockdown, dash 3). Konrad: **Rammbock** shoulder charge (charge back, forward + punch,
+  18 damage, knockdown, dash 4). The owner's sheet `sp1.png` has 4 cells shown as 1, 2, 2, 3, 4; until it
+  exists the game uses frames of hk (Tiago) and hp (Konrad). Projectiles are left for later fighters.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

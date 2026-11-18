@@ -51,7 +51,14 @@ STATS = dict(health=128, walk_fwd=3, walk_back=2, hurt_w=18, hurt_top=-90, crouc
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk=(18, 22, 12, 0, 0),
              c_lp=(6, 11, 6, 0, 0), c_lk=(8, 13, 8, 1, 0), sweep=(14, 20, 6, 1, 1),
-             j_p=(12, 16, 8, 2, 0), j_k=(15, 18, 10, 2, 0))
+             j_p=(12, 16, 8, 2, 0), j_k=(15, 18, 10, 2, 0),
+             sp1=(18, 20, 14, 0, 1))
+# Stage 5: one special move per fighter: motion 'qcf' (down, down-forward, forward) or 'charge'
+# (hold back 40 frames, then forward), button 'punch' or 'kick', dash = pixels per frame until the hit;
+# sheet = which of the 4 cells of assets/art/<fighter>/sp1.png each game frame shows; placeholder = frames
+# of another animation used until that sheet exists
+SPECIAL = dict(motion='charge', button='punch', dash=4, sheet=[0, 1, 1, 2, 3],
+               placeholder=('hp', [0, 1, 1, 2, 3]))
 
 
 def stance(bob=0.0, **kw):
@@ -206,10 +213,21 @@ def win():
     return [frame(pose(0, 0), 16, face='win'), frame(pose(1, -1), 16, face='win')]
 
 
+def sp1():
+    # Stage 5 special: Rammbock (charge back, then forward + punch), a shoulder charge across the ring.
+    # Until the owner's sheet exists the frames come from hp (SPECIAL placeholder).
+    ram = stance(lean=26, hip=(3, -41), ankle_f=(20, -3), hand_f=(36, -60))
+    return [frame(stance(lean=4, hand_f=(10, -84)), 7),
+            frame(ram, 5, 'hand_f'),
+            frame(ram, 5, 'hand_f'),
+            frame(stance(lean=22, hip=(2, -41), hand_f=(30, -54)), 7),
+            frame(stance(lean=18), 7)]
+
+
 def anims():
     return dict(idle=idle(), walk=walk(), lp=lp(), hp=hp(), lk=lk(), hk=hk(), hit=hit(),
                 crouch=crouch(), c_lp=c_lp(), c_lk=c_lk(), sweep=sweep(), block=block(), c_block=c_block(),
-                jump=jump(), j_p=j_p(), j_k=j_k(), fall=fall(), getup=getup(), win=win())
+                jump=jump(), j_p=j_p(), j_k=j_k(), fall=fall(), getup=getup(), win=win(), sp1=sp1())
 
 
 if __name__ == '__main__':

@@ -53,7 +53,14 @@ STATS = dict(health=128, walk_fwd=4, walk_back=2, hurt_w=17, hurt_top=-92, crouc
 # damage, hitstun (frames), pushback (pixels, 2 per frame), height (0 mid, 1 low, 2 overhead), knockdown
 MOVES = dict(lp=(6, 12, 6, 0, 0), hp=(14, 18, 12, 0, 0), lk=(8, 14, 8, 0, 0), hk=(16, 20, 14, 0, 0),
              c_lp=(5, 11, 6, 0, 0), c_lk=(7, 13, 8, 1, 0), sweep=(12, 20, 6, 1, 1),
-             j_p=(10, 16, 8, 2, 0), j_k=(13, 18, 10, 2, 0))
+             j_p=(10, 16, 8, 2, 0), j_k=(13, 18, 10, 2, 0),
+             sp1=(16, 22, 10, 0, 1))
+# Stage 5: one special move per fighter: motion 'qcf' (down, down-forward, forward) or 'charge'
+# (hold back 40 frames, then forward), button 'punch' or 'kick', dash = pixels per frame until the hit;
+# sheet = which of the 4 cells of assets/art/<fighter>/sp1.png each game frame shows; placeholder = frames
+# of another animation used until that sheet exists
+SPECIAL = dict(motion='qcf', button='kick', dash=3, sheet=[0, 1, 1, 2, 3],
+               placeholder=('hk', [0, 1, 1, 2, 3]))
 
 
 def stance(bob=0.0, sway=0.0, guard=0.0, **kw):
@@ -212,10 +219,21 @@ def win():
     return [frame(pose(0, 0), 16, face='win'), frame(pose(1, -1), 16, face='win')]
 
 
+def sp1():
+    # Stage 5 special: meia-lua de compasso (quarter circle forward + kick), a spinning heel kick that
+    # steps in. Until the owner's sheet exists the frames come from hk (SPECIAL placeholder).
+    kick = stance(lean=-22, hip=(-2, -45), ankle_f=(40, -66), toe_f=(46, -70))
+    return [frame(stance(lean=-14, ankle_f=(14, -40), toe_f=(19, -38)), 6),
+            frame(kick, 4, 'toe_f'),
+            frame(kick, 5, 'toe_f'),
+            frame(stance(lean=-14, ankle_f=(22, -46), toe_f=(27, -45)), 7),
+            frame(stance(lean=-4, ankle_f=(12, -20), toe_f=(18, -19)), 7)]
+
+
 def anims():
     return dict(idle=idle(), walk=walk(), lp=lp(), hp=hp(), lk=lk(), hk=hk(), hit=hit(),
                 crouch=crouch(), c_lp=c_lp(), c_lk=c_lk(), sweep=sweep(), block=block(), c_block=c_block(),
-                jump=jump(), j_p=j_p(), j_k=j_k(), fall=fall(), getup=getup(), win=win())
+                jump=jump(), j_p=j_p(), j_k=j_k(), fall=fall(), getup=getup(), win=win(), sp1=sp1())
 
 
 if __name__ == '__main__':

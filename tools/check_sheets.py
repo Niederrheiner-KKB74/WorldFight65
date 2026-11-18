@@ -97,6 +97,7 @@ def main():
     art = ROOT / 'assets' / 'art' / fighter
     mod = importlib.import_module(f'fighter_{fighter}')
     counts = {a: len(v) for a, v in mod.anims().items()}
+    counts['sp1'] = max(mod.SPECIAL['sheet']) + 1        # Stage 5: 4 drawn cells, 5 game frames
     sheets = [Path(p) for p in sys.argv[2:]] or sorted(art.glob('*.png'))
     sheets = [p for p in sheets if p.name != 'master.png']
 

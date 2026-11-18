@@ -37,6 +37,10 @@
   "fight":       {"voice": 2, "priority": 4, "note": "G-4", "attack": 0, "decay": 9, "sustain": 6, "release": 6,
                   "pulse": 2048, "frames": 14,
                   "wave_table": [["pulse", 0], ["pulse", 0], ["pulse", 0], ["pulse", 5], ["pulse", 5], ["pulse", 5],
-                                 ["pulse", 12], ["pulse", 12], ["pulse", 12], ["pulse", 12], ["pulse", 12]]}
+                                 ["pulse", 12], ["pulse", 12], ["pulse", 12], ["pulse", 12], ["pulse", 12]]},
+  "special":     {"voice": 0, "priority": 3, "note": "C-4", "attack": 0, "decay": 8, "sustain": 0, "release": 0,
+                  "pulse": 1024, "frames": 8,
+                  "wave_table": [["saw", 0], ["saw", 3], ["saw", 7], ["saw", 12], ["noise", "C-6"], ["noise", 0],
+                                 ["noise", 2], ["noise", 5], ["noise", 8], ["noise", 11]]}
  }
 }

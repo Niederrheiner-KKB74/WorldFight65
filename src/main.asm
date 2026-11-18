@@ -290,6 +290,29 @@ at_script:
 #elif AUTOTEST_KO2
     AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in, then keeps kicking
     AtEvent(900, $ff, 0)
+#elif AUTOTEST_QCF
+    AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in (Stage 5)
+    AtEvent(176, JOY_DOWN, 0)                             // quarter circle forward ...
+    AtEvent(180, JOY_DOWN | JOY_RIGHT, 0)
+    AtEvent(184, JOY_RIGHT, 0)
+    AtEvent(187, JOY_RIGHT | JOY_B2, 0)                   // ... + kick: meia-lua de compasso
+    AtEvent(189, 0, 0)
+#if AUTOTEST_LATE
+    AtEvent(240, $ff, 0)                                  // Konrad on the floor
+#else
+    AtEvent(197, $ff, 0)                                  // the kick lands
+#endif
+#elif AUTOTEST_CHARGE
+    AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in (Stage 5)
+    AtEvent(190, 0, JOY_RIGHT | JOY_DOWN)                 // charges down-back ...
+    AtEvent(234, 0, JOY_LEFT)                             // ... forward
+    AtEvent(235, 0, JOY_LEFT | JOY_FIRE)                  // ... + punch: Rammbock
+    AtEvent(237, 0, 0)
+#if AUTOTEST_LATE
+    AtEvent(290, $ff, 0)
+#else
+    AtEvent(246, $ff, 0)
+#endif
 #elif AUTOTEST_BLOCK
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
     AtEvent(196, 0, 0)

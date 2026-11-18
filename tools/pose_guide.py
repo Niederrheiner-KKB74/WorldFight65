@@ -106,6 +106,24 @@ POSES = {
     },
 }
 
+# Stage 5 special moves: 4 drawn frames each (the game shows them as 1, 2, 2, 3, 4)
+POSES['tiago']['sp1'] = [   # meia-lua de compasso: hand to the floor, rear leg swings up and over in a wide arc
+    P(hip=(118, 136), lean=40, lead_hand=(170, 214), rear_hand=(150, 150), lead_foot=(150, 231),
+      rear_foot=(92, 222)),                                                           # turn down, hand reaches for the floor
+    P(hip=(112, 160), lean=78, lead_hand=(172, 216), rear_hand=(160, 206), lead_foot=(150, 231),
+      rear_foot=(66, 100), arrow=((52, 130), (92, 50))),                              # hands down, rear leg swings up behind
+    P(hip=(114, 160), lean=80, lead_hand=(174, 216), rear_hand=(162, 208), lead_foot=(150, 231),
+      rear_foot=(192, 90), arrow=((100, 44), (204, 74))),                             # heel arcs over, chest height in front
+    P(hip=(122, 132), lean=14, rear_foot=(100, 231), lead_hand=(168, 96), rear_hand=(146, 104))]  # back up
+POSES['konrad']['sp1'] = [  # Rammbock: lowers the shoulder and charges across the ring
+    P(hip=(118, 136), lean=28, lead_hand=(160, 118), rear_hand=(150, 128), lead_foot=(156, 231),
+      rear_foot=(84, 231)),                                                           # drops the shoulder
+    P(hip=(132, 140), lean=42, lead_elbow=(170, 122), lead_hand=(162, 140), rear_hand=(158, 150),
+      lead_foot=(184, 231), rear_foot=(66, 224), arrow=((60, 70), (120, 70))),        # drives forward off the rear foot
+    P(hip=(140, 138), lean=46, lead_elbow=(184, 118), lead_hand=(178, 136), rear_hand=(170, 148),
+      lead_foot=(190, 231), rear_foot=(76, 222), arrow=((150, 50), (214, 70))),       # shoulder impact, x 185-220 y 80-110
+    P(hip=(126, 132), lean=14, lead_hand=(170, 92), rear_hand=(150, 100))]           # back to the guard
+
 
 def other_anims(fighter):
     air = dict(squat=True, hip=(122, 126), lean=8, lead_foot=(150, 176), rear_foot=(108, 188),

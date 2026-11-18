@@ -152,8 +152,8 @@ def arena(gen, prev):
 # ------------------------------------------------------------------ fighters
 FIGHTERS = [('F-TIAGO', 'fighter_tiago', 'ATTIC_F1'), ('F-KONRAD', 'fighter_konrad', 'ATTIC_F2')]
 ANIMS = ['idle', 'walk', 'lp', 'hp', 'lk', 'hk', 'hit', 'crouch', 'c_lp', 'c_lk', 'sweep', 'block', 'c_block',
-         'jump', 'j_p', 'j_k', 'fall', 'getup', 'win']
-MOVES = ['lp', 'hp', 'lk', 'hk', 'c_lp', 'c_lk', 'sweep', 'j_p', 'j_k']
+         'jump', 'j_p', 'j_k', 'fall', 'getup', 'win', 'sp1']
+MOVES = ['lp', 'hp', 'lk', 'hk', 'c_lp', 'c_lk', 'sweep', 'j_p', 'j_k', 'sp1']
 ANIM_SLOTS = 32               # anim table index = fighter * 32 + animation
 MOVE_SLOTS = 16               # move table index = fighter * 16 + move
 
@@ -190,8 +190,19 @@ def fighters(gen, prev):
         blob = bytearray()
         # skeleton-drawn frames; animations with a sprite sheet in assets/art/<fighter>/ replace them
         drawn = {a: [fa.render(fr['pose'], m.COSTUME, fr.get('face', 'normal')) for fr in an[a]] for a in ANIMS}
-        art = imf.import_anims(ROOT / 'assets' / 'art' / modname[8:], drawn['idle'][0],
-                               {a: len(an[a]) for a in ANIMS})
+        # Stage 5: the special's sheet has 4 drawn cells; SPECIAL['sheet'] maps them onto its 5 game frames
+        counts = {a: len(an[a]) for a in ANIMS}
+        counts['sp1'] = max(m.SPECIAL['sheet']) + 1
+        art = imf.import_anims(ROOT / 'assets' / 'art' / modname[8:], drawn['idle'][0], counts)
+        if 'sp1' in art:
+            art['sp1'] = [art['sp1'][i] for i in m.SPECIAL['sheet']]
+        # Stage 5: a special move without its own sheet yet borrows frames of another imported animation
+        placeholder = set()
+        src, idx = m.SPECIAL['placeholder']
+        if art and 'sp1' not in art and src in art:
+            art['sp1'] = [art[src][i] for i in idx]
+            placeholder.add('sp1')
+            print(f'  sp1: placeholder frames {idx} of {src}')
         palette = m.PALETTE
         if art:
             pal = np.array(m.PALETTE, np.uint8)
@@ -200,7 +211,7 @@ def fighters(gen, prev):
                 for k, img in enumerate(drawn[a]):
                     if a in art:
                         mixed.append(art[a][k])
-                        weights.append(1)
+                        weights.append(0 if a in placeholder else 1)
                     else:
                         mixed.append((pal[img], img > 0))
                         weights.append(0)       # only mapped onto the palette of the imported art
@@ -283,6 +294,11 @@ def fighters(gen, prev):
     t.append(bl('ft_hurt_w', [x['hurt_w'] for x in stats]))
     t.append(bl('ft_hurt_h', [-x['hurt_top'] for x in stats]) + '   // height of the standing hurt box')
     t.append(bl('ft_crouch_h', [-x['crouch_top'] for x in stats]) + '   // height of the crouching hurt box')
+
+    sp = [importlib.import_module(modname).SPECIAL for _, modname, _ in FIGHTERS]
+    t.append(bl('ft_sp_motion', [{'qcf': 0, 'charge': 1}[x['motion']] for x in sp]) + '   // 0 QCF, 1 charge')
+    t.append(bl('ft_sp_button', [{'punch': 0x10, 'kick': 0x20}[x['button']] for x in sp]) + '   // JOY_FIRE / JOY_B2')
+    t.append(bl('ft_sp_dash', [x['dash'] for x in sp]) + '   // pixels per frame until the hit')
 
     def mv(k):
         return [(m[i][k] if i < len(m) else 0) for m in moves for i in range(MOVE_SLOTS)]
