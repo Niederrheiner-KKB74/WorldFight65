@@ -215,7 +215,7 @@ def fighters(gen, prev):
                     sys.exit(f'{fname}: frame too large ({len(data)} bytes)')
                 hb = fr['hit'] or (0, 0, 0, 0)
                 if fr['hit'] and a in art:      # imported art: the box sits on the fist / foot / knee drawn
-                    hb = imf.strike_box(art[a][fi][1], hb)
+                    hb = imf.strike_box(art[a][fi][1], hb, margin=200 if a in ('j_p', 'j_k') else 8)
                     art_boxes.append(f'{a} {fi + 1}: {hb}')
                 # walk frames: duration in half pixels walked (fighter.asm walk_step), not in video frames
                 ticks = fr['ticks'] * m.STATS['walk_fwd'] if a == 'walk' else fr['ticks']

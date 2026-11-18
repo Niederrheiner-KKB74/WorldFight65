@@ -30,6 +30,13 @@ def main():
     ap.add_argument('--height', type=int, default=224)
     ap.add_argument('--scale', type=float, help='fixed scale instead of --height (e.g. the scale of the '
                     'master, for images drawn on the same canvas as the master: crouching figures stay small)')
+    ap.add_argument('--area-match', metavar='MASTER', help='scale so that the median figure area equals the area '
+                    'of the master cell - for poses whose height says nothing about the scale (crouching, '
+                    'jumping, lying, raised fists)')
+    ap.add_argument('--top', type=int, help='airborne sheets: place the highest figure pixel of the sheet at this '
+                    'y instead of putting the lowest one on the foot line')
+    ap.add_argument('--center', action='store_true', help='centre each figure in its cell instead of keeping its '
+                    'place in the slot (wide poses such as lying on the floor would be cut at the cell edge)')
     ap.add_argument('--rear-foot', action='store_true', help='shift every cell so that the rear foot (the '
                     'leftmost figure pixel on the floor) stands where it stands in the first cell - for attacks '
                     'that keep the rear foot planted; generators centre each figure in its slot instead')
@@ -46,6 +53,18 @@ def main():
         tops.append(int(ys[0]))
         foot = max(foot, int(ys[-1]))
     scale = a.scale or a.height / (foot - min(tops) + 1)
+    if a.area_match:
+        from scipy import ndimage as ndi
+        m = imf.cells(a.area_match)[0]
+        m_area = imf.figure_mask(m).sum()
+        lab0, n0 = ndi.label(~bg)
+        areas = [0] * a.frames
+        for i, sl in enumerate(ndi.find_objects(lab0), start=1):
+            cx = (sl[1].start + sl[1].stop) / 2
+            areas[min(a.frames - 1, int(cx // slot))] += int((lab0[sl] == i).sum())
+        scale = float(np.sqrt(m_area / np.median(areas)))
+    if a.top is not None:                      # move the sheet so that its highest pixel lands on --top
+        foot = min(tops) - 1 + round((imf.BASELINE + 1 - a.top) / scale)
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     # colour: background replaced by the outline colour, resampled with LANCZOS (no aliasing on large
     # downscales of generator images); figure mask resampled separately, key colour put back outside it
@@ -66,6 +85,9 @@ def main():
     out = Image.new('RGB', (imf.CELL * a.frames, imf.CELL), KEY)
     for k in range(a.frames):
         cx = (k + 0.5) * slot
+        if a.center:
+            cols = np.nonzero(((lab > 0) & (owner[lab] == k)).any(axis=0))[0] - pad
+            cx = (cols.min() + cols.max() + 1) / 2
         # source window that maps onto the 256 x 256 cell
         sx0 = pad + cx - 128 / scale
         sy0 = pad + foot + 1 - (imf.BASELINE + 1) / scale
