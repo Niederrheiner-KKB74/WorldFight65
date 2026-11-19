@@ -42,7 +42,8 @@ Emulator test builds: `--define AUTOTEST --define AUTOTEST_QCF` (Tiago's special
 - Emulator smoke test (XEMU): both specials start (also with an early kick at down-forward and with the
   charge released through neutral), dash in, hit and knock down; no crash with the sound
   engine. XEMU audio was not judged (not authoritative).
-- Owner-confirmed on hardware: **pending**.
+- Owner-confirmed on hardware: **yes**, whole checklist (2026-11-19), tagged `stage5-stable` (e72f785).
+  The release README in `releases/stage5/` still says "pending"; the folder stays unchanged after the tag.
 
 ## Hardware checklist
 1. "FIGHT!" sound at the start of each round.

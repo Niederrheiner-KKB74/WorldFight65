@@ -186,7 +186,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 2 | Konrad, both fighters, both joysticks, light/heavy attacks, hits, hitstop, pushback, push boxes, energy bars, KO and next round |
 | 3 | jumping, crouching, blocking, attack heights, knockdown and getting up; rounds, timer, KO, win poses, font, names |
 | 4 | final artwork for both fighters (new renderer), facial expressions, new win poses, hit and block sparks |
-| 5 | special moves and projectiles, input buffer; sound effects |
+| 5 | special moves, input buffer; sound effects (confirmed on hardware 2026-11-19) |
 | 6 | title, fighter selection with package loading, versus screen, music, winner screen |
 | 7 | CPU opponent |
 | 8 | second arena, balancing, polish |
