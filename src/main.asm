@@ -300,7 +300,7 @@ at_script:
 #if AUTOTEST_LATE
     AtEvent(240, $ff, 0)                                  // Konrad on the floor
 #else
-    AtEvent(197, $ff, 0)                                  // the kick lands
+    AtEvent(201, $ff, 0)                                  // the kick lands
 #endif
 #elif AUTOTEST_CHARGE
     AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in (Stage 5)

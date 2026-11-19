@@ -16,9 +16,10 @@ Release files are in `releases/stage5/`.
 
   Facing left the directions are mirrored. The motion may be entered while another attack or a hitstun is
   still running (input buffer). Both specials can be blocked standing (they hit mid).
-- **Placeholder art:** the specials still show frames of Tiago's high kick and Konrad's forearm smash. Pose
-  guides `assets/art/guides/*_sp1_guide.png` and prompts `docs/art_prompts_special.md` are ready for the
-  owner's sheets (4 cells each).
+- **Artwork:** both specials come from the owner's generator sheets (`assets/art/<f>/sp1.png`, 4 cells,
+  2026-11-19; raw files in `assets/art/source/`). Tiago's cells are shown as 1, 2, 3, 3, 4 (the heel in
+  front is the active frame), Konrad's as 1, 2, 2, 3, 4. Hit boxes are measured on the art: Tiago's heel
+  at 56-65 px, Konrad's fists/shoulder at 46-74 px above the floor.
 - **Sparring partner** (key T): his sequence now ends with his special move (Konrad's charge crouches
   down-back for ~1 s first).
 
@@ -43,9 +44,9 @@ Emulator test builds: `--define AUTOTEST --define AUTOTEST_QCF` (Tiago's special
 5. Block sound (hold back while being attacked).
 6. Thud when a knocked-down fighter lands; K.O. sound at the end of a round.
 7. Sound stops when leaving the game (RUN/STOP + RESTORE path as before) and BASIC is fine afterwards.
-8. Tiago: down, down-forward, forward + button 2 → meia-lua de compasso (placeholder: high kick frames),
+8. Tiago: down, down-forward, forward + button 2 → meia-lua de compasso ,
    dashes in, knocks Konrad down; special sound on start.
-9. Konrad: hold back ~1 s, then forward + button 1 → Rammbock (placeholder: forearm smash frames), charges
+9. Konrad: hold back ~1 s, then forward + button 1 → Rammbock , charges
    in, knocks Tiago down. Also from down-back (crouching charge).
 10. Both specials are blocked by holding back; the attacker stops dashing when blocked.
 11. Normal heavy punch / heavy kick (forward + button) still come out when no motion was entered.

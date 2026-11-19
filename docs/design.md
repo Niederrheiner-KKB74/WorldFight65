@@ -244,8 +244,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   during an attack or a hitstun (input buffer). The special dashes forward by `dash` px per frame until it
   hits or is blocked (at most up to its last active frame). Tiago: **meia-lua de compasso** (QCF + kick,
   16 damage, knockdown, dash 3). Konrad: **Rammbock** shoulder charge (charge back, forward + punch,
-  18 damage, knockdown, dash 4). The owner's sheet `sp1.png` has 4 cells shown as 1, 2, 2, 3, 4; until it
-  exists the game uses frames of hk (Tiago) and hp (Konrad). Projectiles are left for later fighters.
+  18 damage, knockdown, dash 4). The owner's sheet `sp1.png` has 4 cells, mapped per fighter (`SPECIAL['sheet']`: Tiago 1, 2, 3, 3, 4;
+  Konrad 1, 2, 2, 3, 4; sheets delivered 2026-11-19); without a sheet the game borrows frames of hk / hp. Projectiles are left for later fighters.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

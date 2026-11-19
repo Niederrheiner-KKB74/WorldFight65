@@ -59,7 +59,7 @@ MOVES = dict(lp=(6, 12, 6, 0, 0), hp=(14, 18, 12, 0, 0), lk=(8, 14, 8, 0, 0), hk
 # (hold back 40 frames, then forward), button 'punch' or 'kick', dash = pixels per frame until the hit;
 # sheet = which of the 4 cells of assets/art/<fighter>/sp1.png each game frame shows; placeholder = frames
 # of another animation used until that sheet exists
-SPECIAL = dict(motion='qcf', button='kick', dash=3, sheet=[0, 1, 1, 2, 3],
+SPECIAL = dict(motion='qcf', button='kick', dash=3, sheet=[0, 1, 2, 2, 3],
                placeholder=('hk', [0, 1, 1, 2, 3]))
 
 
@@ -222,12 +222,13 @@ def win():
 def sp1():
     # Stage 5 special: meia-lua de compasso (quarter circle forward + kick), a spinning heel kick that
     # steps in. Until the owner's sheet exists the frames come from hk (SPECIAL placeholder).
+    # owner's sheet (4 cells): 1 turn down, 2 leg swings up behind, 3 heel in front (hit), 4 guard
     kick = stance(lean=-22, hip=(-2, -45), ankle_f=(40, -66), toe_f=(46, -70))
     return [frame(stance(lean=-14, ankle_f=(14, -40), toe_f=(19, -38)), 6),
+            frame(stance(lean=-14, ankle_f=(22, -46), toe_f=(27, -45)), 5),
             frame(kick, 4, 'toe_f'),
             frame(kick, 5, 'toe_f'),
-            frame(stance(lean=-14, ankle_f=(22, -46), toe_f=(27, -45)), 7),
-            frame(stance(lean=-4, ankle_f=(12, -20), toe_f=(18, -19)), 7)]
+            frame(stance(lean=-4, ankle_f=(12, -20), toe_f=(18, -19)), 8)]
 
 
 def anims():
