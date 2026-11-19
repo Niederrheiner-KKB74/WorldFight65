@@ -1,6 +1,6 @@
 # Prompts für die Spezialangriffe (Stage 5)
 
-Je Kämpfer ein Sheet `sp1.png` mit **4 Zellen** (das Spiel zeigt sie als 1, 2, 2, 3, 4). Bis das Sheet da ist,
+Je Kämpfer ein Sheet `sp1.png` mit **4 Zellen** (Zuordnung zu den 5 Spiel-Frames: `SPECIAL["sheet"]` im Kämpfermodul). Bis das Sheet da ist,
 nimmt das Spiel Platzhalter-Frames: Tiago aus `hk`, Konrad aus `hp`.
 Anhänge jeweils: 1. das Master-Bild des Kämpfers, 2. die Posen-Vorlage (`assets/art/guides/`).
 Ablegen als `assets/art/<kämpfer>/sp1.png`; Prüfung mit `tools/check_sheets.py`, Import über `tools/build.py`.
