@@ -19,7 +19,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 
 | Address | Size | Use |
 |---|---|---|
-| `$40000–$4F9FF` | ≤ 62.5 KB | arena FCM glyphs (file `A-RIO-GFX`), char `$1000`+, max. 1,000 glyphs (Rio: 996 since the generator picture of Stage 4b, 63,744 bytes) |
+| `$40000–$4F9FF` | ≤ 62.5 KB | picture FCM glyphs (since Stage 6 copied from attic RAM: arena or title picture), char `$1000`+, max. 1,000 glyphs (Rio: 996 since the generator picture of Stage 4b, 63,744 bytes) |
 | `$50000–$51BFF` | 7 KB | fighter 1, frame slot A (char `$1400`+) |
 | `$51C00–$537FF` | 7 KB | fighter 1, frame slot B (char `$1470`+) |
 | `$53800–$5383F` | 64 B | blank NCM glyph that ends every row (char `$14E0`) |
@@ -27,7 +27,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 | `$54000–$5503F` | 26×160 | RRB screen buffer A |
 | `$55200–$5623F` | 26×160 | RRB screen buffer B |
 | `$56400–$57FFF` | 7 KB | fighter 2, frame slot C (char `$1590`+) |
-| `$58800–$5AA8F` | 8848 B | arena map (file `A-RIO-MAP`): palette 0–175 (528 B), clean screen rows, clean colour rows |
+| `$58800–$5AA8F` | 8848 B | picture map (arena or title, copied from attic RAM since Stage 6): palette 0–175 (528 B), clean screen rows, clean colour rows |
 | `$5AC00–$5C7FF` | 7 KB | fighter 2, frame slot D (char `$16B0`+) |
 | `$5DB00–$5DDFF` | 768 B | BASIC's palette 0 until exit |
 | `$5DE00–$5DEFF` | 256 B | BASIC's zero page until exit |
@@ -50,6 +50,10 @@ Planned (not used yet): effect glyphs for specials, samples.
 |---|---|
 | `$8000000–$803FFFF` | fighter package 1, Tiago (file `F-TIAGO`, Stage 4: 55 frames, 164,800 bytes); the first byte is also the attic-RAM test cell |
 | `$8040000–$807FFFF` | fighter package 2, Konrad (file `F-KONRAD`, Stage 4: 55 frames, 167,488 bytes) |
+| `$8080000–$808F9FF` | title picture glyphs (file `T-TITLE-GFX`, Stage 6) |
+| `$8090000–$8092290` | title picture map (file `T-TITLE-MAP`) |
+| `$80A0000–$80AF9FF` | arena picture glyphs (file `A-RIO-GFX`; copied to `$40000` for the fight, Stage 6) |
+| `$80B0000–$80B2290` | arena picture map (file `A-RIO-MAP`; copied to `$58800`) |
 
 ## VIC-IV configuration
 

@@ -8,8 +8,8 @@ Each bar is one pattern of 16 rows (a row = a 16th note). Voice 1 melody, voice 
 voice 3 bass and drums in turn (drums on the beats, bass between them).
 - title: "Campeonato" - festive fanfare in C major with a samba-like syncopated bass, tempo 7 (~107 BPM),
   16 bars, loops from bar 1 (about 36 s).
-- fight: "Copacabana Clash" - driving A minor, tempo 5 (150 BPM), 4 bars intro + 32 bars, loops after the
-  intro (about 51 s).
+- fight: "Samba da Briga" - samba in D minor, tempo 6 (125 BPM), 2 bars intro + 24 bars, loops after the
+  intro (about 50 s); replaced "Copacabana Clash" after the owner's review (Stage 6).
 """
 import json
 from pathlib import Path
@@ -50,11 +50,15 @@ INSTRUMENTS = {
 
 
 def chord_quality(name):
-    return 'arp_min' if name.endswith('m') else 'arp_maj'
+    if name.endswith('m'):
+        return 'arp_min'
+    return 'arp_dom7' if name.endswith('7') else 'arp_maj'
 
 
 def chord_root(name, octave):
-    return note(name.rstrip('m').ljust(2, '-')[:2] + str(octave))
+    """'A#', 'Dm', 'E7', 'C' -> number of the root in this octave"""
+    root = name[:2] if len(name) > 1 and name[1] == '#' else name[0] + '-'
+    return note(root + str(octave))
 
 
 def arp_bar(ch, octave, rhythm):
@@ -74,6 +78,9 @@ def bass_bar(ch, style):
     if style == 'samba':        # surdo-like: kick on 1, snare on 3, syncopated bass
         hits = {0: 'kick', 8: 'kick', 4: 'snare', 12: 'snare', 14: 'hat'}
         bass = {3: root, 6: fifth, 10: root, 11: root + 12}
+    elif style == 'batucada':   # Stage 6 fight: surdo on 2 and 4, tamborim syncopation, partido-alto bass
+        hits = {4: 'surdo', 12: 'surdo', 2: 'tamb', 7: 'tamb', 10: 'tamb', 15: 'tamb'}
+        bass = {0: root, 3: root, 6: fifth, 8: root, 11: root + 12, 14: fifth}
     else:                       # driving rock: kick, bass eighths, snare on 2 and 4
         hits = {0: 'kick', 4: 'snare', 8: 'kick', 12: 'snare', 15: 'hat'}
         bass = {2: root, 3: root, 6: root + 12, 7: root, 10: fifth, 11: root, 14: root + 12}
@@ -101,7 +108,7 @@ def melody_bar(notes, inst):
     return rows
 
 
-def piece(name, title, tempo, volume, bars, intro_bars, style, lead, arp_octave, arp_rhythm):
+def piece(name, title, tempo, volume, bars, intro_bars, style, lead, arp_octave, arp_rhythm, instruments=None):
     """bars: list of (chord, melody notes); intro_bars: how many bars before the loop point"""
     pats, o1, o2, o3 = {}, [], [], []
 
@@ -117,7 +124,7 @@ def piece(name, title, tempo, volume, bars, intro_bars, style, lead, arp_octave,
         o2.append(add('a', arp_bar(ch, arp_octave, arp_rhythm)))
         o3.append(add('b', bass_bar(ch, style)))
     return {'format': 'worldfight65-music-1', 'name': title, 'tempo': tempo, 'volume': volume,
-            'instruments': INSTRUMENTS, 'patterns': pats,
+            'instruments': instruments or INSTRUMENTS, 'patterns': pats,
             'order': {'voice1': o1, 'voice2': o2, 'voice3': o3}, 'loop': intro_bars}
 
 
@@ -135,24 +142,50 @@ def title():
                  ('F', [(0, 'A-5'), (4, 'F-5'), (8, 'C-5'), (12, 'F-5')]),
                  ('G', [(0, 'G-5'), (2, 'A-5'), (4, 'B-5'), (8, 'D-6'), (12, 'B-5')]),
                  ('C', [(0, 'C-6'), (12, 'off')])]
-    return piece('title', 'Campeonato (title)', 7, 12, a + b, 0, 'samba', 'brass', 4, [0, 3, 6, 10, 12])
+    return piece('title', 'Campeonato (title)', 7, 10, a + b, 0, 'samba', 'brass', 4, [0, 3, 6, 10, 12])
+
+
+# Stage 6, after the owner's review ("sounds like the shooter, should fit Brazil, quieter"): a samba in
+# D minor - flute-like lead, cavaquinho strums in the partido-alto rhythm, surdo, tamborim and a walking
+# samba bass - with its own instruments.
+SAMBA = {
+    'flute':    {'wave': 'triangle', 'attack': 1, 'decay': 6, 'sustain': 10, 'release': 5,
+                 'vibrato': {'delay': 8, 'speed': 2, 'depth': 3}},
+    'arp_min':  {'wave': 'pulse', 'attack': 0, 'decay': 4, 'sustain': 0, 'release': 2, 'pulse': 600,
+                 'arpeggio': [0, 3, 7, 12]},
+    'arp_maj':  {'wave': 'pulse', 'attack': 0, 'decay': 4, 'sustain': 0, 'release': 2, 'pulse': 600,
+                 'arpeggio': [0, 4, 7, 12]},
+    'arp_dom7': {'wave': 'pulse', 'attack': 0, 'decay': 4, 'sustain': 0, 'release': 2, 'pulse': 600,
+                 'arpeggio': [0, 4, 7, 10]},
+    'bass':     {'wave': 'triangle', 'attack': 0, 'decay': 6, 'sustain': 4, 'release': 2},
+    'surdo':    {'attack': 0, 'decay': 9, 'sustain': 0, 'release': 0,
+                 'wave_table': [['triangle', 'C-3'], ['triangle', 'G-2'], ['triangle', 'D-2'], ['triangle', 'A-1'],
+                                ['triangle', 'F-1'], ['triangle', 'D-1']]},
+    'tamb':     {'attack': 0, 'decay': 2, 'sustain': 0, 'release': 0,
+                 'wave_table': [['pulse', 'E-6'], ['noise', 'C-7']]},
+}
 
 
 def fight():
-    # driving A minor: Am - F - G - Em ... bridge Dm - Am - E - E
-    intro = [('Am', None), ('Am', None), ('F', None), ('G', [(8, 'E-4'), (10, 'G-4'), (12, 'A-4'), (14, 'B-4')])]
-    a = [('Am', [(0, 'A-4'), (3, 'C-5'), (6, 'E-5'), (8, 'D-5'), (10, 'C-5'), (12, 'D-5'), (14, 'E-5')]),
-         ('F', [(0, 'F-5'), (4, 'E-5'), (6, 'C-5'), (8, 'A-4'), (12, 'off')]),
-         ('G', [(0, 'G-4'), (3, 'B-4'), (6, 'D-5'), (8, 'G-5'), (10, 'F-5'), (12, 'D-5'), (14, 'B-4')]),
-         ('Em', [(0, 'E-5'), (8, 'off'), (10, 'E-5'), (12, 'G-5'), (14, 'B-5')])]
-    a2 = a[:3] + [('Am', [(0, 'A-5'), (4, 'E-5'), (8, 'off'), (12, 'A-4'), (14, 'C-5')])]
-    br = [('Dm', [(0, 'D-5'), (2, 'F-5'), (4, 'A-5'), (8, 'G-5'), (10, 'F-5'), (12, 'E-5')]),
-          ('Am', [(0, 'C-5'), (4, 'E-5'), (8, 'A-5'), (12, 'off')]),
-          ('Dm', [(0, 'F-5'), (2, 'E-5'), (4, 'D-5'), (8, 'A-4'), (12, 'D-5')]),
-          ('E', [(0, 'E-5'), (2, 'G#5'), (4, 'B-5'), (8, 'G#5'), (12, 'E-5'), (14, 'D-5')])]
-    br2 = br[:3] + [('E', [(0, 'B-4'), (4, 'D-5'), (8, 'E-5'), (12, 'G#4')])]
-    return piece('fight', 'Copacabana Clash (fight)', 5, 12, intro + a + a2 + br + a + a2 + br2 + a + a2,
-                 4, 'rock', 'lead', 3, [0, 2, 6, 8, 10, 14])
+    intro = [('Dm', None), ('A7', [(8, 'A-4'), (10, 'C#5'), (12, 'E-5'), (14, 'G-5')])]
+    a = [('Dm', [(0, 'F-5'), (3, 'D-5'), (6, 'F-5'), (8, 'E-5'), (10, 'D-5'), (11, 'E-5'), (14, 'F-5')]),
+         ('Dm', [(4, 'E-5'), (6, 'D-5'), (8, 'A-4'), (12, 'off')]),
+         ('Gm', [(0, 'G-4'), (2, 'A#4'), (3, 'D-5'), (6, 'G-5'), (8, 'F-5'), (10, 'D-5'), (14, 'A#4')]),
+         ('A7', [(2, 'A-4'), (4, 'C#5'), (6, 'E-5'), (8, 'G-5'), (11, 'F-5'), (12, 'E-5'), (14, 'C#5')]),
+         ('Dm', [(0, 'D-5'), (3, 'F-5'), (6, 'A-5'), (8, 'G-5'), (10, 'F-5'), (12, 'E-5'), (14, 'D-5')]),
+         ('A#', [(2, 'D-5'), (4, 'F-5'), (6, 'A#5'), (8, 'A-5'), (12, 'F-5')]),
+         ('E7', [(0, 'E-5'), (2, 'G#5'), (4, 'B-5'), (6, 'D-6'), (8, 'B-5'), (10, 'G#5'), (12, 'E-5')]),
+         ('A7', [(0, 'C#5'), (4, 'E-5'), (8, 'A-4'), (12, 'off')])]
+    b = [('F', [(0, 'C-5'), (2, 'F-5'), (3, 'A-5'), (6, 'C-6'), (8, 'A-5'), (11, 'F-5'), (14, 'G-5')]),
+         ('F', [(2, 'A-5'), (4, 'G-5'), (6, 'F-5'), (8, 'C-5'), (12, 'off')]),
+         ('C7', [(0, 'E-5'), (3, 'G-5'), (6, 'A#5'), (8, 'A-5'), (10, 'G-5'), (12, 'E-5'), (14, 'C-5')]),
+         ('C7', [(2, 'D-5'), (4, 'E-5'), (6, 'G-5'), (8, 'C-5'), (12, 'off')]),
+         ('A#', [(0, 'D-5'), (2, 'F-5'), (3, 'A#5'), (6, 'D-6'), (8, 'C-6'), (10, 'A#5'), (12, 'A-5'), (14, 'G-5')]),
+         ('Gm', [(0, 'F-5'), (4, 'D-5'), (6, 'A#4'), (8, 'G-4'), (12, 'A#4')]),
+         ('A7', [(0, 'A-4'), (2, 'C#5'), (4, 'E-5'), (6, 'G-5'), (8, 'A-5'), (10, 'G-5'), (12, 'E-5'), (14, 'C#5')]),
+         ('A7', [(0, 'A-4'), (4, 'off'), (8, 'E-4'), (10, 'G-4'), (12, 'A-4'), (14, 'C#5')])]
+    return piece('fight', 'Samba da Briga (fight)', 6, 9, intro + a + b + a, 2, 'batucada', 'flute', 4,
+                 [0, 2, 3, 5, 7, 9, 11, 12, 14], SAMBA)
 
 
 if __name__ == '__main__':

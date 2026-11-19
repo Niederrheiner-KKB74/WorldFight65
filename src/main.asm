@@ -69,10 +69,16 @@ start:
     lda #<msg_attic
     ldx #>msg_attic
     jmp print
-!:  LoadFile(name_agfx, name_agfx_end - name_agfx, ARENA_GFX, 250)
-    bcc !+
+!:  LoadFile(name_agfx, name_agfx_end - name_agfx, ATTIC_AGFX, 252)   // Stage 6: pictures in attic RAM,
+    bcc !+                                                                // copied to the chip-RAM picture
     rts                                // failed: message printed, back to BASIC
-!:  LoadFile(name_amap, name_amap_end - name_amap, ARENA_MAP, 35)
+!:  LoadFile(name_amap, name_amap_end - name_amap, ATTIC_AMAP, 35)
+    bcc !+
+    rts
+!:  LoadFile(name_tgfx, name_tgfx_end - name_tgfx, ATTIC_TGFX, 252)
+    bcc !+
+    rts
+!:  LoadFile(name_tmap, name_tmap_end - name_tmap, ATTIC_TMAP, 35)
     bcc !+
     rts
 !:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
@@ -105,8 +111,11 @@ start:
     sta fx_on
     jsr wait_vblank
     jsr video_init
+    lda #0                             // Stage 6: the arena picture into chip RAM (title_enter shows the title)
+    jsr picture_copy
     jsr palette_init
     jsr fighters_init
+    jsr sound_init                     // before title_enter starts the music (Stage 5: sound effects SID 2 + 4)
 #if AUTOTEST && !AUTOTEST_MENU
     lda #M_FIGHT                       // emulator tests of the fight start in the fight
     sta g_mode
@@ -114,7 +123,6 @@ start:
 #else
     jsr title_enter                    // Stage 6: title -> selection -> versus -> fight
 #endif
-    jsr sound_init                     // Stage 5: sound effects (SID 2 + 4)
 
 main_loop:
     jsr wait_vblank
@@ -418,6 +426,10 @@ name_agfx: .text "A-RIO-GFX,S,R"
 name_agfx_end:
 name_amap: .text "A-RIO-MAP,S,R"
 name_amap_end:
+name_tgfx: .text "T-TITLE-GFX,S,R"
+name_tgfx_end:
+name_tmap: .text "T-TITLE-MAP,S,R"
+name_tmap_end:
 name_f1:   .text "F-TIAGO,S,R"
 name_f1_end:
 name_f2:   .text "F-KONRAD,S,R"

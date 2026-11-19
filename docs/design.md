@@ -261,6 +261,9 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   Screens are the arena backdrop plus the 16x16 font until the owner's title picture arrives (`src/menu.asm`).
   Music by Claude as data (`assets/source/compose_music.py` -> `music/title.json`, `music/fight.json`):
   title piece on title, selection and versus screen; fight piece from the first round to the match end.
+  The fight piece is a samba with its own instruments (owner: the first version sounded like the shooter
+  and should fit Brazil); music volume 9-10 of 15. Title picture from the owner's generator picture; title
+  and arena pictures are kept in attic RAM and copied by DMA into the one chip-RAM picture area.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

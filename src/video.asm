@@ -249,3 +249,24 @@ fighter_palettes:
 fp_who: .byte 0
 fp_save: .byte 0
 .errorif FIGHTER_BANK * 16 + 31 > 255, "fighter palettes must fit the palette index range"
+
+// Stage 6: A = 0 arena, 1 title picture: copy its glyphs and map from attic RAM to ARENA_GFX / ARENA_MAP
+// (picture_copy), then reload the palette (show_picture). Takes about 2 ms of DMA; one frame may show a mix.
+show_picture:
+    jsr picture_copy
+    jmp palette_init
+picture_copy:
+    cmp #0
+    bne !t+
+    RunDma(job_agfx)
+    RunDma(job_amap)
+    rts
+!t: RunDma(job_tgfx)
+    RunDma(job_tmap)
+    rts
+.const PIC_MAP_BYTES = MAP_PAL_BYTES + 2 * BUF_BYTES
+job_agfx: DmaJob(DMA_CMD_COPY, ATTIC_AGFX, ARENA_GFX, 1000 * 64)
+job_amap: DmaJob(DMA_CMD_COPY, ATTIC_AMAP, ARENA_MAP, PIC_MAP_BYTES)
+job_tgfx: DmaJob(DMA_CMD_COPY, ATTIC_TGFX, ARENA_GFX, 1000 * 64)
+job_tmap: DmaJob(DMA_CMD_COPY, ATTIC_TMAP, ARENA_MAP, PIC_MAP_BYTES)
+.errorif PIC_MAP_BYTES != 8848, "picture map size"

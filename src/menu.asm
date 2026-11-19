@@ -17,6 +17,8 @@
 title_enter:
     lda #MUS_TITLE              // title music, also during the selection and the versus screen
     jsr music_play
+    lda #1                      // the owner's title picture
+    jsr show_picture
     lda #M_TITLE
     sta g_mode
     lda #0
@@ -30,7 +32,10 @@ select_enter:
     bne !+
     lda #MUS_TITLE
     jsr music_play
-!:  lda #M_SELECT
+    jmp !a+                     // (the arena is already shown)
+!:  lda #0                      // from the title: the arena again
+    jsr show_picture
+!a: lda #M_SELECT
     sta g_mode
     lda #0
     sta m_timer
@@ -171,18 +176,18 @@ menu_draw:
     // title
     lda #<txt_title1
     ldy #>txt_title1
-    ldx #6
+    ldx #1
     jsr text_centre
     lda #<txt_title2
     ldy #>txt_title2
-    ldx #9
+    ldx #4
     jsr text_centre
     lda m_timer                 // "PRESS FIRE" blinks
     and #32
     bne !r+
     lda #<txt_press
     ldy #>txt_press
-    ldx #16
+    ldx #21
     jmp text_centre
 !r: rts
 !:  cmp #M_SELECT

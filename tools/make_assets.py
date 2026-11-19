@@ -49,6 +49,10 @@ L = dict(
     COLOUR_B=0x2400,
     ATTIC_F1=0x8000000,       # fighter packages in attic RAM (256 KB each)
     ATTIC_F2=0x8040000,
+    ATTIC_TGFX=0x8080000,     # Stage 6: pictures kept in attic RAM and copied to ARENA_GFX / ARENA_MAP
+    ATTIC_TMAP=0x8090000,     #   title picture
+    ATTIC_AGFX=0x80A0000,     #   arena
+    ATTIC_AMAP=0x80B0000,
     ARENA_COLOURS=176,        # palette entries 0..175 belong to the arena
     FIGHTER_BANK=12,          # fighter 1: bank 12, fighter 2: bank 13
     HUD_BANK=15,
@@ -128,13 +132,57 @@ def arena(gen, prev):
         img = Image.open(src).convert('RGB').resize((320, 200), Image.BOX)
     else:
         img = arena_rio.draw()
+    return picture(img, 'A-RIO', gen, prev / 'arena_rio.png')
+
+
+def title(gen, prev):
+    """Stage 6: the owner's title picture, same format as an arena (shown on the title screen)"""
+    src = ROOT / 'assets' / 'art' / 'title' / 'title_source.png'
+    img = Image.open(src).convert('RGB').resize((320, 200), Image.BOX)
+    # octree keeps small saturated details (Tiago's green belt) that median cut loses
+    return picture(img, 'T-TITLE', gen, prev / 'title.png', Image.Quantize.FASTOCTREE)
+
+
+def merge_glyphs(idx, pal, limit):
+    """More than limit different 8 x 8 tiles: replace the rarest tiles by their most similar tile (colour
+    distance summed over the 64 pixels) until limit tiles are left. Returns the new index picture."""
+    rgb = np.array(pal, np.int32)
+    h, w = idx.shape
+    tiles = idx.reshape(h // 8, 8, w // 8, 8).transpose(0, 2, 1, 3).reshape(-1, 64)
+    keys, inv, cnt = np.unique(tiles, axis=0, return_inverse=True, return_counts=True)
+    inv = inv.reshape(-1)
+    alive = list(range(len(keys)))
+    target = {k: k for k in alive}
+    col = rgb[keys]                                     # (n, 64, 3)
+    merged = 0
+    while len(alive) > limit:
+        k = min(alive, key=lambda a: cnt[a])
+        others = [a for a in alive if a != k]
+        d = ((col[others] - col[k]) ** 2).sum(axis=(1, 2))
+        best = others[int(np.argmin(d))]
+        for a, t in target.items():
+            if t == k:
+                target[a] = best
+        cnt[best] += cnt[k]
+        alive.remove(k)
+        merged += 1
+    new = np.array([keys[target[a]] for a in inv]).reshape(h // 8, w // 8, 8, 8).transpose(0, 2, 1, 3)
+    print(f'  {merged} similar tiles merged')
+    return new.reshape(h, w)
+
+
+def picture(img, name, gen, preview, method=Image.Quantize.MEDIANCUT):
+    """320 x 200 picture -> <name>-GFX (FCM glyphs) and <name>-MAP (palette, clean RRB screen and colour)"""
     n = L['ARENA_COLOURS'] - 1          # entries 1..175; 0 stays black/transparent
-    q = img.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    q = img.quantize(colors=n, method=method, dither=Image.Dither.NONE)
     idx = np.array(q, np.uint8).astype(np.int32) + 1
     qpal = q.getpalette()[:n * 3]
     pal = [(0, 0, 0)] + [tuple(qpal[i * 3:i * 3 + 3]) for i in range(n)]
     pal += [(0, 0, 0)] * (L['ARENA_COLOURS'] - len(pal))
     assert idx.max() < L['ARENA_COLOURS'] and idx.min() >= 1
+    tiles = {idx[r * 8:r * 8 + 8, c * 8:c * 8 + 8].tobytes() for r in range(25) for c in range(40)}
+    if len(tiles) > MAX_ARENA_GLYPHS - 1:              # glyph 0 is the blank one
+        idx = merge_glyphs(idx, pal, MAX_ARENA_GLYPHS - 1)
     glyphs = {bytes(64): 0}
     order = [bytes(64)]
     rows = []
@@ -148,8 +196,8 @@ def arena(gen, prev):
             row.append(glyphs[g])
         rows.append(row)
     if len(order) > MAX_ARENA_GLYPHS:
-        sys.exit(f'arena: {len(order)} glyphs, max. {MAX_ARENA_GLYPHS}')
-    (gen / 'A-RIO-GFX.bin').write_bytes(b''.join(order))
+        sys.exit(f'{name}: {len(order)} glyphs, max. {MAX_ARENA_GLYPHS}')
+    (gen / f'{name}-GFX.bin').write_bytes(b''.join(order))
     # clean RRB screen: 2 hidden + 40 picture chars, null GOTOX tokens to x 320, blank NCM glyph at the end
     scr, col = bytearray(), bytearray()
     for r in range(L['BUF_ROWS']):
@@ -165,10 +213,11 @@ def arena(gen, prev):
         col += bytes((0x08, 0x0f))
     assert len(scr) == L['BUF_BYTES']
     palb = bytes(swap(c[ch]) for ch in range(3) for c in pal)
-    (gen / 'A-RIO-MAP.bin').write_bytes(palb + scr + col)
+    (gen / f'{name}-MAP.bin').write_bytes(palb + scr + col)
     # preview of what the MEGA65 will show
     rgb = np.array(pal, np.uint8)[idx]
-    Image.fromarray(rgb).resize((960, 600), Image.NEAREST).save(prev / 'arena_rio.png')
+    Image.fromarray(rgb).resize((960, 600), Image.NEAREST).save(preview)
+    print(f'{name}: {len(order)} glyphs')
     return len(order), pal
 
 
@@ -513,6 +562,7 @@ def main():
     inc += [f'.const {k} = ${v:x}' for k, v in L.items()]
     (gen / 'layout.inc').write_text('\n'.join(inc) + '\n')
     n, pal = arena(gen, prev)
+    title(gen, prev)
     tab, mods = fighters(gen, prev)
     nfont = font(gen, prev)
     nfx, fxsize = effects(gen, prev)

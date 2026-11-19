@@ -2,7 +2,7 @@
  "format": "worldfight65-music-1",
  "name": "Campeonato (title)",
  "tempo": 7,
- "volume": 12,
+ "volume": 10,
  "instruments": {
   "lead": {
    "wave": "pulse",
