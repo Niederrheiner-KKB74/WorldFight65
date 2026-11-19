@@ -15,6 +15,11 @@
 #import "../build/gen/assets_const.inc"
 #import "../build/gen/music_const.inc"
 
+.const M_TITLE  = 0               // game modes (Stage 6, menu.asm)
+.const M_SELECT = 1
+.const M_VERSUS = 2
+.const M_FIGHT  = 3
+
 // ---------------------------------------------------------------- zero page ($02-$3f, saved and restored)
 .label back      = $02          // 0 = building buffer A, 1 = building buffer B
 .label overflow  = $03          // RRB fragments dropped (debug)
@@ -102,7 +107,13 @@ start:
     jsr video_init
     jsr palette_init
     jsr fighters_init
+#if AUTOTEST && !AUTOTEST_MENU
+    lda #M_FIGHT                       // emulator tests of the fight start in the fight
+    sta g_mode
     jsr game_init
+#else
+    jsr title_enter                    // Stage 6: title -> selection -> versus -> fight
+#endif
     jsr sound_init                     // Stage 5: sound effects (SID 2 + 4)
 
 main_loop:
@@ -117,19 +128,31 @@ main_loop:
 #if AUTOTEST
     jsr autotest_joy                   // test build: scripted joysticks (build.py --define AUTOTEST...)
     lda at_freeze
-    bne !+
+    bne main_draw
 #else
     jsr read_joysticks
     jsr spar_update                    // key T: one player attacks by himself (solo tests)
 #endif
     jsr game_update
+    lda g_mode                         // Stage 6: the fighters only fight in the fight mode
+    cmp #M_FIGHT
+    bne !+
     jsr fighters_update
     jsr motion_debug                   // key M: special-move recogniser in the border
-    jsr fx_update
-!:  jsr buffer_clear
+!:  jsr fx_update
+main_draw:
+    jsr buffer_clear
+    lda g_mode                         // no fighters on the title screen
+    beq !+
     jsr fighters_draw
-    jsr fx_draw
+!:  jsr fx_draw
+    lda g_mode
+    cmp #M_FIGHT
+    bne !+
     jsr hud_draw
+    jmp !d+
+!:  jsr menu_draw
+!d:
     jmp main_loop
 
 // Virtual joysticks: bits 0-4 from the CIA (active high), bit 5 = button 2 from the POT X line
@@ -267,6 +290,26 @@ at_guard:  .byte 0
 at_script:
 #if AUTOTEST_INTRO
     AtEvent(60, $ff, 0)                                  // "ROUND 1" banner
+#elif AUTOTEST_MENU
+    // Stage 6: title -> selection (player 1 takes Konrad, player 2 too: mirror match) -> versus -> fight
+#if AUTOTEST_MENU_T
+    AtEvent(60, $ff, 0)
+#endif
+    AtEvent(80, JOY_FIRE, 0)
+    AtEvent(82, 0, 0)
+    AtEvent(100, JOY_RIGHT, 0)
+    AtEvent(102, 0, 0)
+    AtEvent(110, JOY_FIRE, 0)
+    AtEvent(112, 0, 0)
+#if AUTOTEST_MENU_S
+    AtEvent(116, $ff, 0)
+#endif
+    AtEvent(120, 0, JOY_FIRE)
+    AtEvent(122, 0, 0)
+#if AUTOTEST_MENU_V
+    AtEvent(240, $ff, 0)
+#endif
+    AtEvent(560, $ff, 0)
 #elif AUTOTEST_JUMP
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in
     AtEvent(176, JOY_UP | JOY_RIGHT, 0)                   // jumps forward
@@ -388,6 +431,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "game.asm"
 #import "fx.asm"
 #import "sparring.asm"
+#import "menu.asm"
 #import "sound.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"

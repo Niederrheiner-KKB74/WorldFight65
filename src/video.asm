@@ -86,18 +86,7 @@ palette_init:
     cpx #ARENA_COLOURS
     bne !-
     ldx #15
-!:  lda pal_f1_r,x                      // fighter 1 -> bank 12, fighter 2 -> bank 13, HUD -> bank 15
-    sta PAL_RED+FIGHTER_BANK*16,x
-    lda pal_f1_g,x
-    sta PAL_GREEN+FIGHTER_BANK*16,x
-    lda pal_f1_b,x
-    sta PAL_BLUE+FIGHTER_BANK*16,x
-    lda pal_f2_r,x
-    sta PAL_RED+(FIGHTER_BANK+1)*16,x
-    lda pal_f2_g,x
-    sta PAL_GREEN+(FIGHTER_BANK+1)*16,x
-    lda pal_f2_b,x
-    sta PAL_BLUE+(FIGHTER_BANK+1)*16,x
+!:  // fighters: fighter_palettes (Stage 6), HUD -> bank 15, sparks -> bank 11
     lda pal_hud_r,x
     sta PAL_RED+HUD_BANK*16,x
     lda pal_hud_g,x
@@ -112,7 +101,7 @@ palette_init:
     sta PAL_BLUE+FX_BANK*16,x
     dex
     bpl !-
-    rts
+    jmp fighter_palettes
 
 // Start a new back buffer: clean arena rows (background + empty overlay), all rows empty.
 buffer_clear:
@@ -196,3 +185,67 @@ job_cclean_a: DmaJob(DMA_CMD_COPY, CLEAN_COL, COLRAM + COLOUR_A, BUF_BYTES)
 job_cclean_b: DmaJob(DMA_CMD_COPY, CLEAN_COL, COLRAM + COLOUR_B, BUF_BYTES)
 job_pal:      DmaJob(DMA_CMD_COPY, ARENA_MAP, pal_buf, MAP_PAL_BYTES)
 job_blank:    DmaJob(DMA_CMD_FILL, 0, BLANK_NCM, 64)
+
+// Stage 6: the palette of fighter type f_id,X into bank FIGHTER_BANK + X (player 1: 12, player 2: 13).
+// Both players with the same fighter: player 2 gets the mirror-match colours (ftalt_*).
+fighter_palettes:
+    stx fp_save                 // X is preserved
+    ldx #0
+    jsr !one+
+    ldx #1
+    jsr !one+
+    ldx fp_save
+    rts
+!one:
+    stx fp_who
+    lda f_id,x                  // Y = type * 16 + 15 (source), X = bank offset + 15 (destination)
+    asl
+    asl
+    asl
+    asl
+    ora #15
+    tay
+    txa
+    asl
+    asl
+    asl
+    asl
+    clc
+    adc #FIGHTER_BANK * 16 + 15
+    tax
+    lda #16
+    sta tmp
+    lda fp_who
+    beq !norm+
+    lda f_id
+    cmp f_id+1
+    beq !alt+
+!norm:
+    lda ftpal_r,y
+    sta PAL_RED,x
+    lda ftpal_g,y
+    sta PAL_GREEN,x
+    lda ftpal_b,y
+    sta PAL_BLUE,x
+    dey
+    dex
+    dec tmp
+    bne !norm-
+    ldx fp_who
+    rts
+!alt:
+    lda ftalt_r,y
+    sta PAL_RED,x
+    lda ftalt_g,y
+    sta PAL_GREEN,x
+    lda ftalt_b,y
+    sta PAL_BLUE,x
+    dey
+    dex
+    dec tmp
+    bne !alt-
+    ldx fp_who
+    rts
+fp_who: .byte 0
+fp_save: .byte 0
+.errorif FIGHTER_BANK * 16 + 31 > 255, "fighter palettes must fit the palette index range"

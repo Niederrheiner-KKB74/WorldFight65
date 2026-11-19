@@ -57,7 +57,11 @@ set_banner:
 
 // once per frame
 game_update:
-    inc g_timer
+    lda g_mode                  // Stage 6: title, selection and versus screen (menu.asm)
+    cmp #M_FIGHT
+    beq !+
+    jmp menu_update
+!:  inc g_timer
     bne !+
     inc g_timer+1
 !:  ldy g_state
@@ -204,7 +208,7 @@ g_match:
     lda g_timer
     cmp #<MATCH_END
     bcc !+
-    jmp game_init               // a new match
+    jmp select_enter            // Stage 6: back to the fighter selection
 !:  rts
 
 // ---------------------------------------------------------------- HUD
