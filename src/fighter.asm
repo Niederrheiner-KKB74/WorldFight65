@@ -470,11 +470,27 @@ move_swing: .byte SFX_SWING_LIGHT, SFX_SWING_HEAVY, SFX_SWING_LIGHT, SFX_SWING_H
 // an earlier attack or a hitstun is still running (input buffer).
 //  QCF:    down (f_q1) -> down-forward within Q_WIN (f_q2) -> forward within Q_WIN (f_q3), button within Q3_WIN
 //  charge: back (or down-back) held CHARGE_T frames, then forward + button within CHARGE_WIN frames
+// Owner report 2026-11-19 (hardware, 8BitDo): no special came out. Made lenient: QCF may skip the diagonal,
+// the charge window opens when back is released (a pad passes through neutral on its way forward), the
+// button press is buffered for BTN_BUF frames, and a normal attack in its first animation frame is
+// cancelled into the special (button pressed a moment before the motion was finished).
 .const Q_WIN = 12
-.const Q3_WIN = 10
+.const Q3_WIN = 14
 .const CHARGE_T = 40
-.const CHARGE_WIN = 10
+.const CHARGE_WIN = 14
+.const BTN_BUF = 6
 motion_track:
+    ldy f_id,x                  // buffer the special's button
+    lda f_press
+    and ft_sp_button,y
+    beq !+
+    lda #BTN_BUF
+    sta f_bbuf,x
+    bne !b+
+!:  lda f_bbuf,x
+    beq !b+
+    dec f_bbuf,x
+!b:
     lda f_q1,x                  // count the windows down
     beq !+
     dec f_q1,x
@@ -503,9 +519,10 @@ motion_track:
     sta f_q2,x
     bne !chg+
 !up:
-    cmp #1                      // forward after down-forward
+    cmp #1                      // forward after down-forward (or right after down: diagonal skipped)
     bne !chg+
     lda f_q2,x
+    ora f_q1,x
     beq !chg+
     lda #Q3_WIN
     sta f_q3,x
@@ -519,9 +536,7 @@ motion_track:
     inc f_chg,x
 !:  rts
 !rel:
-    cmp #1                      // forward after a full charge opens the window
-    bne !+
-    lda f_chg,x
+    lda f_chg,x                 // back released after a full charge: the window opens
     cmp #CHARGE_T
     bcc !+
     lda #CHARGE_WIN
@@ -533,8 +548,7 @@ motion_track:
 // C = 1 when the special move of fighter X has started (motion done and its button pressed now)
 special_check:
     ldy f_id,x
-    lda f_press
-    and ft_sp_button,y
+    lda f_bbuf,x                // button pressed within the last BTN_BUF frames
     beq !no+
     lda ft_sp_motion,y
     bne !chg+
@@ -549,6 +563,7 @@ special_check:
     beq !no+
 !go:
     lda #0
+    sta f_bbuf,x
     sta f_q1,x
     sta f_q2,x
     sta f_q3,x
@@ -560,6 +575,32 @@ special_check:
 !no:
     clc
     rts
+
+// Key M (test aid, Stage 5): the border shows the special-move recogniser of both fighters:
+// yellow = charged, cyan = QCF down-forward reached, white = motion complete (press the button now)
+motion_debug:
+    lda mot_debug
+    bne !+
+    rts
+!:  ldy #0                      // black
+    ldx #1
+!f: lda f_chg,x
+    cmp #CHARGE_T
+    bcc !+
+    ldy #7
+!:  lda f_q2,x
+    beq !+
+    ldy #3
+!:  lda f_q3,x
+    ora f_cwin,x
+    beq !+
+    ldy #1
+    bne !d+
+!:  dex
+    bpl !f-
+!d: sty VIC_BORDER
+    rts
+mot_debug: .byte 0
 
 // The special move dashes forward by ft_sp_dash pixels per frame until it has hit or been blocked
 // (at most up to its last active frame); push_apart keeps the fighters from passing through.
@@ -581,7 +622,15 @@ special_dash:
 
 // ---- attack: on active frames test the hit box once; at the end back to standing or crouching
 st_attack:
-    jsr special_dash
+    lda f_move,x                // a ground normal in its first frame can still become the special
+    cmp #MOVE_J_P
+    bcs !+
+    lda f_aframe,x
+    bne !+
+    jsr special_check
+    bcc !+
+    rts
+!:  jsr special_dash
     jsr attack_active
     jsr anim_step
     bcc !+
@@ -1324,7 +1373,8 @@ f_q1:       .fill 2, 0              // Stage 5 QCF: frames left after down
 f_q2:       .fill 2, 0              //              after down-forward
 f_q3:       .fill 2, 0              //              after forward (the button may come now)
 f_chg:      .fill 2, 0              // Stage 5 charge: frames back has been held
-f_cwin:     .fill 2, 0              //                 frames left for forward + button after a charge
+f_cwin:     .fill 2, 0
+f_bbuf:     .fill 2, 0              //                 frames left of the buffered special button              //                 frames left for forward + button after a charge
 front_slot: .fill 2, 0              // slot (0/1) used by the shown buffer
 build_slot: .fill 2, 0              // slot (0/1) used by the buffer being built
 other:      .byte 0

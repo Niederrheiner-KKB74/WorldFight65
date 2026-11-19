@@ -115,7 +115,8 @@ vic_to_basic:
     sta CIA1_DDRB
     rts
 
-// Read one key from the hardware queue and handle it: X or RUN/STOP = exit, P = POT X debug display.
+// Read one key from the hardware queue and handle it: X or RUN/STOP = exit, P = POT X debug display,
+// M = special-move recogniser display.
 read_keys:
     lda KEYQUEUE
     beq !none+
@@ -128,6 +129,15 @@ read_keys:
     cmp #$54                     // T: sparring partner (sparring.asm)
     bne !+
     jmp spar_toggle
+!:  cmp #$4d                     // M: special-move recogniser in the border on/off (fighter.asm)
+    bne !+
+    lda mot_debug
+    eor #1
+    sta mot_debug
+    bne !none+
+    lda #0
+    sta VIC_BORDER
+    rts
 !:  cmp #$50                     // P: POT X debug display in the border on/off
     bne !+
     lda pot_debug

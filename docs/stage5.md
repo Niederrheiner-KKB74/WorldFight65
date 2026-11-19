@@ -16,6 +16,13 @@ Release files are in `releases/stage5/`.
 
   Facing left the directions are mirrored. The motion may be entered while another attack or a hitstun is
   still running (input buffer). Both specials can be blocked standing (they hit mid).
+- **Lenient input** (after the owner's hardware report 2026-11-19 that no special came out): the QCF may skip
+  the diagonal (down, then forward within 12 frames); the charge window (14 frames) opens as soon as back is
+  released, so passing through neutral on the pad no longer loses the charge; the button is buffered for
+  6 frames; a button pressed a moment too early (e.g. kick at down-forward, which starts the sweep) is turned
+  into the special when the motion is finished in the attack's first frame.
+- **Key M** (test aid): the border shows the recogniser of both fighters - yellow = charged (Konrad has held
+  back long enough), cyan = QCF down-forward reached, white = motion complete, press the button now.
 - **Artwork:** both specials come from the owner's generator sheets (`assets/art/<f>/sp1.png`, 4 cells,
   2026-11-19; raw files in `assets/art/source/`). Tiago's cells are shown as 1, 2, 3, 3, 4 (the heel in
   front is the active frame), Konrad's as 1, 2, 2, 3, 4. Hit boxes are measured on the art: Tiago's heel
@@ -32,7 +39,8 @@ Emulator test builds: `--define AUTOTEST --define AUTOTEST_QCF` (Tiago's special
 
 ## Status
 - Assembled: yes.
-- Emulator smoke test (XEMU): both specials start, dash in, hit and knock down; no crash with the sound
+- Emulator smoke test (XEMU): both specials start (also with an early kick at down-forward and with the
+  charge released through neutral), dash in, hit and knock down; no crash with the sound
   engine. XEMU audio was not judged (not authoritative).
 - Owner-confirmed on hardware: **pending**.
 
@@ -51,4 +59,5 @@ Emulator test builds: `--define AUTOTEST --define AUTOTEST_QCF` (Tiago's special
 10. Both specials are blocked by holding back; the attacker stops dashing when blocked.
 11. Normal heavy punch / heavy kick (forward + button) still come out when no motion was entered.
 12. Sparring partner (T): the special appears at the end of his sequence for both players.
-13. Are the motions easy enough to enter with the 8BitDo pad? (QCF windows 12 frames, charge 40 frames.)
+13. Key M: does the border turn yellow / cyan / white while entering the motions?
+14. Are the motions easy enough to enter with the 8BitDo pad? (QCF steps 12 frames, button 14 frames after forward; charge 40 frames, then 14 frames.)

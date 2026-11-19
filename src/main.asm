@@ -91,6 +91,7 @@ start:
     cld
     sta overflow
     sta pot_debug
+    sta mot_debug
     RunDma(job_blank)                  // the blank NCM glyph that ends every row
     RunDma(job_hud)                    // energy bar glyphs
     RunDma(job_font)                   // 16x16 font
@@ -123,6 +124,7 @@ main_loop:
 #endif
     jsr game_update
     jsr fighters_update
+    jsr motion_debug                   // key M: special-move recogniser in the border
     jsr fx_update
 !:  jsr buffer_clear
     jsr fighters_draw
@@ -294,24 +296,25 @@ at_script:
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in (Stage 5)
     AtEvent(176, JOY_DOWN, 0)                             // quarter circle forward ...
     AtEvent(180, JOY_DOWN | JOY_RIGHT, 0)
-    AtEvent(184, JOY_RIGHT, 0)
-    AtEvent(187, JOY_RIGHT | JOY_B2, 0)                   // ... + kick: meia-lua de compasso
+    AtEvent(184, JOY_DOWN | JOY_RIGHT | JOY_B2, 0)        // kick pressed early, at down-forward (sweep starts)
+    AtEvent(185, JOY_RIGHT | JOY_B2, 0)                   // forward: the sweep becomes the meia-lua de compasso
     AtEvent(189, 0, 0)
 #if AUTOTEST_LATE
     AtEvent(240, $ff, 0)                                  // Konrad on the floor
 #else
-    AtEvent(201, $ff, 0)                                  // the kick lands
+    AtEvent(199, $ff, 0)                                  // the kick lands
 #endif
 #elif AUTOTEST_CHARGE
     AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in (Stage 5)
     AtEvent(190, 0, JOY_RIGHT | JOY_DOWN)                 // charges down-back ...
-    AtEvent(234, 0, JOY_LEFT)                             // ... forward
-    AtEvent(235, 0, JOY_LEFT | JOY_FIRE)                  // ... + punch: Rammbock
-    AtEvent(237, 0, 0)
+    AtEvent(234, 0, 0)                                    // ... through neutral (as on a pad) ...
+    AtEvent(237, 0, JOY_LEFT)                             // ... forward
+    AtEvent(238, 0, JOY_LEFT | JOY_FIRE)                  // ... + punch: Rammbock
+    AtEvent(240, 0, 0)
 #if AUTOTEST_LATE
-    AtEvent(290, $ff, 0)
+    AtEvent(293, $ff, 0)
 #else
-    AtEvent(246, $ff, 0)
+    AtEvent(249, $ff, 0)
 #endif
 #elif AUTOTEST_BLOCK
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in

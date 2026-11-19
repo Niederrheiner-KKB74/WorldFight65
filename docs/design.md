@@ -246,6 +246,10 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   16 damage, knockdown, dash 3). Konrad: **Rammbock** shoulder charge (charge back, forward + punch,
   18 damage, knockdown, dash 4). The owner's sheet `sp1.png` has 4 cells, mapped per fighter (`SPECIAL['sheet']`: Tiago 1, 2, 3, 3, 4;
   Konrad 1, 2, 2, 3, 4; sheets delivered 2026-11-19); without a sheet the game borrows frames of hk / hp. Projectiles are left for later fighters.
+  **Lenient input** (owner report on hardware 2026-11-19: no special came out with the 8BitDo pad): QCF may skip
+  the diagonal, the charge window opens when back is released (a pad passes through neutral), button buffer
+  of 6 frames, and a ground normal in its first animation frame is cancelled into the special. Key M shows
+  the recogniser state in the border.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 
