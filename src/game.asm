@@ -19,6 +19,7 @@
 .const BANNER_ROW = 8
 
 game_init:
+    jsr fighter_palettes        // Stage 6: the palettes of the chosen fighters (also for test builds)
     lda #0
     sta g_wins
     sta g_wins+1
@@ -182,6 +183,9 @@ g_end:
     bcc !round+
     lda #G_MATCH                // match won: "<NAME>" / "WINS"
     sta g_state
+    phx
+    jsr music_stop              // Stage 6: the fight music ends with the match
+    plx
     jsr g_timer0
     ldy f_id,x
     lda name_lo,y

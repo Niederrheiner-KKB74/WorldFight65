@@ -1,4 +1,4 @@
-# Memory map (Stage 5)
+# Memory map (Stage 6)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -12,8 +12,8 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 |---|---|
 | `$0002–$0037`, `$76–$79` | game zero page (`$1E` tmp2 since Stage 4b; `$76–$79` sound data pointer, Stage 5) (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
-| `$2020–$7687` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `MUSIC_ADDR`) |
-| `$A000–$BFFF` | file `MUSIC` (Stage 5): sound effects, later the music pieces (≤ 8 KB, `tools/build_music.py`) |
+| `$2020–$7A2B` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `MUSIC_ADDR`) |
+| `$A000–$BFFF` | file `MUSIC` (Stage 5): sound effects; Stage 6: pieces `title` and `fight` (1,655 bytes in all) (≤ 8 KB, `tools/build_music.py`) |
 
 ## Chip RAM, banks 4/5
 
@@ -73,9 +73,9 @@ Planned (not used yet): effect glyphs for specials, samples.
 |---|---|
 | 0–175 | arena (0 = black, the background colour) |
 | 176–191 | bank 11, hit and block sparks |
-| 192–207 | bank 12, fighter 1 |
-| 208–223 | bank 13, fighter 2 |
-| 224–239 | bank 14, planned: mirror-match palette |
+| 192–207 | bank 12, player 1 (palette of his fighter type, Stage 6) |
+| 208–223 | bank 13, player 2 (his fighter's palette, or its mirror-match colours) |
+| 224–239 | bank 14, free (the mirror-match palette goes into bank 13 since Stage 6) |
 | 240–255 | bank 15, HUD (energy bars) and font |
 
 ## RRB row (80 tokens, 160 bytes)

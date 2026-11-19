@@ -75,8 +75,12 @@ attic RAM DMA time)**
 - Special moves are built from a fixed set of **move types** that the engine implements once:
   strike, multi-hit, lunge/dash attack, rising attack, jump attack, projectile, command throw. A new
   fighter combines and parameterises these; a new move type is an engine change and gets its own stage.
-- At fighter selection the two chosen packages are loaded from disk into two attic-RAM slots
-  (loader from ShooterMega65). A mirror match loads one package and uses its second palette.
+- ~~At fighter selection the two chosen packages are loaded from disk.~~ **Stage 6 decision:** all
+  packages are loaded at start, each into its own 256 KB attic-RAM slot (8 MB hold 32 fighters); choosing
+  a fighter only sets `f_id` (index into the data tables) and loads its palette into the player's bank
+  (player 1: bank 12, player 2: bank 13). No disk access between the menus and the fight, and the KERNAL
+  is never needed after the start. A mirror match uses the second palette, derived automatically by
+  `make_assets.alt_palette()` (skin and hair stay, costume hues turn, white/grey/black get a blue tint).
 - **Size budget per package: 64 KB on disk** (frames compressed), checked by the build. Stage 2
   measurement: 26 uncompressed frames are already 81 KB (Tiago) and 91 KB (Konrad); Stage 3 (55 frames):
   162 KB and 173 KB. A package may take up to 256 KB of attic RAM (8 MB are available), but on the disk the
@@ -85,7 +89,8 @@ attic RAM DMA time)**
   D81 (about 790 KB): program ~40 KB, music and samples ~60 KB, arenas ~40–60 KB each (compressed),
   fighters 64 KB each. Seven fighters and their arenas do not fit on one D81; the plan is therefore:
   disk 1 = game with Tiago, Konrad and their arenas; further fighters on disk 1 as long as space
-  allows, then an add-on disk. **(to decide when the sizes are measured, at the latest in Stage 6)**
+  allows, then an add-on disk. **Stage 6 measurement:** F-TIAGO 181 KB, F-KONRAD 170 KB, the D81 is about 57 % full (448 KB). Compression
+  is therefore needed only with the third fighter and moves to that stage.
 - Roster: Tiago and Konrad are built first (Stages 1–8). The other proposed fighters (Moussa/Senegal,
   Kanya/Thailand, Élodie/France, El Cóndor/Mexico, Batu/Mongolia) follow as packages, one per stage, after
   Stage 8. Each fighter brings a home arena, so the world championship travels from country to country.
@@ -250,6 +255,12 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   the diagonal, the charge window opens when back is released (a pad passes through neutral), button buffer
   of 6 frames, and a ground normal in its first animation frame is cancelled into the special. Key M shows
   the recogniser state in the border.
+- **Game flow** (Stage 6, owner 2026-11-19): title -> fighter selection (left/right chooses, a button
+  confirms; once player 1 is ready his joystick also chooses for player 2 until the CPU opponent exists)
+  -> versus screen (names, countries, ~3 s) -> best-of-three match -> "<NAME> WINS" -> selection.
+  Screens are the arena backdrop plus the 16x16 font until the owner's title picture arrives (`src/menu.asm`).
+  Music by Claude as data (`assets/source/compose_music.py` -> `music/title.json`, `music/fight.json`):
+  title piece on title, selection and versus screen; fight piece from the first round to the match end.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

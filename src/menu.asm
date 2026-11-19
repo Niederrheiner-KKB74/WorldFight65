@@ -15,6 +15,8 @@
 .const SEL_X1 = 224
 
 title_enter:
+    lda #MUS_TITLE              // title music, also during the selection and the versus screen
+    jsr music_play
     lda #M_TITLE
     sta g_mode
     lda #0
@@ -23,7 +25,12 @@ title_enter:
     rts
 
 select_enter:
-    lda #M_SELECT
+    lda g_mode                  // back from a match: the title music again
+    cmp #M_FIGHT
+    bne !+
+    lda #MUS_TITLE
+    jsr music_play
+!:  lda #M_SELECT
     sta g_mode
     lda #0
     sta m_timer
@@ -152,6 +159,8 @@ m_versus:
     bcc !+
     lda #M_FIGHT
     sta g_mode
+    lda #MUS_FIGHT
+    jsr music_play
     jmp game_init
 !:  rts
 

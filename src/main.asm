@@ -331,7 +331,11 @@ at_script:
     AtEvent(1500, $ff, 0)
 #elif AUTOTEST_KO
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in, then keeps kicking
+#if AUTOTEST_LONG
+    AtEvent(1780, $ff, 0)                                // Stage 6: match won, selection, versus screen
+#else
     AtEvent(620, $ff, 0)
+#endif
 #elif AUTOTEST_KO2
     AtEvent(150, 0, JOY_LEFT)                             // Konrad walks in, then keeps kicking
     AtEvent(900, $ff, 0)
