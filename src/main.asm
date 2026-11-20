@@ -69,25 +69,12 @@ start:
     lda #<msg_attic
     ldx #>msg_attic
     jmp print
-!:  LoadFile(name_agfx, name_agfx_end - name_agfx, ATTIC_AGFX, 252)   // Stage 6: pictures in attic RAM,
-    bcc !+                                                                // copied to the chip-RAM picture
-    rts                                // failed: message printed, back to BASIC
-!:  LoadFile(name_amap, name_amap_end - name_amap, ATTIC_AMAP, 35)
-    bcc !+
-    rts
+    // Stage 6 (as in Vyper Stage 5d-1): the title picture is loaded first and shown while the rest loads.
+    // Pictures live in attic RAM and are copied into the chip-RAM picture area when a screen needs them.
 !:  LoadFile(name_tgfx, name_tgfx_end - name_tgfx, ATTIC_TGFX, 252)
     bcc !+
-    rts
+    rts                                // failed: message printed, back to BASIC
 !:  LoadFile(name_tmap, name_tmap_end - name_tmap, ATTIC_TMAP, 35)
-    bcc !+
-    rts
-!:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
-    bcc !+
-    rts
-!:  LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
-    bcc !+
-    rts
-!:  LoadFile(name_music, name_music_end - name_music, MUSIC_ADDR, (MUSIC_BYTES + 255) / 256)   // Stage 5
     bcc !+
     rts
 !:  sei
@@ -96,28 +83,59 @@ start:
     lda #$53
     sta VIC_KEY
     jsr system_save                    // everything needed to return to BASIC (also sets B = 0)
-    lda #0
-    sta CIA1_DDRA                      // port A as input: joystick 2, no keyboard row selected
-    sta CIA1_DDRB                      // port B as input: joystick 1 (both restored on exit)
     cld
+    lda #0
     sta overflow
     sta pot_debug
     sta mot_debug
+    sta fx_on
     RunDma(job_blank)                  // the blank NCM glyph that ends every row
     RunDma(job_hud)                    // energy bar glyphs
     RunDma(job_font)                   // 16x16 font
     RunDma(job_fx)                     // hit and block sparks
-    lda #0
-    sta fx_on
+    jsr fighters_init                  // f_id and slots (the palettes need them)
     jsr wait_vblank
     jsr video_init
-    lda #0                             // Stage 6: the arena picture into chip RAM (title_enter shows the title)
+    lda #1                             // the title picture with "LOADING"
     jsr picture_copy
     jsr palette_init
-    jsr fighters_init
+    lda #M_TITLE
+    sta g_mode
+    lda #1
+    sta m_loading
+    jsr buffer_clear
+    jsr menu_draw
+    jsr wait_vblank
+    jsr flip
+    lda #1                             // a load error first switches back to the BASIC screen
+    sta ld_title
+    cli                                // the KERNAL loads the rest under the title (IRQ on, no KERNAL output)
+    LoadFile(name_agfx, name_agfx_end - name_agfx, ATTIC_AGFX, 252)
+    bcc !+
+    jmp exit_to_basic                  // failed: the message is on the BASIC screen behind the title
+!:  LoadFile(name_amap, name_amap_end - name_amap, ATTIC_AMAP, 35)
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_music, name_music_end - name_music, MUSIC_ADDR, (MUSIC_BYTES + 255) / 256)   // Stage 5
+    bcc !+
+    jmp exit_to_basic
+!:  sei
+    lda #0
+    sta ld_title
+    sta m_loading
+    sta CIA1_DDRA                      // port A as input: joystick 2, no keyboard row selected
+    sta CIA1_DDRB                      // port B as input: joystick 1 (both restored on exit)
     jsr sound_init                     // before title_enter starts the music (Stage 5: sound effects SID 2 + 4)
 #if AUTOTEST && !AUTOTEST_MENU
-    lda #M_FIGHT                       // emulator tests of the fight start in the fight
+    lda #0                             // emulator tests of the fight start in the fight, in the arena
+    jsr show_picture
+    lda #M_FIGHT
     sta g_mode
     jsr game_init
 #else
@@ -432,7 +450,11 @@ name_tmap: .text "T-TITLE-MAP,S,R"
 name_tmap_end:
 name_f1:   .text "F-TIAGO,S,R"
 name_f1_end:
+#if AUTOTEST_LOADFAIL
+name_f2:   .text "F-MISSING,S,R"         // test build: a load error under the title
+#else
 name_f2:   .text "F-KONRAD,S,R"
+#endif
 name_f2_end:
 name_music: .text "MUSIC,S,R"
 name_music_end:

@@ -264,6 +264,9 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   The fight piece is a samba with its own instruments (owner: the first version sounded like the shooter
   and should fit Brazil); music volume 9-10 of 15. Title picture from the owner's generator picture; title
   and arena pictures are kept in attic RAM and copied by DMA into the one chip-RAM picture area.
+  Start-up (owner 2026-11-20, as in Vyper Stage 5d-1): the title picture loads first and stays visible with
+  "LOADING" while the KERNAL loads the rest with interrupts on; no KERNAL output while it is visible (a load
+  error switches back to the BASIC screen first, `screen_to_basic`).
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

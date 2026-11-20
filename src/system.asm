@@ -62,6 +62,14 @@ system_save:
 
 exit_to_basic:
     sei
+    jsr screen_to_basic
+    jmp !x+
+
+// palette 0 and the VIC-IV registers as BASIC had them, SIDs silent (also used by the loader before it
+// prints an error while the title is shown, Stage 6); returns with the interrupt flag as it was
+screen_to_basic:
+    php
+    sei
     jsr sound_off                // Stage 5: silence the SIDs
     jsr wait_vblank              // switch modes while the raster is in the border
     lda #$00                     // MAPEDPAL = 0
@@ -82,6 +90,9 @@ exit_to_basic:
     inz
     bne !-
     jsr vic_to_basic
+    plp
+    rts
+!x:
     jsr key_drain                // do not hand the exit key to BASIC
     RunDma(job_zp_rest)
     lda saved_b

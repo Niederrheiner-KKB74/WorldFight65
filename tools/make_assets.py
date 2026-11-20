@@ -449,7 +449,7 @@ TEXTS = {'txt_round1': 'ROUND 1', 'txt_round2': 'ROUND 2', 'txt_round3': 'ROUND 
          'txt_ko': 'K.O.', 'txt_time': 'TIME', 'txt_draw': 'DRAW', 'txt_wins': 'WINS',
          # Stage 6: title, fighter selection, versus screen
          'txt_title1': 'WORLDFIGHT', 'txt_title2': '65', 'txt_press': 'PRESS FIRE', 'txt_choose': 'CHOOSE',
-         'txt_fighter': 'YOUR FIGHTER', 'txt_p1': '1P', 'txt_p2': '2P', 'txt_ready': 'READY', 'txt_vs': 'VS'}
+         'txt_fighter': 'YOUR FIGHTER', 'txt_p1': '1P', 'txt_p2': '2P', 'txt_ready': 'READY', 'txt_vs': 'VS', 'txt_loading': 'LOADING'}
 
 
 def text_bytes(t):

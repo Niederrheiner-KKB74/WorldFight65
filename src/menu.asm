@@ -14,7 +14,20 @@
 .const SEL_X0 = 96              // fighters' anchors on the select and versus screens
 .const SEL_X1 = 224
 
+// Every screen starts with all buttons and directions counted as held: only a new press after a release
+// counts (owner report 2026-11-20: the title was skipped at once on hardware), and the title ignores
+// the joysticks for TITLE_LOCK frames.
+.const TITLE_LOCK = 50
+menu_hold:
+    lda #$ff
+    sta m_prev
+    sta m_prev+1
+    rts
+
 title_enter:
+    jsr menu_hold
+    lda #TITLE_LOCK
+    sta m_lock
     lda #MUS_TITLE              // title music, also during the selection and the versus screen
     jsr music_play
     lda #1                      // the owner's title picture
@@ -27,6 +40,7 @@ title_enter:
     rts
 
 select_enter:
+    jsr menu_hold
     lda g_mode                  // back from a match: the title music again
     cmp #M_FIGHT
     bne !+
@@ -77,7 +91,11 @@ menu_update:
     jmp m_versus
 
 m_title:
-    lda m_press
+    lda m_lock
+    beq !l+
+    dec m_lock
+    rts
+!l: lda m_press
     ora m_press+1
     and #JOY_FIRE | JOY_B2
     beq !+
@@ -172,7 +190,7 @@ m_versus:
 // ---------------------------------------------------------------- drawing (instead of hud_draw)
 menu_draw:
     lda g_mode
-    bne !+
+    bne md_menu
     // title
     lda #<txt_title1
     ldy #>txt_title1
@@ -182,7 +200,13 @@ menu_draw:
     ldy #>txt_title2
     ldx #4
     jsr text_centre
-    lda m_timer                 // "PRESS FIRE" blinks
+    lda m_loading               // while the rest loads: "LOADING"
+    beq !+
+    lda #<txt_loading
+    ldy #>txt_loading
+    ldx #21
+    jmp text_centre
+!:  lda m_timer                 // "PRESS FIRE" blinks
     and #32
     bne !r+
     lda #<txt_press
@@ -190,7 +214,8 @@ menu_draw:
     ldx #21
     jmp text_centre
 !r: rts
-!:  cmp #M_SELECT
+md_menu:
+    cmp #M_SELECT
     bne !vs+
     lda #<txt_choose
     ldy #>txt_choose
@@ -292,4 +317,6 @@ m_ok:    .fill 2, 0
 m_prev:  .fill 2, 0
 m_press: .fill 2, 0
 m_who:   .byte 0
+m_loading: .byte 0
+m_lock:  .byte 0
 m_row:   .byte 0

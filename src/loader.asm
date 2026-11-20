@@ -95,7 +95,12 @@ load_seq_to:
     lda #2
     jsr CLOSE
 !err2:
-    lda #<msg_load
+    lda ld_title                // Stage 6: the title is shown - back to the BASIC screen before any output
+    beq !+
+    jsr screen_to_basic
+    lda #0
+    sta ld_title
+!:  lda #<msg_load
     ldx #>msg_load
     jsr print
     lda ld_name
@@ -198,6 +203,7 @@ pr_char:
 
 job_ldflush: DmaJob(DMA_CMD_COPY, ld_buf, 0, 256)
 ld_device: .byte 8
+ld_title:  .byte 0               // 1 while the title is shown during loading (main.asm)
 ld_name:   .word 0
 ld_len:    .byte 0
 ld_x:      .byte 0
