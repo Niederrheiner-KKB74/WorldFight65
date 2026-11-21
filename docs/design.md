@@ -193,7 +193,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 4 | final artwork for both fighters (new renderer), facial expressions, new win poses, hit and block sparks |
 | 5 | special moves, input buffer; sound effects (confirmed on hardware 2026-11-19) |
 | 6 | title (loading screen), fighter selection, versus screen, music, winner banner (confirmed on hardware 2026-11-21) |
-| 7 | CPU opponent (three levels) |
+| 7 | CPU opponent (three levels) (confirmed on hardware 2026-11-21) |
 | 8 | second arena, balancing, polish |
 | 9+ | one further fighter per stage as a loadable package, with its home arena |
 

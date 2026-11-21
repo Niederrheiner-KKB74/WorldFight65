@@ -1,6 +1,6 @@
 # Stage 7 – CPU opponent
 
-Test builds go to the owner as D81; the release goes to `releases/stage7/` when the stage is confirmed.
+Release files are in `releases/stage7/` (identical to the test build `WORLDFIGHT65-stage7a.d81`).
 
 ## What it does
 - **Player 2 is the CPU** unless joystick 2 is used: fire on joystick 2 on the title, or any move or button
@@ -35,8 +35,8 @@ Emulator test builds: `--define AUTOTEST --define AUTOTEST_CPU` (CPU against a m
 ## Status
 - Assembled: yes.
 - Emulator smoke test (XEMU): the CPU walks in, jumps over, attacks, knocks down and wins a round against a
-  passive player 1; selection shows and changes the level. Not yet judged: how it feels to play against.
-- Owner-confirmed on hardware: pending.
+  passive player 1; selection shows and changes the level.
+- Owner-confirmed on hardware: **yes** (2026-11-21): "the fights feel balanced"; the level values stay.
 
 ## Hardware checklist
 1. Without touching joystick 2: header "CPU NORMAL"; up/down (after player 1 is ready) changes the level.
