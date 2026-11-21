@@ -19,6 +19,9 @@
 .const M_SELECT = 1
 .const M_VERSUS = 2
 .const M_FIGHT  = 3
+.const PIC_RIO  = 0               // pictures in attic RAM (video.asm show_picture)
+.const PIC_TITLE = 1
+.const PIC_ZOLL = 2               // Stage 8
 .const CPU_P    = 1               // Stage 7: the CPU plays player 2 (cpu.asm)
 
 // ---------------------------------------------------------------- zero page ($02-$3f, saved and restored)
@@ -117,6 +120,12 @@ start:
 !:  LoadFile(name_amap, name_amap_end - name_amap, ATTIC_AMAP, 35)
     bcc !+
     jmp exit_to_basic
+!:  LoadFile(name_zgfx, name_zgfx_end - name_zgfx, ATTIC_ZGFX, 252)   // Stage 8: second arena
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_zmap, name_zmap_end - name_zmap, ATTIC_ZMAP, 35)
+    bcc !+
+    jmp exit_to_basic
 !:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
     bcc !+
     jmp exit_to_basic
@@ -132,12 +141,33 @@ start:
     sta m_loading
     sta CIA1_DDRA                      // port A as input: joystick 2, no keyboard row selected
     sta CIA1_DDRB                      // port B as input: joystick 1 (both restored on exit)
-#if AUTOTEST && !AUTOTEST_CPU && !AUTOTEST_MENU_CPU
+#if AUTOTEST && !AUTOTEST_CPU && !AUTOTEST_MENU_CPU && !AUTOTEST_CPUVS
     lda #0                             // scripted tests: no CPU unless AUTOTEST_CPU
-    sta cpu_on
+    sta cpu_on+CPU_P
 #endif
     jsr sound_init                     // before title_enter starts the music (Stage 5: sound effects SID 2 + 4)
 #if AUTOTEST && !AUTOTEST_MENU && !AUTOTEST_MENU_CPU
+#if AUTOTEST_CPUVS
+    lda #1                             // balancing test: the CPU on both sides
+    sta cpu_on
+    sta cpu_on+1
+#if AUTOTEST_EASY
+    lda #0
+#elif AUTOTEST_HARD
+    lda #2
+#else
+    lda #1
+#endif
+    sta cpu_level
+    sta cpu_level+1
+#if AUTOTEST_SWAP
+    lda #1                             // Konrad as player 1, Tiago as player 2
+    sta f_id
+    lda #0
+    sta f_id+1
+#endif
+    jsr vs_digits
+#endif
     lda #0                             // emulator tests of the fight start in the fight, in the arena
     jsr show_picture
     lda #M_FIGHT
@@ -188,6 +218,9 @@ main_draw:
     cmp #M_FIGHT
     bne !+
     jsr hud_draw
+#if AUTOTEST_CPUVS
+    jsr vs_draw
+#endif
     jmp !d+
 !:  jsr menu_draw
 !d:
@@ -339,6 +372,8 @@ at_script:
     AtEvent(130, JOY_DOWN, 0)
     AtEvent(132, 0, 0)
     AtEvent(140, $ff, 0)
+#elif AUTOTEST_CPUVS
+    AtEvent(60000, $ff, 0)                                // never freezes
 #elif AUTOTEST_CPU
     // Stage 7: player 1 stands still, then kicks now and then; the CPU (player 2) plays by itself
     AtEvent(700, JOY_RIGHT, 0)
@@ -477,6 +512,10 @@ name_agfx: .text "A-RIO-GFX,S,R"
 name_agfx_end:
 name_amap: .text "A-RIO-MAP,S,R"
 name_amap_end:
+name_zgfx: .text "A-ZOLL-GFX,S,R"
+name_zgfx_end:
+name_zmap: .text "A-ZOLL-MAP,S,R"
+name_zmap_end:
 name_tgfx: .text "T-TITLE-GFX,S,R"
 name_tgfx_end:
 name_tmap: .text "T-TITLE-MAP,S,R"

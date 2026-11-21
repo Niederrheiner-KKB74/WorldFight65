@@ -147,8 +147,9 @@ g_end:
     bne !next+
     lda g_timer
     cmp #END_WIN
-    bcc !done+
-    bne !+
+    bcs !+
+    rts
+!:  bne !+
     lda g_state                 // time up without a winner: "DRAW"
     cmp #G_TIMEUP
     bne !+
@@ -178,12 +179,19 @@ g_end:
 !next:
     ldx g_winner                // count the round
     bmi !round+
+#if AUTOTEST_CPUVS
+    inc vs_rounds,x             // balancing test: rounds won per side
+#endif
     inc g_wins,x
     lda g_wins,x
     cmp #2
     bcc !round+
     lda #G_MATCH                // match won: "<NAME>" / "WINS"
     sta g_state
+#if AUTOTEST_CPUVS
+    inc vs_wins,x               // balancing test: matches won per side
+    jsr vs_digits
+#endif
     phx
     jsr music_stop              // Stage 6: the fight music ends with the match
     plx
@@ -213,7 +221,11 @@ g_match:
     lda g_timer
     cmp #<MATCH_END
     bcc !+
+#if AUTOTEST_CPUVS
+    jmp game_init               // balancing test: next match at once
+#else
     jmp select_enter            // Stage 6: back to the fighter selection
+#endif
 !:  rts
 
 // ---------------------------------------------------------------- HUD
@@ -464,3 +476,52 @@ tx_x:      .byte 0
 tx_row:    .byte 0
 tx_len:    .byte 0
 tx_half:   .byte 0
+
+#if AUTOTEST_CPUVS
+// Stage 8 balancing test (build.py --define AUTOTEST --define AUTOTEST_CPUVS): the CPU plays both sides,
+// match after match; the screen shows "1 mm rr  2 mm rr" (matches, rounds won by player 1 and 2).
+vs_wins:   .fill 2, 0
+vs_rounds: .fill 2, 0
+vs_buf:    .byte 15, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0   // "1 mm rr  2 mm rr"
+vs_digits:
+    phx
+    lda vs_wins
+    ldy #3
+    jsr !two+
+    lda vs_rounds
+    ldy #6
+    jsr !two+
+    lda vs_wins+1
+    ldy #11
+    jsr !two+
+    lda vs_rounds+1
+    ldy #14
+    jsr !two+
+    plx
+    rts
+!two:                           // A (0-99) -> two font digits at vs_buf+Y (font code = digit + 1)
+    phx
+    ldx #0
+!:  cmp #10
+    bcc !+
+    sbc #10
+    inx
+    bne !-
+!:  pha
+    txa
+    clc
+    adc #1
+    sta vs_buf,y
+    iny
+    pla
+    clc
+    adc #1
+    sta vs_buf,y
+    plx
+    rts
+vs_draw:
+    lda #<vs_buf
+    ldy #>vs_buf
+    ldx #6
+    jmp text_centre
+#endif

@@ -53,6 +53,8 @@ L = dict(
     ATTIC_TMAP=0x8090000,     #   title picture
     ATTIC_AGFX=0x80A0000,     #   arena
     ATTIC_AMAP=0x80B0000,
+    ATTIC_ZGFX=0x80C0000,     #   Stage 8: second arena (Zeche Zollverein)
+    ATTIC_ZMAP=0x80D0000,
     ARENA_COLOURS=176,        # palette entries 0..175 belong to the arena
     FIGHTER_BANK=12,          # fighter 1: bank 12, fighter 2: bank 13
     HUD_BANK=15,
@@ -133,6 +135,13 @@ def arena(gen, prev):
     else:
         img = arena_rio.draw()
     return picture(img, 'A-RIO', gen, prev / 'arena_rio.png')
+
+
+def zollverein(gen, prev):
+    """Stage 8: Konrad's home arena, Zeche Zollverein in Essen (owner's generator picture)"""
+    img = Image.open(ROOT / 'assets' / 'art' / 'arena' / 'zollverein_source.png').convert('RGB').resize(
+        (320, 200), Image.BOX)
+    return picture(img, 'A-ZOLL', gen, prev / 'arena_zollverein.png')
 
 
 def title(gen, prev):
@@ -306,6 +315,9 @@ def fighters(gen, prev):
                 hb = fr['hit'] or (0, 0, 0, 0)
                 if fr['hit'] and a in art:      # imported art: the box sits on the fist / foot / knee drawn
                     hb = imf.strike_box(art[a][fi][1], hb, margin=200 if a in ('j_p', 'j_k') else 8)
+                    cap = getattr(m, 'REACH_CAP', {}).get(a)
+                    if cap is not None and hb[1] > cap:     # Stage 8 balancing: shorten the box
+                        hb = (min(hb[0], cap - 8), cap, hb[2], hb[3])
                     art_boxes.append(f'{a} {fi + 1}: {hb}')
                 # walk frames: duration in half pixels walked (fighter.asm walk_step), not in video frames
                 ticks = fr['ticks'] * m.STATS['walk_fwd'] if a == 'walk' else fr['ticks']
@@ -402,6 +414,7 @@ def fighters(gen, prev):
     t.append('name_hi: .byte ' + ', '.join(f'>ftname_{i}' for i in range(len(mods))))
     for i, m in enumerate(mods):
         t.append(f'ftcountry_{i}: ' + text_bytes(m.COUNTRY))
+    t.append(bl('ft_home', [m.HOME_ARENA for m in mods]) + '   // home arena: 0 Rio, 1 Zollverein')
     t.append('country_lo: .byte ' + ', '.join(f'<ftcountry_{i}' for i in range(len(mods))))
     t.append('country_hi: .byte ' + ', '.join(f'>ftcountry_{i}' for i in range(len(mods))))
     # Stage 6: palettes per fighter type [type * 16 + colour]; the second set is the mirror-match colour
@@ -577,6 +590,7 @@ def main():
     inc += [f'.const {k} = ${v:x}' for k, v in L.items()]
     (gen / 'layout.inc').write_text('\n'.join(inc) + '\n')
     n, pal = arena(gen, prev)
+    zollverein(gen, prev)
     title(gen, prev)
     tab, mods = fighters(gen, prev)
     nfont = font(gen, prev)

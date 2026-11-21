@@ -1,4 +1,4 @@
-# Memory map (Stage 7)
+# Memory map (Stage 8)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -54,6 +54,8 @@ Planned (not used yet): effect glyphs for specials, samples.
 | `$8090000–$8092290` | title picture map (file `T-TITLE-MAP`) |
 | `$80A0000–$80AF9FF` | arena picture glyphs (file `A-RIO-GFX`; copied to `$40000` for the fight, Stage 6) |
 | `$80B0000–$80B2290` | arena picture map (file `A-RIO-MAP`; copied to `$58800`) |
+| `$80C0000–$80CF9FF` | second arena glyphs (file `A-ZOLL-GFX`, Zeche Zollverein, Stage 8) |
+| `$80D0000–$80D2290` | second arena map (file `A-ZOLL-MAP`) |
 
 ## VIC-IV configuration
 

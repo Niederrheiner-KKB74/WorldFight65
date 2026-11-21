@@ -17,6 +17,7 @@ from fighter_art import build, frame   # noqa: E402
 
 NAME = 'TIAGO'
 COUNTRY = 'BRAZIL'
+HOME_ARENA = 0               # Stage 8: 0 Rio de Janeiro (Copacabana), 1 Essen (Zeche Zollverein)
 PALETTE = [
     (0, 0, 0),          # 0 transparent
     (30, 16, 18),       # 1 outline

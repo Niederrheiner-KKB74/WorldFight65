@@ -194,7 +194,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 5 | special moves, input buffer; sound effects (confirmed on hardware 2026-11-19) |
 | 6 | title (loading screen), fighter selection, versus screen, music, winner banner (confirmed on hardware 2026-11-21) |
 | 7 | CPU opponent (three levels) (confirmed on hardware 2026-11-21) |
-| 8 | second arena, balancing, polish |
+| 8 | second arena (Zeche Zollverein), balancing check, polish |
 | 9+ | one further fighter per stage as a loadable package, with its home arena |
 
 ## 12. Decisions log
@@ -273,6 +273,16 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   time and chances per level (easy / normal / hard, chosen with up/down on the selection screen). Move
   reaches come from the fighter data (`mv_reach` from make_assets: front of the hit box measured on the art,
   for the special plus its dash), so new fighters need no CPU code.
+- **Arenas** (Stage 8): each fighter has a home arena (`HOME_ARENA` in its module, table `ft_home`): Tiago
+  Rio de Janeiro (Copacabana), Konrad Essen (Zeche Zollverein, owner's choice 2026-11-21). The match takes
+  place in the home arena of player 2's fighter; in a mirror match the arena changes with every match. The
+  versus screen already shows it. Arena pictures live in attic RAM like the title picture.
+- **Balancing check** (Stage 8): the CPU can play both sides (`AUTOTEST_CPUVS`; local XEMU patched with
+  `XEMU_NOSLEEP` to run faster than real time). Results: normal level Tiago 12 : Konrad 7 matches (both side
+  orders); hard level Konrad 15 : 0. Small changes to Konrad (light damage -1, crouching reach 49 -> 42 or
+  45 px) flipped hard to Tiago 13 : 3 and 21 : 0. The hard CPU duel is a deterministic poke war decided by
+  a few pixels and frames, not a measure of balance between humans, so the values stay as the owner
+  confirmed them; balancing follows the owner's play experience.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

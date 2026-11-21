@@ -15,6 +15,7 @@ from fighter_art import build, frame   # noqa: E402
 
 NAME = 'KONRAD'
 COUNTRY = 'GERMANY'
+HOME_ARENA = 1               # Stage 8: 0 Rio de Janeiro (Copacabana), 1 Essen (Zeche Zollverein)
 PALETTE = [
     (0, 0, 0),          # 0 transparent
     (22, 16, 20),       # 1 outline
@@ -53,6 +54,8 @@ MOVES = dict(lp=(7, 12, 6, 0, 0), hp=(16, 20, 14, 0, 0), lk=(9, 14, 8, 1, 0), hk
              c_lp=(6, 11, 6, 0, 0), c_lk=(8, 13, 8, 1, 0), sweep=(14, 20, 6, 1, 1),
              j_p=(12, 16, 8, 2, 0), j_k=(15, 18, 10, 2, 0),
              sp1=(18, 20, 14, 0, 1))
+# REACH_CAP = dict(move=px) would shorten hit boxes measured on the art (Stage 8 balancing tool, unused:
+# CPU-against-CPU duels flipped from 15:0 to 0:21 with small changes, see docs/stage8.md)
 # Stage 5: one special move per fighter: motion 'qcf' (down, down-forward, forward) or 'charge'
 # (hold back 40 frames, then forward), button 'punch' or 'kick', dash = pixels per frame until the hit;
 # sheet = which of the 4 cells of assets/art/<fighter>/sp1.png each game frame shows; placeholder = frames

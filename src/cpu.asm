@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// Stage 7: the CPU opponent. It plays player 2 and only writes his virtual joystick (f_joy+1), exactly
+// Stage 7: the CPU opponent. It plays player 2 (Stage 8: either player, cpu_on per player) and only writes his virtual joystick (f_joy+1), exactly
 // like a human on joystick 2 (CLAUDE.md rule 9) - the fighter code does not know who is playing.
 // It reads the same game state a player sees: distance, the other fighter's state and move, its own
 // state. Move reaches come from the fighter data (mv_reach, measured on the art by make_assets.py), so
@@ -30,28 +30,31 @@ lv_rrange:  .byte 15, 7, 3      // ... plus random 0..range (mask)
 lv_think:   .byte 20, 10, 4     // pause after an action (random 0..value)
 lv_aggr:    .byte 90, 150, 200  // chance of 256 to attack when a move reaches
 
-cpu_on:     .byte 1             // 1: player 2 is the CPU (until joystick 2 is used on the selection screen)
-cpu_level:  .byte 1
-cpu_act:    .byte 0
-cpu_t:      .byte 0             // frames done in the current action
-cpu_len:    .byte 0             // length of the current action
-cpu_joy:    .byte 0             // attack: direction + button (forward resolved per frame: bit 7)
-cpu_react:  .byte 0             // frames until the CPU reacts to the attack it saw (0 = none pending)
-cpu_seen:   .byte 0             // the other fighter was attacking last frame
+cpu_on:     .byte 0, 1          // per player: 1 = CPU (player 2 until joystick 2 is used on the selection screen)
+cpu_level:  .byte 1, 1
+cpu_act:    .fill 2, 0
+cpu_t:      .fill 2, 0             // frames done in the current action
+cpu_len:    .fill 2, 0             // length of the current action
+cpu_joy:    .fill 2, 0             // attack: direction + button (forward resolved per frame: bit 7)
+cpu_react:  .fill 2, 0             // frames until the CPU reacts to the attack it saw (0 = none pending)
+cpu_seen:   .fill 2, 0             // the other fighter was attacking last frame
 cpu_dx:     .byte 0             // distance in pixels (255 = far)
 cpu_seed:   .byte $5a
 .const C_FWD = $80              // in cpu_joy: "forward", resolved by the facing
 
 // at the start of every round (game.asm)
 cpu_reset:
-    lda #A_IDLE
-    sta cpu_act
+    ldx #1
+!:  lda #A_IDLE
+    sta cpu_act,x
     lda #20
-    sta cpu_len
+    sta cpu_len,x
     lda #0
-    sta cpu_t
-    sta cpu_react
-    sta cpu_seen
+    sta cpu_t,x
+    sta cpu_react,x
+    sta cpu_seen,x
+    dex
+    bpl !-
     lda VIC_RASTER              // a little randomness from where the raster is
     eor cpu_seed
     ora #1
@@ -69,10 +72,16 @@ cpu_rnd:
 
 // once per frame in the fight, after the joysticks are read (main.asm)
 cpu_update:
-    lda cpu_on
+    ldx #1
+    jsr !one+
+    ldx #0
+!one:
+    lda cpu_on,x
     bne !+
     rts
-!:  ldx #CPU_P
+!:  txa
+    eor #1
+    sta cpu_opp
     lda #0
     sta f_joy,x
     lda g_input                 // rounds not running: hands off
@@ -97,7 +106,7 @@ cpu_update:
 !:  rts
 !ground:
     // (2) reaction to an attack of the other fighter
-    ldy #1 - CPU_P
+    ldy cpu_opp
     lda f_state,y
     cmp #ST_ATTACK
     beq !att+
@@ -107,32 +116,32 @@ cpu_update:
     bne !att+
 !na:
     lda #0
-    sta cpu_seen
+    sta cpu_seen,x
     beq !act+
 !att:
-    lda cpu_seen                // a new attack: the reaction time starts
+    lda cpu_seen,x                // a new attack: the reaction time starts
     bne !+
     lda #1
-    sta cpu_seen
+    sta cpu_seen,x
     lda cpu_dx
     cmp #110
     bcs !+
-    ldy cpu_level
+    ldy cpu_level,x
     jsr cpu_rnd
     and lv_rrange,y
     clc
     adc lv_react,y
-    sta cpu_react
-!:  lda cpu_react
+    sta cpu_react,x
+!:  lda cpu_react,x
     beq !act+
-    dec cpu_react
+    dec cpu_react,x
     bne !act+
-    ldy cpu_level               // reaction time over: block?
+    ldy cpu_level,x               // reaction time over: block?
     jsr cpu_rnd
     cmp lv_block,y
     bcs !act+
     lda #A_BACK                 // stand for mid and overhead moves, crouch for low ones
-    ldy #1 - CPU_P
+    ldy cpu_opp
     jsr cpu_movetab
     lda mv_height,y
     cmp #1
@@ -144,12 +153,12 @@ cpu_update:
     jsr cpu_start
 !act:
     // (3) the current action, or a new decision
-    lda cpu_t
-    cmp cpu_len
+    lda cpu_t,x
+    cmp cpu_len,x
     bcc !+
     jsr cpu_decide
-!:  inc cpu_t
-    lda cpu_act
+!:  inc cpu_t,x
+    lda cpu_act,x
     asl
     tay
     lda cpu_out,y
@@ -177,7 +186,7 @@ o_cback:
     sta f_joy,x
     rts
 o_atk:                          // 2 frames the direction alone (a crouch move needs the crouch first),
-    lda cpu_t                   // then 4 frames direction + button
+    lda cpu_t,x                   // then 4 frames direction + button
     cmp #2
     bcs !+
     jsr cpu_press
@@ -189,7 +198,7 @@ o_atk:                          // 2 frames the direction alone (a crouch move n
     jmp cpu_press
 !:  rts
 o_jump:
-    lda cpu_t
+    lda cpu_t,x
     cmp #3
     bcs !+
     jsr cpu_fwd
@@ -197,7 +206,7 @@ o_jump:
     sta f_joy,x
 !:  rts
 o_qcf:
-    lda cpu_t
+    lda cpu_t,x
     cmp #4
     bcs !+
     lda #JOY_DOWN
@@ -214,7 +223,7 @@ o_qcf:
     jmp cpu_press               // cpu_joy = forward + button
 !:  rts
 o_charge:
-    lda cpu_t
+    lda cpu_t,x
     cmp #CHARGE_T + 2
     bcs !+
     jsr cpu_back
@@ -228,7 +237,7 @@ o_charge:
 
 // cpu_joy (bit 7 = forward) -> f_joy
 cpu_press:
-    lda cpu_joy
+    lda cpu_joy,x
     bpl !+
     and #$7f
     sta tmp
@@ -254,10 +263,10 @@ cpu_back:
 
 // A = action, Y = length in frames
 cpu_start:
-    sta cpu_act
-    sty cpu_len
+    sta cpu_act,x
+    sty cpu_len,x
     lda #0
-    sta cpu_t
+    sta cpu_t,x
     rts
 
 // Y = (fighter type of fighter Y) * 16 + f_move,y  (index into the mv_* tables)
@@ -298,8 +307,8 @@ cpu_distance:
 
 // ---------------------------------------------------------------- decisions
 cpu_decide:
-    ldy cpu_level               // first a short pause (thinking time), then a real action
-    lda cpu_act
+    ldy cpu_level,x               // first a short pause (thinking time), then a real action
+    lda cpu_act,x
     cmp #A_IDLE
     beq !+
     jsr cpu_rnd
@@ -310,7 +319,7 @@ cpu_decide:
     iny
     lda #A_IDLE
     jmp cpu_start
-!:  ldy #1 - CPU_P              // the other fighter on the floor or getting up: come closer, wait
+!:  ldy cpu_opp              // the other fighter on the floor or getting up: come closer, wait
     lda f_state,y
     cmp #ST_KNOCK
     beq !down+
@@ -336,7 +345,7 @@ cpu_decide:
     jsr cpu_rnd
     bmi !g+
     lda #JOY_FIRE | C_FWD
-    sta cpu_joy
+    sta cpu_joy,x
     lda #A_ATK
     ldy #24
     jmp cpu_start
@@ -363,7 +372,7 @@ cpu_decide:
     ldy #14
     jmp cpu_start
 !mid:
-    ldy cpu_level               // in reach of an attack: attack (chance by level)
+    ldy cpu_level,x               // in reach of an attack: attack (chance by level)
     jsr cpu_rnd
     cmp lv_aggr,y
     bcs !noatk+
@@ -415,7 +424,7 @@ cpu_pick_attack:
     sta cpu_n
 !try:
     ldy cpu_i                   // reach of this move of our fighter
-    lda f_id+CPU_P
+    lda f_id,x
     asl
     asl
     asl
@@ -424,7 +433,11 @@ cpu_pick_attack:
     adc cpu_moves,y
     tay
     lda mv_reach,y
-    ldy f_id+1-CPU_P
+    sta cpu_tmp
+    ldy cpu_opp
+    lda f_id,y
+    tay
+    lda cpu_tmp
     clc
     adc ft_hurt_w,y
     sec
@@ -446,17 +459,17 @@ cpu_pick_attack:
     cmp #MOVE_SP1
     beq !sp+
     lda cpu_mjoy,y
-    sta cpu_joy
+    sta cpu_joy,x
     lda #A_ATK
     ldy #22
     jsr cpu_start
     sec
     rts
 !sp:
-    ldy f_id+CPU_P              // special: its motion and button from the fighter data
+    ldy f_id,x              // special: its motion and button from the fighter data
     lda ft_sp_button,y
     ora #C_FWD
-    sta cpu_joy
+    sta cpu_joy,x
     lda ft_sp_motion,y
     bne !ch+
     lda #A_QCF
@@ -474,4 +487,6 @@ cpu_pick_attack:
     sec
     rts
 cpu_i: .byte 0
+cpu_opp: .byte 0
+cpu_tmp: .byte 0
 cpu_n: .byte 0

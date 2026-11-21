@@ -47,7 +47,7 @@ select_enter:
     lda #MUS_TITLE
     jsr music_play
     jmp !a+                     // (the arena is already shown)
-!:  lda #0                      // from the title: the arena again
+!:  lda #PIC_RIO                // from the title: the arena again
     jsr show_picture
 !a: lda #M_SELECT
     sta g_mode
@@ -60,6 +60,20 @@ select_enter:
     jmp fighter_palettes
 
 versus_enter:
+    // Stage 8: the fight takes place in the home arena of player 2's fighter (the challenger visits
+    // player 1's opponent); in a mirror match the arena changes with every match. The versus screen
+    // already shows it.
+    ldy f_id+1
+    lda ft_home,y
+    ldy f_id
+    cpy f_id+1
+    bne !+
+    inc m_match
+    lda m_match
+    and #1
+!:  tay
+    lda arena_pic,y
+    jsr show_picture
     lda #M_VERSUS
     sta g_mode
     lda #0
@@ -99,7 +113,7 @@ m_title:
     and #JOY_FIRE | JOY_B2
     beq !+
     lda #0
-    sta cpu_on
+    sta cpu_on+CPU_P
 !:  lda m_press
     ora m_press+1
     and #JOY_FIRE | JOY_B2
@@ -115,10 +129,10 @@ m_title:
 m_select:
     lda m_press+1               // joystick 2 moved or pressed: a human player 2
     beq !+
-    lda cpu_on
+    lda cpu_on+CPU_P
     beq !+
     lda #0
-    sta cpu_on
+    sta cpu_on+CPU_P
     sta m_press+1               // this press only takes over the side
 !:  ldx #0
     jsr sel_player
@@ -149,22 +163,22 @@ sel_player:
     bne !anim+
     cpx #CPU_P                  // CPU level with up / down
     bne !+
-    lda cpu_on
+    lda cpu_on+CPU_P
     beq !+
     lda tmp
     and #JOY_UP | JOY_DOWN
     beq !+
     and #JOY_UP
     bne !up+
-    lda cpu_level
+    lda cpu_level+CPU_P
     cmp #2
     bcs !+
-    inc cpu_level
+    inc cpu_level+CPU_P
     bne !lv+
 !up:
-    lda cpu_level
+    lda cpu_level+CPU_P
     beq !+
-    dec cpu_level
+    dec cpu_level+CPU_P
 !lv:
     lda #SFX_BLOCK
     jsr sfx_play
@@ -283,9 +297,9 @@ sel_header:
     jmp !d+
 !:  cpx #CPU_P                  // Stage 7: "CPU EASY" / "CPU NORMAL" / "CPU HARD"
     bne !+
-    lda cpu_on
+    lda cpu_on+CPU_P
     beq !+
-    ldy cpu_level
+    ldy cpu_level+CPU_P
     lda cpu_txt_lo,y
     pha
     lda cpu_txt_hi,y
@@ -366,4 +380,6 @@ m_press: .fill 2, 0
 m_who:   .byte 0
 m_loading: .byte 0
 m_lock:  .byte 0
+m_match: .byte 0                // mirror matches so far (Stage 8)
+arena_pic: .byte PIC_RIO, PIC_ZOLL // arena number (ft_home) -> picture
 m_row:   .byte 0
