@@ -1,6 +1,6 @@
 # Stage 6 – Title, fighter selection, versus screen, music
 
-Test builds go to the owner as D81; the release goes to `releases/stage6/` when the stage is complete.
+Release files are in `releases/stage6/` (identical to test build 3, `WORLDFIGHT65-stage6c.d81`).
 
 ## What it does (6a/6b, test build 2026-11-19)
 - **Game flow** (`src/menu.asm`): title → fighter selection → versus screen → match (best of three) →
@@ -42,7 +42,8 @@ title, selection and versus screen), `AUTOTEST_KO` + `AUTOTEST_LONG` (a whole ma
 - Assembled: yes.
 - Emulator smoke test (XEMU): title, selection (incl. mirror match), versus, fight, match end → selection →
   next match; no crash with both music pieces playing. XEMU audio not judged.
-- Owner-confirmed on hardware: pending.
+- Owner-confirmed on hardware: **yes**, everything works as intended (2026-11-21). Owner decision: no
+  portraits - the fighter sprites on the selection and versus screens are good enough.
 
 ## Hardware checklist
 0. Right after RUN the title picture appears with "LOADING" and stays while the rest loads.

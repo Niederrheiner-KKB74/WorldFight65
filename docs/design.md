@@ -267,6 +267,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   Start-up (owner 2026-11-20, as in Vyper Stage 5d-1): the title picture loads first and stays visible with
   "LOADING" while the KERNAL loads the rest with interrupts on; no KERNAL output while it is visible (a load
   error switches back to the BASIC screen first, `screen_to_basic`).
+  No portraits (owner 2026-11-21): selection and versus screen show the fighter sprites.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 
