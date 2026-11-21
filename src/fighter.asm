@@ -1373,8 +1373,8 @@ f_q1:       .fill 2, 0              // Stage 5 QCF: frames left after down
 f_q2:       .fill 2, 0              //              after down-forward
 f_q3:       .fill 2, 0              //              after forward (the button may come now)
 f_chg:      .fill 2, 0              // Stage 5 charge: frames back has been held
-f_cwin:     .fill 2, 0
-f_bbuf:     .fill 2, 0              //                 frames left of the buffered special button              //                 frames left for forward + button after a charge
+f_cwin:     .fill 2, 0              //                 frames left for forward + button after a charge
+f_bbuf:     .fill 2, 0              //                 frames left of the buffered special button
 front_slot: .fill 2, 0              // slot (0/1) used by the shown buffer
 build_slot: .fill 2, 0              // slot (0/1) used by the buffer being built
 other:      .byte 0

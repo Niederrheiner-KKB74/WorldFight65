@@ -255,6 +255,7 @@ def fighters(gen, prev):
     import importlib
     tab, rows_first, rows_len, stats, moves, pals, mods = [], [], [], [], [], [], []
     all_rendered = []
+    reaches = []
     for fi, (fname, modname, attic) in enumerate(FIGHTERS):
         m = importlib.import_module(modname)
         mods.append(m)
@@ -293,6 +294,7 @@ def fighters(gen, prev):
             drawn = {a: [next(it) for _ in drawn[a]] for a in ANIMS}
         rendered = []
         art_boxes = []
+        reach_f = {}                    # Stage 7: how far each move reaches (for the CPU opponent)
         for a in ANIMS:
             rows_first.append(len(tab))
             rows_len.append(len(an[a]))
@@ -309,11 +311,22 @@ def fighters(gen, prev):
                 ticks = fr['ticks'] * m.STATS['walk_fwd'] if a == 'walk' else fr['ticks']
                 if not 0 < ticks < 256:
                     sys.exit(f'{fname}: {a} frame duration {ticks} out of range')
+                if fr['hit'] and a in MOVES:
+                    reach_f[a] = max(reach_f.get(a, -128), hb[1])
                 tab.append(dict(ofs=base + len(blob), glyphs=len(data) // 64, w=w, h=h, xofs=xofs, ytop=ytop,
                                 ticks=ticks, hit=1 if fr['hit'] else 0, hb=hb))
                 blob += data
         if art_boxes:
             print(f'  hit boxes from the art ({fname}): ' + '; '.join(art_boxes))
+        # the special dashes until its first active frame (at most into animation frame 3, fighter.asm)
+        pre = 0
+        for fr in an['sp1'][:3]:
+            if fr['hit']:
+                break
+            pre += fr['ticks']
+        reach_f['sp1'] = reach_f.get('sp1', 0) + m.SPECIAL['dash'] * pre
+        reaches.append([max(0, min(255, reach_f.get(k, 0))) for k in MOVES] + [0] * (MOVE_SLOTS - len(MOVES)))
+        print(f'  reach: ' + ', '.join(f'{k} {reach_f.get(k, 0)}' for k in MOVES))
         rows_first += [0] * (ANIM_SLOTS - len(ANIMS))
         rows_len += [0] * (ANIM_SLOTS - len(ANIMS))
         if len(blob) > 0x40000:
@@ -382,6 +395,7 @@ def fighters(gen, prev):
     t.append(bl('mv_push', mv(2)))
     t.append(bl('mv_height', mv(3)) + '   // 0 mid, 1 low, 2 overhead')
     t.append(bl('mv_knock', mv(4)))
+    t.append(bl('mv_reach', [r for rr in reaches for r in rr]) + '   // front of the hit box, px from the anchor (special: + dash)')
     for i, m in enumerate(mods):
         t.append(f'ftname_{i}: ' + text_bytes(m.NAME))
     t.append('name_lo: .byte ' + ', '.join(f'<ftname_{i}' for i in range(len(mods))))
@@ -449,7 +463,8 @@ TEXTS = {'txt_round1': 'ROUND 1', 'txt_round2': 'ROUND 2', 'txt_round3': 'ROUND 
          'txt_ko': 'K.O.', 'txt_time': 'TIME', 'txt_draw': 'DRAW', 'txt_wins': 'WINS',
          # Stage 6: title, fighter selection, versus screen
          'txt_title1': 'WORLDFIGHT', 'txt_title2': '65', 'txt_press': 'PRESS FIRE', 'txt_choose': 'CHOOSE',
-         'txt_fighter': 'YOUR FIGHTER', 'txt_p1': '1P', 'txt_p2': '2P', 'txt_ready': 'READY', 'txt_vs': 'VS', 'txt_loading': 'LOADING'}
+         'txt_fighter': 'YOUR FIGHTER', 'txt_p1': '1P', 'txt_p2': '2P', 'txt_ready': 'READY', 'txt_vs': 'VS', 'txt_loading': 'LOADING',
+         'txt_cpu0': 'CPU EASY', 'txt_cpu1': 'CPU NORMAL', 'txt_cpu2': 'CPU HARD'}
 
 
 def text_bytes(t):

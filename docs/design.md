@@ -193,7 +193,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 4 | final artwork for both fighters (new renderer), facial expressions, new win poses, hit and block sparks |
 | 5 | special moves, input buffer; sound effects (confirmed on hardware 2026-11-19) |
 | 6 | title (loading screen), fighter selection, versus screen, music, winner banner (confirmed on hardware 2026-11-21) |
-| 7 | CPU opponent |
+| 7 | CPU opponent (three levels) |
 | 8 | second arena, balancing, polish |
 | 9+ | one further fighter per stage as a loadable package, with its home arena |
 
@@ -268,6 +268,11 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   "LOADING" while the KERNAL loads the rest with interrupts on; no KERNAL output while it is visible (a load
   error switches back to the BASIC screen first, `screen_to_basic`).
   No portraits (owner 2026-11-21): selection and versus screen show the fighter sprites.
+- **CPU opponent** (Stage 7): plays player 2 by writing only his virtual joystick (`src/cpu.asm`); active
+  until joystick 2 is used (fire on the title, anything on the selection screen). Rule-based with reaction
+  time and chances per level (easy / normal / hard, chosen with up/down on the selection screen). Move
+  reaches come from the fighter data (`mv_reach` from make_assets: front of the hit box measured on the art,
+  for the special plus its dash), so new fighters need no CPU code.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

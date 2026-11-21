@@ -1,4 +1,4 @@
-# Memory map (Stage 6)
+# Memory map (Stage 7)
 
 All addresses are 28-bit physical addresses. The constants are defined once in `tools/make_assets.py`
 (written to `build/gen/layout.inc`); `src/layout.asm` checks that the regions do not overlap.
@@ -12,7 +12,7 @@ above) and returns to BASIC with X or RUN/STOP. BASIC's screen RAM, colour RAM `
 |---|---|
 | `$0002–$0037`, `$76–$79` | game zero page (`$1E` tmp2 since Stage 4b; `$76–$79` sound data pointer, Stage 5) (BASIC's `$02–$FF` is saved to `SAVED_ZP` and restored on exit) |
 | `$2001–$2010` | BASIC stub `BANK 0:SYS 8224` |
-| `$2020–$7A2B` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `MUSIC_ADDR`) |
+| `$2020–$8029` | code, tables, load buffer, palette buffer, HUD, font and spark glyph sources (guard: below `MUSIC_ADDR`) |
 | `$A000–$BFFF` | file `MUSIC` (Stage 5): sound effects; Stage 6: pieces `title` and `fight` (1,655 bytes in all) (≤ 8 KB, `tools/build_music.py`) |
 
 ## Chip RAM, banks 4/5

@@ -19,6 +19,7 @@
 .const M_SELECT = 1
 .const M_VERSUS = 2
 .const M_FIGHT  = 3
+.const CPU_P    = 1               // Stage 7: the CPU plays player 2 (cpu.asm)
 
 // ---------------------------------------------------------------- zero page ($02-$3f, saved and restored)
 .label back      = $02          // 0 = building buffer A, 1 = building buffer B
@@ -131,8 +132,12 @@ start:
     sta m_loading
     sta CIA1_DDRA                      // port A as input: joystick 2, no keyboard row selected
     sta CIA1_DDRB                      // port B as input: joystick 1 (both restored on exit)
+#if AUTOTEST && !AUTOTEST_CPU && !AUTOTEST_MENU_CPU
+    lda #0                             // scripted tests: no CPU unless AUTOTEST_CPU
+    sta cpu_on
+#endif
     jsr sound_init                     // before title_enter starts the music (Stage 5: sound effects SID 2 + 4)
-#if AUTOTEST && !AUTOTEST_MENU
+#if AUTOTEST && !AUTOTEST_MENU && !AUTOTEST_MENU_CPU
     lda #0                             // emulator tests of the fight start in the fight, in the arena
     jsr show_picture
     lda #M_FIGHT
@@ -154,11 +159,18 @@ main_loop:
 #if AUTOTEST
     jsr autotest_joy                   // test build: scripted joysticks (build.py --define AUTOTEST...)
     lda at_freeze
-    bne main_draw
+    beq !+
+    jmp main_draw
+!:
 #else
     jsr read_joysticks
     jsr spar_update                    // key T: one player attacks by himself (solo tests)
 #endif
+    lda g_mode                         // Stage 7: the CPU plays player 2 (writes f_joy+1 only)
+    cmp #M_FIGHT
+    bne !+
+    jsr cpu_update
+!:
     jsr game_update
     lda g_mode                         // Stage 6: the fighters only fight in the fight mode
     cmp #M_FIGHT
@@ -316,6 +328,27 @@ at_guard:  .byte 0
 at_script:
 #if AUTOTEST_INTRO
     AtEvent(60, $ff, 0)                                  // "ROUND 1" banner
+#elif AUTOTEST_MENU_CPU
+    // Stage 7: player 1 takes Konrad and the CPU's level "HARD"
+    AtEvent(80, JOY_FIRE, 0)
+    AtEvent(82, 0, 0)
+    AtEvent(100, JOY_RIGHT, 0)
+    AtEvent(102, 0, 0)
+    AtEvent(110, JOY_FIRE, 0)
+    AtEvent(112, 0, 0)
+    AtEvent(130, JOY_DOWN, 0)
+    AtEvent(132, 0, 0)
+    AtEvent(140, $ff, 0)
+#elif AUTOTEST_CPU
+    // Stage 7: player 1 stands still, then kicks now and then; the CPU (player 2) plays by itself
+    AtEvent(700, JOY_RIGHT, 0)
+    AtEvent(720, JOY_B2, 0)
+    AtEvent(722, 0, 0)
+    AtEvent(900, JOY_FIRE, 0)
+    AtEvent(902, 0, 0)
+    AtEvent(1100, JOY_B2 | JOY_DOWN, 0)
+    AtEvent(1104, 0, 0)
+    AtEvent(9000, $ff, 0)
 #elif AUTOTEST_MENU
     // Stage 6: title -> selection (player 1 takes Konrad, player 2 too: mirror match) -> versus -> fight
 #if AUTOTEST_MENU_T
@@ -470,6 +503,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "fx.asm"
 #import "sparring.asm"
 #import "menu.asm"
+#import "cpu.asm"
 #import "sound.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"

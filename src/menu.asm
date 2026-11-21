@@ -95,7 +95,12 @@ m_title:
     beq !l+
     dec m_lock
     rts
-!l: lda m_press
+!l: lda m_press+1               // Stage 7: fire on joystick 2 - a second player instead of the CPU
+    and #JOY_FIRE | JOY_B2
+    beq !+
+    lda #0
+    sta cpu_on
+!:  lda m_press
     ora m_press+1
     and #JOY_FIRE | JOY_B2
     beq !+
@@ -104,10 +109,18 @@ m_title:
     jmp select_enter
 !:  rts
 
-// Left / right changes the fighter, a button confirms (win pose). Once player 1 is ready, his joystick
-// also chooses for player 2 (solo tests until the CPU opponent of Stage 7).
+// Left / right changes the fighter, a button confirms (win pose). Player 2 is the CPU (Stage 7) until
+// joystick 2 is used here; once player 1 is ready, his joystick chooses the CPU's fighter, up / down its
+// level. With a human player 2, joystick 1 can still choose for him after player 1 is ready.
 m_select:
-    ldx #0
+    lda m_press+1               // joystick 2 moved or pressed: a human player 2
+    beq !+
+    lda cpu_on
+    beq !+
+    lda #0
+    sta cpu_on
+    sta m_press+1               // this press only takes over the side
+!:  ldx #0
     jsr sel_player
     ldx #1
     jsr sel_player
@@ -134,7 +147,28 @@ sel_player:
 !:  sta tmp
     lda m_ok,x
     bne !anim+
+    cpx #CPU_P                  // CPU level with up / down
+    bne !+
+    lda cpu_on
+    beq !+
     lda tmp
+    and #JOY_UP | JOY_DOWN
+    beq !+
+    and #JOY_UP
+    bne !up+
+    lda cpu_level
+    cmp #2
+    bcs !+
+    inc cpu_level
+    bne !lv+
+!up:
+    lda cpu_level
+    beq !+
+    dec cpu_level
+!lv:
+    lda #SFX_BLOCK
+    jsr sfx_play
+!:  lda tmp
     and #JOY_FIRE | JOY_B2
     beq !+
     lda #1
@@ -247,6 +281,17 @@ sel_header:
     lda #<txt_ready
     ldy #>txt_ready
     jmp !d+
+!:  cpx #CPU_P                  // Stage 7: "CPU EASY" / "CPU NORMAL" / "CPU HARD"
+    bne !+
+    lda cpu_on
+    beq !+
+    ldy cpu_level
+    lda cpu_txt_lo,y
+    pha
+    lda cpu_txt_hi,y
+    tay
+    pla
+    jmp !d+
 !:  lda p_txt_lo,x
     ldy p_txt_hi,x
 !d: sta tx_ptr
@@ -257,6 +302,8 @@ sel_header:
     jmp text_at
 p_txt_lo: .byte <txt_p1, <txt_p2
 p_txt_hi: .byte >txt_p1, >txt_p2
+cpu_txt_lo: .byte <txt_cpu0, <txt_cpu1, <txt_cpu2
+cpu_txt_hi: .byte >txt_cpu0, >txt_cpu1, >txt_cpu2
 
 // names in rows X/X+1, countries two rows below, centred over the fighters
 names_draw:

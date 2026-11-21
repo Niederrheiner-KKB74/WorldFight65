@@ -27,6 +27,7 @@ game_init:
     sta g_round
     // fall through
 round_start:
+    jsr cpu_reset               // Stage 7
     jsr round_init
     lda #99
     sta g_clock
