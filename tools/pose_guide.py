@@ -133,7 +133,11 @@ def other_anims(fighter):
         p = dict(air)
         p.update(kw)
         return p
-    if fighter == 'konrad':
+    if fighter == 'malee':         # Stage 10: wai - palms together in front of the chest, then a small bow
+        win = [P(lean=2, lead_elbow=(150, 112), lead_hand=(148, 84), rear_elbow=(132, 112), rear_hand=(146, 86)),
+               P(lean=16, lead_elbow=(156, 116), lead_hand=(156, 90), rear_elbow=(138, 116), rear_hand=(154, 92),
+                 hip=(120, 130))]
+    elif fighter == 'konrad':
         win = [P(lean=0, lead_elbow=(166, 66), lead_hand=(160, 36), rear_elbow=(84, 66), rear_hand=(90, 36)),
                P(lean=0, lead_elbow=(168, 64), lead_hand=(162, 32), rear_elbow=(82, 64), rear_hand=(88, 32),
                  hip=(122, 126))]                                  # double biceps
@@ -161,9 +165,44 @@ def other_anims(fighter):
     }
 
 
+# Stage 10: Malee, Muay Thai (jab, elbow, low kick, roundhouse; knee in the air; Khao Loi)
+POSES['malee'] = {
+    'lp': [P(lead_hand=(180, 72), lean=8),
+           P(lead_hand=(200, 64), lean=12, hip=(126, 128)),                     # jab at head height
+           P(lead_hand=(176, 76), lean=6)],
+    'hp': [P(rear_elbow=(112, 92), rear_hand=(120, 66), lean=-6, hip=(118, 128)),            # elbow drawn back
+           P(rear_elbow=(192, 72), rear_hand=(160, 58), lead_hand=(150, 96), lean=16, hip=(130, 130),
+             rear_foot=(94, 228), arrow=((130, 52), (186, 60))),                 # elbow strike (sok) at head height
+           P(rear_elbow=(176, 80), rear_hand=(150, 64), lean=10, hip=(128, 130)),            # follow-through
+           P(rear_hand=(150, 86), lean=6)],
+    'lk': [P(rear_foot=(118, 196), rear_knee=(150, 168), lean=-4, hip=(124, 128)),           # rear knee turns in
+           P(rear_foot=(226, 178), rear_knee=(184, 160), lean=-16, hip=(122, 128), lead_foot=(150, 231),
+             lead_hand=(162, 76), arrow=((160, 200), (222, 190))),               # low kick: shin to the thigh
+           P(rear_foot=(130, 222), lean=-4, hip=(122, 128))],
+    'hk': [P(rear_foot=(120, 186), rear_knee=(156, 150), lean=-6, hip=(126, 126)),           # rear knee rises
+           P(rear_foot=(226, 76), rear_knee=(182, 104), lean=-26, hip=(114, 124), lead_foot=(140, 231),
+             lead_hand=(150, 96), rear_hand=(92, 116), arrow=((150, 150), (214, 72))),   # roundhouse, shin at head
+           P(rear_foot=(176, 146), lean=-12, hip=(120, 126), lead_foot=(140, 231)),           # leg swings through
+           P(rear_foot=(116, 231), lean=0)],
+}
 for _f in POSES:
     POSES[_f].update(crouch_attacks())
     POSES[_f].update(other_anims(_f))
+
+POSES['malee']['j_k'] = [   # knee in the air: the rear knee drives up and forward
+    dict(squat=True, hip=(122, 126), lean=8, lead_foot=(150, 176), rear_foot=(108, 188), lead_hand=(166, 80),
+         rear_hand=(146, 86)),
+    dict(squat=True, hip=(124, 124), lean=-6, lead_foot=(104, 196), rear_knee=(194, 150), rear_foot=(150, 196),
+         lead_hand=(188, 82), rear_hand=(176, 90), arrow=((150, 190), (196, 156))),
+    dict(squat=True, hip=(122, 126), lean=8, lead_foot=(150, 176), rear_foot=(108, 188), lead_hand=(166, 80),
+         rear_hand=(146, 86))]
+POSES['malee']['sp1'] = [   # Khao Loi: takes off from the rear foot and flies knee first (4 drawn frames: 1, 2, 2, 3, 4)
+    P(hip=(118, 140), lean=14, rear_foot=(76, 231), lead_foot=(152, 231), lead_hand=(168, 84), rear_hand=(150, 92)),
+    dict(squat=True, hip=(126, 110), lean=-14, lead_foot=(96, 172), rear_knee=(184, 98), rear_foot=(140, 150),
+         lead_hand=(178, 50), rear_hand=(166, 58), arrow=((90, 214), (170, 120))),       # airborne, knee rising
+    dict(squat=True, hip=(136, 118), lean=-20, lead_foot=(104, 180), rear_knee=(206, 94), rear_foot=(160, 154),
+         lead_hand=(204, 62), rear_hand=(192, 70), arrow=((150, 74), (214, 86))),        # impact: knee at head height
+    P(hip=(124, 130), lean=6)]                                                           # landed, guard
 
 
 def fwd_angle(a, b):
