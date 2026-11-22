@@ -19,6 +19,7 @@
 .const M_SELECT = 1
 .const M_VERSUS = 2
 .const M_FIGHT  = 3
+.const M_WINNER = 4               // Stage 9: winner screen (menu.asm)
 .const PIC_RIO  = 0               // pictures in attic RAM (video.asm show_picture)
 .const PIC_TITLE = 1
 .const PIC_ZOLL = 2               // Stage 8
@@ -173,6 +174,10 @@ start:
     lda #M_FIGHT
     sta g_mode
     jsr game_init
+#if AUTOTEST_ROUND3
+    lda #3                             // Stage 9 test: the intro of round 3 ("FINAL ROUND")
+    sta g_round
+#endif
 #else
     jsr title_enter                    // Stage 6: title -> selection -> versus -> fight
 #endif
@@ -359,8 +364,8 @@ at_guard:  .byte 0
 .macro AtEvent(frame, j1, j2) { .word frame
     .byte j1, j2 }
 at_script:
-#if AUTOTEST_INTRO
-    AtEvent(60, $ff, 0)                                  // "ROUND 1" banner
+#if AUTOTEST_INTRO || AUTOTEST_ROUND3
+    AtEvent(80, $ff, 0)                                  // "ROUND 1" banner (Stage 9: from frame 35)
 #elif AUTOTEST_MENU_CPU
     // Stage 7: player 1 takes Konrad and the CPU's level "HARD"
     AtEvent(80, JOY_FIRE, 0)
@@ -426,7 +431,7 @@ at_script:
 #elif AUTOTEST_KO
     AtEvent(150, JOY_RIGHT, 0)                            // Tiago walks in, then keeps kicking
 #if AUTOTEST_LONG
-    AtEvent(1780, $ff, 0)                                // Stage 6: match won, selection, versus screen
+    AtEvent(1760, $ff, 0)                                // Stage 9: the winner screen
 #else
     AtEvent(620, $ff, 0)
 #endif

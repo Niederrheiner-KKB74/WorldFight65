@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MUSIC_PIECES = ['title', 'fight']                # order = MUS_* constants (Stage 6: fight, title, select, win)
+MUSIC_PIECES = ['title', 'fight', 'win']                # order = MUS_* constants (Stage 6: fight, title, select, win)
 MUSIC_ADDR = 0x0A000             # bank 0 behind the program, up to $BFFF (docs/memory_map.md)
 MUSIC_MAX = 0xC000 - MUSIC_ADDR
 SID_CLOCK = 1_000_000            # MEGA65 SID clock as emulated by XEMU (check the tuning on hardware: A-4 = 440 Hz)

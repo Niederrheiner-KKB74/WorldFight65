@@ -188,8 +188,19 @@ def fight():
                  [0, 2, 3, 5, 7, 9, 11, 12, 14], SAMBA)
 
 
+def win():
+    """Stage 9: short victory fanfare for the winner screen (C major, ~5 s, does not loop)"""
+    bars = [('C', [(0, 'G-4'), (2, 'G-4'), (3, 'G-4'), (4, 'C-5'), (8, 'E-5'), (10, 'D-5'), (12, 'E-5')]),
+            ('F', [(0, 'F-5'), (4, 'A-5'), (8, 'G-5'), (10, 'F-5'), (12, 'E-5'), (14, 'D-5')]),
+            ('G', [(0, 'D-5'), (2, 'E-5'), (4, 'F-5'), (6, 'G-5'), (8, 'B-5'), (12, 'D-6')]),
+            ('C', [(0, 'C-6'), (14, 'off')])]
+    m = piece('win', 'Vitoria (winner)', 6, 10, bars, 0, 'samba', 'brass', 4, [0, 3, 6, 10, 12])
+    m['loop'] = None
+    return m
+
+
 if __name__ == '__main__':
-    for name, m in (('title', title()), ('fight', fight())):
+    for name, m in (('title', title()), ('fight', fight()), ('win', win())):
         out = ROOT / 'music' / f'{name}.json'
         out.write_text(json.dumps(m, indent=1) + '\n')
         rows = sum(len(m['patterns'][p]) for p in m['order']['voice1'])

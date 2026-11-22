@@ -472,12 +472,13 @@ FONT5x7 = {
     '!': '00100 00100 00100 00100 00100 00000 00100', '.': '00000 00000 00000 00000 00000 01100 01100',
     '*': '00100 10101 01110 11111 01110 10101 00100', ' ': '00000 00000 00000 00000 00000 00000 00000',
 }
-TEXTS = {'txt_round1': 'ROUND 1', 'txt_round2': 'ROUND 2', 'txt_round3': 'ROUND 3', 'txt_fight': 'FIGHT!',
+TEXTS = {'txt_round1': 'ROUND 1', 'txt_round2': 'ROUND 2', 'txt_round3': 'FINAL ROUND', 'txt_fight': 'FIGHT!',
          'txt_ko': 'K.O.', 'txt_time': 'TIME', 'txt_draw': 'DRAW', 'txt_wins': 'WINS',
          # Stage 6: title, fighter selection, versus screen
          'txt_title1': 'WORLDFIGHT', 'txt_title2': '65', 'txt_press': 'PRESS FIRE', 'txt_choose': 'CHOOSE',
          'txt_fighter': 'YOUR FIGHTER', 'txt_p1': '1P', 'txt_p2': '2P', 'txt_ready': 'READY', 'txt_vs': 'VS', 'txt_loading': 'LOADING',
-         'txt_cpu0': 'CPU EASY', 'txt_cpu1': 'CPU NORMAL', 'txt_cpu2': 'CPU HARD'}
+         'txt_cpu0': 'CPU EASY', 'txt_cpu1': 'CPU NORMAL', 'txt_cpu2': 'CPU HARD',
+         'txt_winner': 'CHAMPION'}
 
 
 def text_bytes(t):

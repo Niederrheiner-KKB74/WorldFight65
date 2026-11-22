@@ -284,6 +284,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   45 px) flipped hard to Tiago 13 : 3 and 21 : 0. The hard CPU duel is a deterministic poke war decided by
   a few pixels and frames, not a measure of balance between humans, so the values stay as the owner
   confirmed them; balancing follows the owner's play experience.
+- **Polish** (Stage 9, owner 2026-11-22): quiet moment before the round banner, "FINAL ROUND" for round 3
+  and later, winner screen ("CHAMPION", name, country, win pose, fanfare "win") before the selection.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 

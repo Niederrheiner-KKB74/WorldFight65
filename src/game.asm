@@ -11,11 +11,18 @@
 .const G_TIMEUP  = 3
 .const G_MATCH   = 4
 .const SECOND    = 50           // frames per timer second
-.const INTRO_FIGHT = 90         // intro: "ROUND n" until this frame, then "FIGHT!"
+#if AUTOTEST && !AUTOTEST_INTRO && !AUTOTEST_ROUND3
+.const INTRO_BANNER = 1         // emulator test scripts keep the Stage 3-8 timing (input from frame 140)
+.const INTRO_FIGHT = 90
 .const INTRO_END = 140
+#else
+.const INTRO_BANNER = 35        // Stage 9: a moment of quiet, then "ROUND n" (round 3: "FINAL ROUND")
+.const INTRO_FIGHT = 125        // intro: "ROUND n" until this frame, then "FIGHT!"
+.const INTRO_END = 175
+#endif
 .const END_WIN   = 70           // after KO / time up: the winner celebrates from this frame
 .const END_NEXT  = 220          // ... and the next round starts here
-.const MATCH_END = 300
+.const MATCH_END = 170          // "<NAME> WINS" in the arena, then the winner screen (Stage 9)
 .const BANNER_ROW = 8
 
 game_init:
@@ -38,9 +45,8 @@ round_start:
     lda #G_INTRO
     sta g_state
     jsr g_timer0
-    ldx g_round                 // "ROUND n"
-    lda round_txt_lo-1,x
-    ldy round_txt_hi-1,x
+    lda #0                      // no banner yet (Stage 9: g_intro shows it at INTRO_BANNER)
+    tay
     jmp set_banner
 round_txt_lo: .byte <txt_round1, <txt_round2, <txt_round3
 round_txt_hi: .byte >txt_round1, >txt_round2, >txt_round3
@@ -78,7 +84,19 @@ gs_hi: .byte >g_intro, >g_fight, >g_end, >g_end, >g_match
 
 g_intro:
     lda g_timer
-    cmp #INTRO_FIGHT
+    cmp #INTRO_BANNER
+    bne !+
+    ldx g_round                 // "ROUND n", from round 3 on "FINAL ROUND"
+    cpx #3
+    bcc !r+
+    ldx #3
+    lda #SFX_SPECIAL            // the final round gets its own sound
+    jsr sfx_play
+    ldx #3
+!r: lda round_txt_lo-1,x
+    ldy round_txt_hi-1,x
+    jmp set_banner
+!:  cmp #INTRO_FIGHT
     bne !+
     lda #SFX_FIGHT              // Stage 5
     jsr sfx_play
@@ -224,7 +242,7 @@ g_match:
 #if AUTOTEST_CPUVS
     jmp game_init               // balancing test: next match at once
 #else
-    jmp select_enter            // Stage 6: back to the fighter selection
+    jmp winner_enter            // Stage 9: the winner screen, then the selection
 #endif
 !:  rts
 

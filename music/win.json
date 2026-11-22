@@ -1,0 +1,344 @@
+{
+ "format": "worldfight65-music-1",
+ "name": "Vitoria (winner)",
+ "tempo": 6,
+ "volume": 10,
+ "instruments": {
+  "lead": {
+   "wave": "pulse",
+   "attack": 0,
+   "decay": 9,
+   "sustain": 9,
+   "release": 5,
+   "pulse": 1300,
+   "pulse_sweep": 18,
+   "vibrato": {
+    "delay": 10,
+    "speed": 2,
+    "depth": 2
+   }
+  },
+  "brass": {
+   "wave": "saw",
+   "attack": 1,
+   "decay": 8,
+   "sustain": 10,
+   "release": 5,
+   "vibrato": {
+    "delay": 12,
+    "speed": 2,
+    "depth": 3
+   }
+  },
+  "arp_maj": {
+   "wave": "pulse",
+   "attack": 0,
+   "decay": 6,
+   "sustain": 6,
+   "release": 3,
+   "pulse": 900,
+   "pulse_sweep": 14,
+   "arpeggio": [
+    0,
+    4,
+    7,
+    12
+   ]
+  },
+  "arp_min": {
+   "wave": "pulse",
+   "attack": 0,
+   "decay": 6,
+   "sustain": 6,
+   "release": 3,
+   "pulse": 900,
+   "pulse_sweep": 14,
+   "arpeggio": [
+    0,
+    3,
+    7,
+    12
+   ]
+  },
+  "bass": {
+   "wave": "pulse",
+   "attack": 0,
+   "decay": 7,
+   "sustain": 5,
+   "release": 2,
+   "pulse": 2200,
+   "pulse_sweep": -20
+  },
+  "kick": {
+   "attack": 0,
+   "decay": 7,
+   "sustain": 0,
+   "release": 0,
+   "wave_table": [
+    [
+     "pulse",
+     "G-3"
+    ],
+    [
+     "triangle",
+     "C-3"
+    ],
+    [
+     "triangle",
+     "G-2"
+    ],
+    [
+     "triangle",
+     "D-2"
+    ],
+    [
+     "triangle",
+     "A-1"
+    ]
+   ]
+  },
+  "snare": {
+   "attack": 0,
+   "decay": 8,
+   "sustain": 0,
+   "release": 0,
+   "wave_table": [
+    [
+     "noise",
+     "C-7"
+    ],
+    [
+     "pulse",
+     "D-3"
+    ],
+    [
+     "noise",
+     "A-6"
+    ],
+    [
+     "noise",
+     "F-6"
+    ],
+    [
+     "noise",
+     "D-6"
+    ]
+   ]
+  },
+  "hat": {
+   "attack": 0,
+   "decay": 3,
+   "sustain": 0,
+   "release": 0,
+   "wave_table": [
+    [
+     "noise",
+     "C-7"
+    ]
+   ]
+  }
+ },
+ "patterns": {
+  "m0": [
+   "G-4 brass",
+   "...",
+   "G-4",
+   "G-4",
+   "C-5",
+   "...",
+   "...",
+   "...",
+   "E-5",
+   "...",
+   "D-5",
+   "...",
+   "E-5",
+   "...",
+   "...",
+   "..."
+  ],
+  "a1": [
+   "C-4 arp_maj",
+   "...",
+   "...",
+   "C-4 arp_maj",
+   "...",
+   "...",
+   "C-4 arp_maj",
+   "...",
+   "...",
+   "...",
+   "C-4 arp_maj",
+   "...",
+   "C-4 arp_maj",
+   "...",
+   "...",
+   "..."
+  ],
+  "b2": [
+   "C-4 kick",
+   "...",
+   "...",
+   "C-2 bass",
+   "C-4 snare",
+   "...",
+   "G-2 bass",
+   "...",
+   "C-4 kick",
+   "...",
+   "C-2 bass",
+   "C-3 bass",
+   "C-4 snare",
+   "...",
+   "C-4 hat",
+   "..."
+  ],
+  "m3": [
+   "F-5 brass",
+   "...",
+   "...",
+   "...",
+   "A-5",
+   "...",
+   "...",
+   "...",
+   "G-5",
+   "...",
+   "F-5",
+   "...",
+   "E-5",
+   "...",
+   "D-5",
+   "..."
+  ],
+  "a4": [
+   "F-4 arp_maj",
+   "...",
+   "...",
+   "F-4 arp_maj",
+   "...",
+   "...",
+   "F-4 arp_maj",
+   "...",
+   "...",
+   "...",
+   "F-4 arp_maj",
+   "...",
+   "F-4 arp_maj",
+   "...",
+   "...",
+   "..."
+  ],
+  "b5": [
+   "C-4 kick",
+   "...",
+   "...",
+   "F-2 bass",
+   "C-4 snare",
+   "...",
+   "C-3 bass",
+   "...",
+   "C-4 kick",
+   "...",
+   "F-2 bass",
+   "F-3 bass",
+   "C-4 snare",
+   "...",
+   "C-4 hat",
+   "..."
+  ],
+  "m6": [
+   "D-5 brass",
+   "...",
+   "E-5",
+   "...",
+   "F-5",
+   "...",
+   "G-5",
+   "...",
+   "B-5",
+   "...",
+   "...",
+   "...",
+   "D-6",
+   "...",
+   "...",
+   "..."
+  ],
+  "a7": [
+   "G-4 arp_maj",
+   "...",
+   "...",
+   "G-4 arp_maj",
+   "...",
+   "...",
+   "G-4 arp_maj",
+   "...",
+   "...",
+   "...",
+   "G-4 arp_maj",
+   "...",
+   "G-4 arp_maj",
+   "...",
+   "...",
+   "..."
+  ],
+  "b8": [
+   "C-4 kick",
+   "...",
+   "...",
+   "G-2 bass",
+   "C-4 snare",
+   "...",
+   "D-3 bass",
+   "...",
+   "C-4 kick",
+   "...",
+   "G-2 bass",
+   "G-3 bass",
+   "C-4 snare",
+   "...",
+   "C-4 hat",
+   "..."
+  ],
+  "m9": [
+   "C-6 brass",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "...",
+   "off",
+   "..."
+  ]
+ },
+ "order": {
+  "voice1": [
+   "m0",
+   "m3",
+   "m6",
+   "m9"
+  ],
+  "voice2": [
+   "a1",
+   "a4",
+   "a7",
+   "a1"
+  ],
+  "voice3": [
+   "b2",
+   "b5",
+   "b8",
+   "b2"
+  ]
+ },
+ "loop": null
+}

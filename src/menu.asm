@@ -42,7 +42,7 @@ title_enter:
 select_enter:
     jsr menu_hold
     lda g_mode                  // back from a match: the title music again
-    cmp #M_FIGHT
+    cmp #M_WINNER
     bne !+
     lda #MUS_TITLE
     jsr music_play
@@ -86,6 +86,56 @@ versus_enter:
     lda #SFX_SPECIAL
     jmp sfx_play
 
+// Stage 9: winner screen - the winner alone in the middle of the arena in his win pose, "CHAMPION",
+// name and country, a short fanfare; a button (after WIN_LOCK frames) or WIN_TIME frames: the selection.
+.const WIN_LOCK = 75
+.const WIN_TIME = 255
+winner_enter:
+    jsr menu_hold
+    lda #M_WINNER
+    sta g_mode
+    lda #0
+    sta m_timer
+    sta fx_on
+    ldx g_winner
+    stx w_who
+    lda #<160                   // the winner in the middle, facing right
+    sta f_x_lo,x
+    lda #>160
+    sta f_x_hi,x
+    lda #0
+    sta f_y,x
+    sta f_facing,x
+    lda #ST_WIN
+    jsr set_state
+    txa                         // the loser leaves the screen (clipped by the pixie emitter)
+    eor #1
+    tax
+    lda #<500
+    sta f_x_lo,x
+    lda #>500
+    sta f_x_hi,x
+    lda #ST_IDLE
+    jsr set_state
+    lda #MUS_WIN
+    jmp music_play
+
+m_winner:
+    ldx w_who
+    jsr anim_step
+    lda m_timer
+    cmp #WIN_TIME
+    bcs !go+
+    cmp #WIN_LOCK
+    bcc !+
+    lda m_press
+    ora m_press+1
+    and #JOY_FIRE | JOY_B2
+    beq !+
+!go:
+    jmp select_enter
+!:  rts
+
 // once per frame, from game_update while g_mode != M_FIGHT
 menu_update:
     ldx #1                      // button and direction edges of both ports
@@ -102,7 +152,10 @@ menu_update:
     beq m_title
     cpy #M_SELECT
     beq m_select
-    jmp m_versus
+    cpy #M_WINNER
+    bne !+
+    jmp m_winner
+!:  jmp m_versus
 
 m_title:
     lda m_lock
@@ -263,7 +316,10 @@ menu_draw:
     jmp text_centre
 !r: rts
 md_menu:
-    cmp #M_SELECT
+    cmp #M_WINNER
+    bne !+
+    jmp winner_draw
+!:  cmp #M_SELECT
     bne !vs+
     lda #<txt_choose
     ldy #>txt_choose
@@ -286,6 +342,40 @@ md_menu:
     ldy #>txt_vs
     ldx #2
     jmp text_centre
+
+winner_draw:
+    lda #<txt_winner
+    ldy #>txt_winner
+    ldx #1
+    jsr text_centre
+    ldx w_who
+    ldy f_id,x
+    lda name_lo,y
+    sta tx_ptr
+    lda name_hi,y
+    sta tx_ptr+1
+    lda #160
+    ldx #4
+    jsr text_at
+    ldx w_who
+    ldy f_id,x
+    lda country_lo,y
+    sta tx_ptr
+    lda country_hi,y
+    sta tx_ptr+1
+    lda #160
+    ldx #6
+    jsr text_at
+    lda m_timer                 // "PRESS FIRE" once a button counts
+    cmp #WIN_LOCK
+    bcc !+
+    and #32
+    bne !+
+    lda #<txt_press
+    ldy #>txt_press
+    ldx #21
+    jmp text_centre
+!:  rts
 
 // "1P" / "2P" above player X, or "READY" once he has chosen
 sel_header:
@@ -380,6 +470,7 @@ m_press: .fill 2, 0
 m_who:   .byte 0
 m_loading: .byte 0
 m_lock:  .byte 0
+w_who:   .byte 0                 // the winner (Stage 9)
 m_match: .byte 0                // mirror matches so far (Stage 8)
 arena_pic: .byte PIC_RIO, PIC_ZOLL // arena number (ft_home) -> picture
 m_row:   .byte 0
