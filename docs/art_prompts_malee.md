@@ -7,7 +7,7 @@ Ablage der fertigen Sheets in `assets/art/malee/`, Rohbilder in `assets/art/sour
 ## block (1 Frame)
 ```
 Edit the attached master sprite of Malee: keep the character exactly as she is - the same face, ponytail, headband, armbands, wraps, costume, the same colours, the same pixel-art style and the same scale. Only the pose changes.
-Pose: standing block, Muay Thai style. Same stance and feet as in the master. Both forearms raised high and close together in front of her face (the wrapped fists at forehead height, elbows tight in front of the chest), chin tucked, eyes looking over the forearms; the lead knee lifted slightly as a shin check is NOT wanted - both feet stay on the ground.
+Pose: standing block, Muay Thai style. Same stance and feet as in the master. Both forearms raised high and close together in front of her face (the wrapped fists at forehead height, elbows tight in front of the chest), chin tucked, eyes looking over the forearms. Both feet stay flat on the ground (no raised knee).
 Output: one 256 x 256 px cell (or any square size), solid flat magenta background #FF00FF, no shadow, no text. No magenta, pink or purple on the character. Facing right, soles at y = 239, exactly as big as in the master.
 ```
 
