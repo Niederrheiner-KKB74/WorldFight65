@@ -72,6 +72,16 @@ capoeira trousers, a green and yellow cord belt with tassels, barefoot.
 Light, springy, flowing movements.
 ```
 
+Malee (Stage 10, third fighter):
+```
+Character: Malee, an athletic Thai female Muay Thai fighter (nak muay), slim but strong and muscular, long
+black hair tied back in a high ponytail; a red and gold mongkhon (sacred braided headband ring) on her head
+and red pra jiad armbands around both upper arms; a red sports crop top, traditional red Muay Thai shorts
+with a wide gold waistband (no lettering), white hand wraps (no gloves), barefoot with white ankle wraps.
+A realistic athletic sports outfit like a real competitor - not revealing, not sexualised. Exactly as tall
+as the other fighters, the slimmest and quickest of them. Fast, sharp movements with knees and elbows.
+```
+
 ## Animation blocks
 
 Frame counts are fixed by the game (`assets/source/fighter_<name>.py`). In attacks, frame 2 is the moment of

@@ -25,3 +25,15 @@ No people, no text, no letters, no signs with writing, no logo, no watermark, no
 Anhang (optional, für den gleichen Stil): das Rio-Bild `assets/art/arena/rio_source.png` mit dem Zusatz
 „Use the attached picture only as a reference for the pixel-art style, colour depth and composition (floor
 height, calm sky at the top), not for its content.“
+
+## Malee – Wat Arun, Bangkok (`watarun_source.png`)
+```
+A 16-bit era arcade fighting game stage background in detailed pixel art (Street Fighter II / Neo Geo style), landscape 16:10, side view, no characters.
+Location: Bangkok, Thailand, at dusk on the bank of the Chao Phraya river. Left of the centre, across the river, the famous temple Wat Arun (Temple of Dawn): its tall central prang tower with steep stepped tiers decorated with coloured porcelain, flanked by smaller prangs, softly lit in warm golden light, exactly as the real landmark. On the far bank a few traditional Thai roofs with steep layered gables in red and gold, palm trees, a distant row of city lights. On the calm river a few small lantern reflections; no boats in front.
+Sky: calm evening sky from deep violet at the top to warm orange and pink near the horizon, a few soft clouds; keep the top fifth of the picture calm and free of bright details.
+Foreground floor (the bottom quarter of the picture): a wide wooden riverside pier deck of dark teak planks running horizontally across the whole width in an even, repeating pattern, with a low red-and-gold wooden railing only at the far edge of the deck towards the river. Nothing standing on the floor.
+Large, clear shapes, big areas of flat colour with simple dithering rather than fine noise or tiny details; strong dark outlines; the same art style and lighting mood as a classic 1990s arcade fighter stage.
+No people, no text, no letters, no signs with writing, no logo, no watermark, no border, no UI.
+```
+Anhang (optional, für den gleichen Stil): `assets/art/arena/rio_source.png` mit dem Zusatzsatz wie bei
+Zollverein.
