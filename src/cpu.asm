@@ -22,6 +22,7 @@
 .const A_JUMP   = 5             // jump forward
 .const A_QCF    = 6             // down, down-forward, forward + button
 .const A_CHARGE = 7             // down-back CHARGE_T + 2 frames, then forward + button
+.const A_QCB    = 8             // Stage 10: down, down-back, back + button
 
 // level tables: [easy, normal, hard]
 lv_block:   .byte 70, 140, 210  // block chance of 256 when an attack is seen
@@ -168,7 +169,7 @@ cpu_update:
 !jmp:
     jmp $ffff
 
-cpu_out: .word o_idle, o_fwd, o_back, o_cback, o_atk, o_jump, o_qcf, o_charge
+cpu_out: .word o_idle, o_fwd, o_back, o_cback, o_atk, o_jump, o_qcf, o_charge, o_qcb
 
 o_idle:
     rts
@@ -233,6 +234,26 @@ o_charge:
 !:  cmp #CHARGE_T + 6
     bcs !+
     jmp cpu_press
+!:  rts
+
+o_qcb:
+    lda cpu_t,x
+    cmp #4
+    bcs !+
+    lda #JOY_DOWN
+    sta f_joy,x
+    rts
+!:  cmp #8
+    bcs !+
+    jsr cpu_back
+    ora #JOY_DOWN
+    sta f_joy,x
+    rts
+!:  cmp #11
+    bcs !+
+    jsr cpu_back
+    ora cpu_joy,x               // back + button (cpu_joy holds only the button here)
+    sta f_joy,x
 !:  rts
 
 // cpu_joy (bit 7 = forward) -> f_joy
@@ -471,6 +492,16 @@ cpu_pick_attack:
     ora #C_FWD
     sta cpu_joy,x
     lda ft_sp_motion,y
+    cmp #2
+    bne !+
+    lda ft_sp_button,y          // QCB: only the button, the direction is "back"
+    sta cpu_joy,x
+    lda #A_QCB
+    ldy #40
+    jsr cpu_start
+    sec
+    rts
+!:  cmp #0
     bne !ch+
     lda #A_QCF
     ldy #40

@@ -260,6 +260,8 @@ picture_copy:                   // A: PIC_RIO, PIC_TITLE or PIC_ZOLL (main.asm)
     beq !t+
     cmp #PIC_ZOLL
     beq !z+
+    cmp #PIC_WAT
+    beq !w+
     RunDma(job_agfx)
     RunDma(job_amap)
     rts
@@ -269,6 +271,9 @@ picture_copy:                   // A: PIC_RIO, PIC_TITLE or PIC_ZOLL (main.asm)
 !z: RunDma(job_zgfx)            // Stage 8: Zeche Zollverein
     RunDma(job_zmap)
     rts
+!w: RunDma(job_wgfx)            // Stage 10: Wat Arun
+    RunDma(job_wmap)
+    rts
 .const PIC_MAP_BYTES = MAP_PAL_BYTES + 2 * BUF_BYTES
 job_agfx: DmaJob(DMA_CMD_COPY, ATTIC_AGFX, ARENA_GFX, 1000 * 64)
 job_amap: DmaJob(DMA_CMD_COPY, ATTIC_AMAP, ARENA_MAP, PIC_MAP_BYTES)
@@ -276,4 +281,6 @@ job_tgfx: DmaJob(DMA_CMD_COPY, ATTIC_TGFX, ARENA_GFX, 1000 * 64)
 job_tmap: DmaJob(DMA_CMD_COPY, ATTIC_TMAP, ARENA_MAP, PIC_MAP_BYTES)
 job_zgfx: DmaJob(DMA_CMD_COPY, ATTIC_ZGFX, ARENA_GFX, 1000 * 64)
 job_zmap: DmaJob(DMA_CMD_COPY, ATTIC_ZMAP, ARENA_MAP, PIC_MAP_BYTES)
+job_wgfx: DmaJob(DMA_CMD_COPY, ATTIC_WGFX, ARENA_GFX, 1000 * 64)
+job_wmap: DmaJob(DMA_CMD_COPY, ATTIC_WMAP, ARENA_MAP, PIC_MAP_BYTES)
 .errorif PIC_MAP_BYTES != 8848, "picture map size"

@@ -49,12 +49,15 @@ L = dict(
     COLOUR_B=0x2400,
     ATTIC_F1=0x8000000,       # fighter packages in attic RAM (256 KB each)
     ATTIC_F2=0x8040000,
-    ATTIC_TGFX=0x8080000,     # Stage 6: pictures kept in attic RAM and copied to ARENA_GFX / ARENA_MAP
-    ATTIC_TMAP=0x8090000,     #   title picture
-    ATTIC_AGFX=0x80A0000,     #   arena
-    ATTIC_AMAP=0x80B0000,
-    ATTIC_ZGFX=0x80C0000,     #   Stage 8: second arena (Zeche Zollverein)
-    ATTIC_ZMAP=0x80D0000,
+    ATTIC_F3=0x8080000,       # Stage 10: Malee (fighters live in the first MB: frame offsets have 20 bits)
+    ATTIC_TGFX=0x8200000,     # Stage 6: pictures kept in attic RAM and copied to ARENA_GFX / ARENA_MAP
+    ATTIC_TMAP=0x8210000,     #   title picture (Stage 10: moved up from $8080000 for the third fighter)
+    ATTIC_AGFX=0x8220000,     #   arena Rio
+    ATTIC_AMAP=0x8230000,
+    ATTIC_ZGFX=0x8240000,     #   Stage 8: second arena (Zeche Zollverein)
+    ATTIC_ZMAP=0x8250000,
+    ATTIC_WGFX=0x8260000,     #   Stage 10: third arena (Wat Arun, Bangkok)
+    ATTIC_WMAP=0x8270000,
     ATTIC_PACK=0x8700000,     # Stage 10: packed files are loaded here, then unpacked (src/unpack.asm)
     ARENA_COLOURS=176,        # palette entries 0..175 belong to the arena
     FIGHTER_BANK=12,          # fighter 1: bank 12, fighter 2: bank 13
@@ -145,6 +148,13 @@ def zollverein(gen, prev):
     return picture(img, 'A-ZOLL', gen, prev / 'arena_zollverein.png')
 
 
+def watarun(gen, prev):
+    """Stage 10: Malee's home arena, Wat Arun in Bangkok (owner's generator picture)"""
+    img = Image.open(ROOT / 'assets' / 'art' / 'arena' / 'watarun_source.png').convert('RGB').resize(
+        (320, 200), Image.BOX)
+    return picture(img, 'A-WAT', gen, prev / 'arena_watarun.png')
+
+
 def title(gen, prev):
     """Stage 6: the owner's title picture, same format as an arena (shown on the title screen)"""
     src = ROOT / 'assets' / 'art' / 'title' / 'title_source.png'
@@ -232,7 +242,8 @@ def picture(img, name, gen, preview, method=Image.Quantize.MEDIANCUT):
 
 
 # ------------------------------------------------------------------ fighters
-FIGHTERS = [('F-TIAGO', 'fighter_tiago', 'ATTIC_F1'), ('F-KONRAD', 'fighter_konrad', 'ATTIC_F2')]
+FIGHTERS = [('F-TIAGO', 'fighter_tiago', 'ATTIC_F1'), ('F-KONRAD', 'fighter_konrad', 'ATTIC_F2'),
+            ('F-MALEE', 'fighter_malee', 'ATTIC_F3')]
 ANIMS = ['idle', 'walk', 'lp', 'hp', 'lk', 'hk', 'hit', 'crouch', 'c_lp', 'c_lk', 'sweep', 'block', 'c_block',
          'jump', 'j_p', 'j_k', 'fall', 'getup', 'win', 'sp1']
 MOVES = ['lp', 'hp', 'lk', 'hk', 'c_lp', 'c_lk', 'sweep', 'j_p', 'j_k', 'sp1']
@@ -397,7 +408,7 @@ def fighters(gen, prev):
     t.append(bl('ft_crouch_h', [-x['crouch_top'] for x in stats]) + '   // height of the crouching hurt box')
 
     sp = [importlib.import_module(modname).SPECIAL for _, modname, _ in FIGHTERS]
-    t.append(bl('ft_sp_motion', [{'qcf': 0, 'charge': 1}[x['motion']] for x in sp]) + '   // 0 QCF, 1 charge')
+    t.append(bl('ft_sp_motion', [{'qcf': 0, 'charge': 1, 'qcb': 2}[x['motion']] for x in sp]) + '   // 0 QCF, 1 charge, 2 QCB')
     t.append(bl('ft_sp_button', [{'punch': 0x10, 'kick': 0x20}[x['button']] for x in sp]) + '   // JOY_FIRE / JOY_B2')
     t.append(bl('ft_sp_dash', [x['dash'] for x in sp]) + '   // pixels per frame until the hit')
 
@@ -415,7 +426,7 @@ def fighters(gen, prev):
     t.append('name_hi: .byte ' + ', '.join(f'>ftname_{i}' for i in range(len(mods))))
     for i, m in enumerate(mods):
         t.append(f'ftcountry_{i}: ' + text_bytes(m.COUNTRY))
-    t.append(bl('ft_home', [m.HOME_ARENA for m in mods]) + '   // home arena: 0 Rio, 1 Zollverein')
+    t.append(bl('ft_home', [m.HOME_ARENA for m in mods]) + '   // home arena: 0 Rio, 1 Zollverein, 2 Wat Arun')
     t.append('country_lo: .byte ' + ', '.join(f'<ftcountry_{i}' for i in range(len(mods))))
     t.append('country_hi: .byte ' + ', '.join(f'>ftcountry_{i}' for i in range(len(mods))))
     # Stage 6: palettes per fighter type [type * 16 + colour]; the second set is the mirror-match colour
@@ -593,6 +604,7 @@ def main():
     (gen / 'layout.inc').write_text('\n'.join(inc) + '\n')
     n, pal = arena(gen, prev)
     zollverein(gen, prev)
+    watarun(gen, prev)
     title(gen, prev)
     tab, mods = fighters(gen, prev)
     nfont = font(gen, prev)

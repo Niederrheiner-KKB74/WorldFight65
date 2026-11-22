@@ -196,6 +196,8 @@ unpack_selftest:
     CheckRegion(ATTIC_ZGFX, CK_A_ZOLL_GFX_SIZE, CK_A_ZOLL_GFX_SUM)
     CheckRegion(ATTIC_F1, CK_F_TIAGO_SIZE, CK_F_TIAGO_SUM)
     CheckRegion(ATTIC_F2, CK_F_KONRAD_SIZE, CK_F_KONRAD_SUM)
+    CheckRegion(ATTIC_F3, CK_F_MALEE_SIZE, CK_F_MALEE_SUM)
+    CheckRegion(ATTIC_WGFX, CK_A_WAT_GFX_SIZE, CK_A_WAT_GFX_SUM)
     lda #5                      // green
     ldx ck_fail
     beq !+

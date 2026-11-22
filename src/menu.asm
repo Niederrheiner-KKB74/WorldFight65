@@ -68,9 +68,12 @@ versus_enter:
     ldy f_id
     cpy f_id+1
     bne !+
-    inc m_match
+    inc m_match                 // mirror match: Rio, Zollverein, Wat Arun in turn
     lda m_match
-    and #1
+!m: cmp #ARENA_COUNT
+    bcc !+
+    sbc #ARENA_COUNT
+    bcs !m-
 !:  tay
     lda arena_pic,y
     jsr show_picture
@@ -472,5 +475,6 @@ m_loading: .byte 0
 m_lock:  .byte 0
 w_who:   .byte 0                 // the winner (Stage 9)
 m_match: .byte 0                // mirror matches so far (Stage 8)
-arena_pic: .byte PIC_RIO, PIC_ZOLL // arena number (ft_home) -> picture
+arena_pic: .byte PIC_RIO, PIC_ZOLL, PIC_WAT   // arena number (ft_home) -> picture
+
 m_row:   .byte 0

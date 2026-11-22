@@ -27,8 +27,8 @@ import build_music    # noqa: E402
 KICKASS_SHA256 = '5d8544280dae2d018c79151d8c7b877eca1fb994096e54ca380b26d0cd79f847'
 PRG_NAME = 'WORLDFIGHT'
 DISK_NAME = 'WORLDFIGHT65.D81'
-PACKED = {'F-TIAGO', 'F-KONRAD', 'A-RIO-GFX', 'A-ZOLL-GFX', 'T-TITLE-GFX'}   # Stage 10: "WZ" format (tools/lzpack.py)
-DATA_FILES = ['A-RIO-GFX', 'A-RIO-MAP', 'A-ZOLL-GFX', 'A-ZOLL-MAP', 'T-TITLE-GFX', 'T-TITLE-MAP', 'F-TIAGO', 'F-KONRAD', 'MUSIC']   # SEQ files, loaded by src/main.asm
+PACKED = {'F-TIAGO', 'F-KONRAD', 'F-MALEE', 'A-RIO-GFX', 'A-ZOLL-GFX', 'A-WAT-GFX', 'T-TITLE-GFX'}   # Stage 10: "WZ" format (tools/lzpack.py)
+DATA_FILES = ['A-RIO-GFX', 'A-RIO-MAP', 'A-ZOLL-GFX', 'A-ZOLL-MAP', 'A-WAT-GFX', 'A-WAT-MAP', 'T-TITLE-GFX', 'T-TITLE-MAP', 'F-TIAGO', 'F-KONRAD', 'F-MALEE', 'MUSIC']   # SEQ files, loaded by src/main.asm
 
 
 def find_kickass(arg):

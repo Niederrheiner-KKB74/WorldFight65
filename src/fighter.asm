@@ -503,6 +503,12 @@ motion_track:
 !:  lda f_cwin,x
     beq !+
     dec f_cwin,x
+!:  lda f_qb2,x                 // Stage 10: quarter circle back
+    beq !+
+    dec f_qb2,x
+!:  lda f_qb3,x
+    beq !+
+    dec f_qb3,x
 !:  lda f_dir
     ldy f_down,x
     beq !up+
@@ -512,14 +518,28 @@ motion_track:
     sta f_q1,x
     bne !chg+
 !:  cmp #1                      // down-forward after down
-    bne !chg+
+    bne !db+
     lda f_q1,x
     beq !chg+
     lda #Q_WIN
     sta f_q2,x
     bne !chg+
+!db:
+    lda f_q1,x                  // down-back after down (Stage 10, QCB)
+    beq !chg+
+    lda #Q_WIN
+    sta f_qb2,x
+    bne !chg+
 !up:
-    cmp #1                      // forward after down-forward (or right after down: diagonal skipped)
+    cmp #2                      // back after down-back or right after down (QCB)
+    bne !+
+    lda f_qb2,x
+    ora f_q1,x
+    beq !chg+
+    lda #Q3_WIN
+    sta f_qb3,x
+    bne !chg+
+!:  cmp #1                      // forward after down-forward (or right after down: diagonal skipped)
     bne !chg+
     lda f_q2,x
     ora f_q1,x
@@ -551,7 +571,13 @@ special_check:
     lda f_bbuf,x                // button pressed within the last BTN_BUF frames
     beq !no+
     lda ft_sp_motion,y
+    beq !qcf+
+    cmp #2
     bne !chg+
+    lda f_qb3,x                 // QCB (Stage 10)
+    beq !no+
+    bne !go+
+!qcf:
     lda f_q3,x
     beq !no+
     bne !go+
@@ -564,6 +590,8 @@ special_check:
 !go:
     lda #0
     sta f_bbuf,x
+    sta f_qb2,x
+    sta f_qb3,x
     sta f_q1,x
     sta f_q2,x
     sta f_q3,x
@@ -1374,6 +1402,8 @@ f_q2:       .fill 2, 0              //              after down-forward
 f_q3:       .fill 2, 0              //              after forward (the button may come now)
 f_chg:      .fill 2, 0              // Stage 5 charge: frames back has been held
 f_cwin:     .fill 2, 0              //                 frames left for forward + button after a charge
+f_qb2:      .fill 2, 0              // Stage 10 QCB: frames left after down-back
+f_qb3:      .fill 2, 0              //               after back (the button may come now)
 f_bbuf:     .fill 2, 0              //                 frames left of the buffered special button
 front_slot: .fill 2, 0              // slot (0/1) used by the shown buffer
 build_slot: .fill 2, 0              // slot (0/1) used by the buffer being built

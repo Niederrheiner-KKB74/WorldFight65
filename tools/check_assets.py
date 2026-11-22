@@ -53,7 +53,7 @@ def main():
                 errors.append(f'arena map row {r} token {t}: char ${ch:x} outside the arena glyphs')
                 break
     inc = (GEN / 'assets.inc').read_text()
-    files = [(GEN / 'F-TIAGO.bin').read_bytes(), (GEN / 'F-KONRAD.bin').read_bytes()]
+    files = [(GEN / f'{n}.bin').read_bytes() for n in ('F-TIAGO', 'F-KONRAD', 'F-MALEE')]   # in attic order
     pkg = c['ATTIC_F2'] - c['ATTIC_F1']
     lo, hi, bk = table(inc, 'frame_ofs_lo'), table(inc, 'frame_ofs_hi'), table(inc, 'frame_ofs_bk')
     blo, bhi = table(inc, 'frame_bytes_lo'), table(inc, 'frame_bytes_hi')

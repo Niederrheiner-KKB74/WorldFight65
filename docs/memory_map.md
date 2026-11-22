@@ -50,12 +50,15 @@ Planned (not used yet): effect glyphs for specials, samples.
 |---|---|
 | `$8000000–$803FFFF` | fighter package 1, Tiago (file `F-TIAGO`, Stage 4: 55 frames, 164,800 bytes); the first byte is also the attic-RAM test cell |
 | `$8040000–$807FFFF` | fighter package 2, Konrad (file `F-KONRAD`, Stage 4: 55 frames, 167,488 bytes) |
-| `$8080000–$808F9FF` | title picture glyphs (file `T-TITLE-GFX`, Stage 6) |
-| `$8090000–$8092290` | title picture map (file `T-TITLE-MAP`) |
-| `$80A0000–$80AF9FF` | arena picture glyphs (file `A-RIO-GFX`; copied to `$40000` for the fight, Stage 6) |
-| `$80B0000–$80B2290` | arena picture map (file `A-RIO-MAP`; copied to `$58800`) |
-| `$80C0000–$80CF9FF` | second arena glyphs (file `A-ZOLL-GFX`, Zeche Zollverein, Stage 8) |
-| `$80D0000–$80D2290` | second arena map (file `A-ZOLL-MAP`) |
+| `$8080000–$80BFFFF` | fighter package 3, Malee (file `F-MALEE`, Stage 10). Fighter packages must stay in the first MB: frame offsets have 20 bits |
+| `$8200000–$820F9FF` | title picture glyphs (file `T-TITLE-GFX`; Stage 10: moved up from `$8080000`) |
+| `$8210000–$8212290` | title picture map (file `T-TITLE-MAP`) |
+| `$8220000–$822F9FF` | arena Rio glyphs (file `A-RIO-GFX`) |
+| `$8230000–$8232290` | arena Rio map (file `A-RIO-MAP`) |
+| `$8240000–$824F9FF` | arena Zollverein glyphs (file `A-ZOLL-GFX`, Stage 8) |
+| `$8250000–$8252290` | arena Zollverein map (file `A-ZOLL-MAP`) |
+| `$8260000–$826F9FF` | arena Wat Arun glyphs (file `A-WAT-GFX`, Stage 10) |
+| `$8270000–$8272290` | arena Wat Arun map (file `A-WAT-MAP`) |
 | `$8700000–$873FFFF` | Stage 10: packed files are loaded here and unpacked to their place (fighter packages, picture glyphs; `src/unpack.asm`) |
 
 ## VIC-IV configuration

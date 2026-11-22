@@ -23,6 +23,8 @@
 .const PIC_RIO  = 0               // pictures in attic RAM (video.asm show_picture)
 .const PIC_TITLE = 1
 .const PIC_ZOLL = 2               // Stage 8
+.const PIC_WAT  = 3               // Stage 10
+.const ARENA_COUNT = 3            // arenas (menu.asm arena_pic)
 .const CPU_P    = 1               // Stage 7: the CPU plays player 2 (cpu.asm)
 
 // ---------------------------------------------------------------- zero page ($02-$3f, saved and restored)
@@ -148,6 +150,21 @@ start:
 !:  UnpackTo(ATTIC_F2)                    // Stage 10: unpack into place
     bcc !+
     jmp exit_to_basic
+!:  LoadFile(name_f3, name_f3_end - name_f3, ATTIC_PACK, $400)        // Stage 10: Malee
+    bcc !+
+    jmp exit_to_basic
+!:  UnpackTo(ATTIC_F3)
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_wgfx, name_wgfx_end - name_wgfx, ATTIC_PACK, $400)  // Stage 10: Wat Arun
+    bcc !+
+    jmp exit_to_basic
+!:  UnpackTo(ATTIC_WGFX)
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_wmap, name_wmap_end - name_wmap, ATTIC_WMAP, 35)
+    bcc !+
+    jmp exit_to_basic
 !:  LoadFile(name_music, name_music_end - name_music, MUSIC_ADDR, (MUSIC_BYTES + 255) / 256)   // Stage 5
     bcc !+
     jmp exit_to_basic
@@ -179,6 +196,10 @@ start:
 #endif
     sta cpu_level
     sta cpu_level+1
+#if AUTOTEST_MALEE
+    lda #2                             // Stage 10: Malee as player 2
+    sta f_id+1
+#endif
 #if AUTOTEST_SWAP
     lda #1                             // Konrad as player 1, Tiago as player 2
     sta f_id
@@ -549,6 +570,12 @@ name_zgfx: .text "A-ZOLL-GFX,S,R"
 name_zgfx_end:
 name_zmap: .text "A-ZOLL-MAP,S,R"
 name_zmap_end:
+name_f3:   .text "F-MALEE,S,R"
+name_f3_end:
+name_wgfx: .text "A-WAT-GFX,S,R"
+name_wgfx_end:
+name_wmap: .text "A-WAT-MAP,S,R"
+name_wmap_end:
 name_tgfx: .text "T-TITLE-GFX,S,R"
 name_tgfx_end:
 name_tmap: .text "T-TITLE-MAP,S,R"
