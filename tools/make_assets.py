@@ -55,6 +55,7 @@ L = dict(
     ATTIC_AMAP=0x80B0000,
     ATTIC_ZGFX=0x80C0000,     #   Stage 8: second arena (Zeche Zollverein)
     ATTIC_ZMAP=0x80D0000,
+    ATTIC_PACK=0x8700000,     # Stage 10: packed files are loaded here, then unpacked (src/unpack.asm)
     ARENA_COLOURS=176,        # palette entries 0..175 belong to the arena
     FIGHTER_BANK=12,          # fighter 1: bank 12, fighter 2: bank 13
     HUD_BANK=15,

@@ -76,7 +76,7 @@ start:
     jmp print
     // Stage 6 (as in Vyper Stage 5d-1): the title picture is loaded first and shown while the rest loads.
     // Pictures live in attic RAM and are copied into the chip-RAM picture area when a screen needs them.
-!:  LoadFile(name_tgfx, name_tgfx_end - name_tgfx, ATTIC_TGFX, 252)
+!:  LoadFile(name_tgfx, name_tgfx_end - name_tgfx, ATTIC_PACK, 252)   // packed (Stage 10)
     bcc !+
     rts                                // failed: message printed, back to BASIC
 !:  LoadFile(name_tmap, name_tmap_end - name_tmap, ATTIC_TMAP, 35)
@@ -98,7 +98,10 @@ start:
     RunDma(job_hud)                    // energy bar glyphs
     RunDma(job_font)                   // 16x16 font
     RunDma(job_fx)                     // hit and block sparks
-    jsr fighters_init                  // f_id and slots (the palettes need them)
+    UnpackTo(ATTIC_TGFX)               // Stage 10: the title glyphs (zero page is ours now)
+    bcc !+
+    jmp exit_to_basic
+!:  jsr fighters_init                  // f_id and slots (the palettes need them)
     jsr wait_vblank
     jsr video_init
     lda #1                             // the title picture with "LOADING"
@@ -115,28 +118,43 @@ start:
     lda #1                             // a load error first switches back to the BASIC screen
     sta ld_title
     cli                                // the KERNAL loads the rest under the title (IRQ on, no KERNAL output)
-    LoadFile(name_agfx, name_agfx_end - name_agfx, ATTIC_AGFX, 252)
+    LoadFile(name_agfx, name_agfx_end - name_agfx, ATTIC_PACK, $400)
     bcc !+
     jmp exit_to_basic                  // failed: the message is on the BASIC screen behind the title
+!:  UnpackTo(ATTIC_AGFX)                    // Stage 10: unpack into place
+    bcc !+
+    jmp exit_to_basic
 !:  LoadFile(name_amap, name_amap_end - name_amap, ATTIC_AMAP, 35)
     bcc !+
     jmp exit_to_basic
-!:  LoadFile(name_zgfx, name_zgfx_end - name_zgfx, ATTIC_ZGFX, 252)   // Stage 8: second arena
+!:  LoadFile(name_zgfx, name_zgfx_end - name_zgfx, ATTIC_PACK, $400)   // Stage 8: second arena
+    bcc !+
+    jmp exit_to_basic
+!:  UnpackTo(ATTIC_ZGFX)                    // Stage 10: unpack into place
     bcc !+
     jmp exit_to_basic
 !:  LoadFile(name_zmap, name_zmap_end - name_zmap, ATTIC_ZMAP, 35)
     bcc !+
     jmp exit_to_basic
-!:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_F1, $400)
+!:  LoadFile(name_f1, name_f1_end - name_f1, ATTIC_PACK, $400)
     bcc !+
     jmp exit_to_basic
-!:  LoadFile(name_f2, name_f2_end - name_f2, ATTIC_F2, $400)
+!:  UnpackTo(ATTIC_F1)                    // Stage 10: unpack into place
+    bcc !+
+    jmp exit_to_basic
+!:  LoadFile(name_f2, name_f2_end - name_f2, ATTIC_PACK, $400)
+    bcc !+
+    jmp exit_to_basic
+!:  UnpackTo(ATTIC_F2)                    // Stage 10: unpack into place
     bcc !+
     jmp exit_to_basic
 !:  LoadFile(name_music, name_music_end - name_music, MUSIC_ADDR, (MUSIC_BYTES + 255) / 256)   // Stage 5
     bcc !+
     jmp exit_to_basic
 !:  sei
+#if AUTOTEST_UNPACK
+    jsr unpack_selftest
+#endif
     lda #0
     sta ld_title
     sta m_loading
@@ -229,6 +247,16 @@ main_draw:
     jmp !d+
 !:  jsr menu_draw
 !d:
+#if AUTOTEST_UNPACK
+    lda #<txt_ready                    // unpack self-test: "READY" = all regions correct, "DRAW" = mismatch
+    ldy #>txt_ready
+    ldx ck_fail
+    beq !+
+    lda #<txt_draw
+    ldy #>txt_draw
+!:  ldx #12
+    jsr text_centre
+#endif
     jmp main_loop
 
 // Virtual joysticks: bits 0-4 from the CIA (active high), bit 5 = button 2 from the POT X line
@@ -548,6 +576,7 @@ msg_attic: .text "WORLDFIGHT65 NEEDS ATTIC RAM (MEGA65 R3 OR NEWER)."
 #import "sparring.asm"
 #import "menu.asm"
 #import "cpu.asm"
+#import "unpack.asm"
 #import "sound.asm"
 #import "../build/gen/assets.inc"
 #import "../build/gen/texts.inc"

@@ -196,7 +196,8 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 7 | CPU opponent (three levels) (confirmed on hardware 2026-11-21) |
 | 8 | second arena (Zeche Zollverein), balancing check (confirmed on hardware 2026-11-22) |
 | 9 | polish: winner screen, "FINAL ROUND", pause before the round banner (confirmed on hardware 2026-11-22) |
-| 9+ | one further fighter per stage as a loadable package, with its home arena |
+| 10 | compression of the packages and pictures; third fighter Malee (Thailand) with the arena Wat Arun |
+| 11+ | one further fighter per stage as a loadable package, with its home arena |
 
 ## 12. Decisions log
 - **Versus fighter, not a scrolling beat 'em up** (owner, 2026-11-14): static backgrounds keep the engine
@@ -286,6 +287,13 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
   confirmed them; balancing follows the owner's play experience.
 - **Polish** (Stage 9, owner 2026-11-22): quiet moment before the round banner, "FINAL ROUND" for round 3
   and later, winner screen ("CHAMPION", name, country, win pose, fanfare "win") before the selection.
+- **Compression** (Stage 10, owner 2026-11-22): fighter packages and picture glyphs are packed with an
+  LZ4-like format ("WZ", `tools/lzpack.py`, round trip checked at build time) and unpacked once after
+  loading into their attic-RAM place (`src/unpack.asm`, 32-bit flat pointers), while the title is shown.
+  Fighters shrink to about a third (Tiago 181 -> 64 KB, Konrad 170 -> 57 KB), pictures to 58-75 %. At run
+  time nothing changes. Self-test build `AUTOTEST_UNPACK` sums every unpacked region against the originals.
+- **Third fighter** (owner 2026-11-22): Malee, a Muay Thai fighter from Thailand; home arena Wat Arun,
+  Bangkok; special move Khao Loi (flying knee), quarter circle back + kick.
 - **Theme: a "world championship"** (owner, 2026-11-15): the fighters show typical traits of different
   continents and countries.
 
