@@ -195,7 +195,7 @@ saved at start and restored on exit (`system.asm` from ShooterMega65).
 | 6 | title (loading screen), fighter selection, versus screen, music, winner banner (confirmed on hardware 2026-11-21) |
 | 7 | CPU opponent (three levels) (confirmed on hardware 2026-11-21) |
 | 8 | second arena (Zeche Zollverein), balancing check (confirmed on hardware 2026-11-22) |
-| 9 | polish: winner screen, "FINAL ROUND", pause before the round banner |
+| 9 | polish: winner screen, "FINAL ROUND", pause before the round banner (confirmed on hardware 2026-11-22) |
 | 9+ | one further fighter per stage as a loadable package, with its home arena |
 
 ## 12. Decisions log

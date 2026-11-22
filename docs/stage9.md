@@ -1,6 +1,6 @@
 # Stage 9 – Polish
 
-Test builds go to the owner as D81; the release goes to `releases/stage9/` when the stage is confirmed.
+Release files are in `releases/stage9/` (identical to the test build `WORLDFIGHT65-stage9a.d81`).
 
 ## What it does (test build 9a)
 - **Pause before the round banner:** each round starts with a moment of quiet (0.7 s), then "ROUND n",
@@ -16,7 +16,7 @@ Test builds go to the owner as D81; the release goes to `releases/stage9/` when 
 - Assembled: yes.
 - Emulator smoke test (XEMU): "FINAL ROUND" banner (round 3), winner screen after a match, then the
   selection.
-- Owner-confirmed on hardware: pending.
+- Owner-confirmed on hardware: **yes** (2026-11-22), pause, fanfare and timing stay as they are.
 
 ## Hardware checklist
 1. Round start: short pause, then "ROUND 1" / "ROUND 2", then "FIGHT!".
