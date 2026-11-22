@@ -1,6 +1,6 @@
 # Stage 8 – Second arena, balancing, polish
 
-Test builds go to the owner as D81; the release goes to `releases/stage8/` when the stage is confirmed.
+Release files are in `releases/stage8/` (identical to the test build `WORLDFIGHT65-stage8a.d81`).
 
 ## What it does (test build 8a)
 - **Zeche Zollverein, Essen** – Konrad's home arena from the owner's generator picture
@@ -26,7 +26,8 @@ Test builds go to the owner as D81; the release goes to `releases/stage8/` when 
 - Assembled: yes.
 - Emulator smoke test (XEMU): Zollverein on the versus screen and in the fight (mirror match); CPU, menus
   and title unchanged.
-- Owner-confirmed on hardware: pending.
+- Owner-confirmed on hardware: **yes** (2026-11-22). Polish (winner screen, "FINAL ROUND", pause before the
+  round banner) follows in Stage 9.
 
 ## Hardware checklist
 1. Tiago (1P) against Konrad (2P/CPU): versus screen and fight at Zeche Zollverein.
