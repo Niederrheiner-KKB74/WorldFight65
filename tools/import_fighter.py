@@ -149,10 +149,13 @@ def strike_box(mask, box, margin=8, width=14, min_h=10):
 def import_anims(art_dir, ref_idle, counts):
     """{anim: [(rgb, mask)]} for every assets/art/<fighter>/<anim>.png; counts = {anim: frames expected}"""
     art_dir = Path(art_dir)
-    if not (art_dir / 'idle.png').exists():
+    if not (art_dir / 'idle.png').exists() and not (art_dir / 'master.png').exists():
         return {}
     scale, ref_x = fit(art_dir, ref_idle)
     out = {}
+    if not (art_dir / 'idle.png').exists():     # Stage 10: a new fighter stands like her master until her idle
+        rgb, m, _ = place(cells(art_dir / 'master.png')[0], scale, ref_x)
+        out['idle'] = [(rgb, m)] * counts['idle']
     for png in sorted(art_dir.glob('*.png')):
         a = png.stem
         if a == 'master':
